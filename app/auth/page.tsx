@@ -171,8 +171,7 @@ export default function AuthPage() {
         )}
 
         <p className="mt-12 text-center text-xs text-muted">
-          One page for sign in, registration and password recovery — merged from three separate
-          screens in the original sitemap.
+          A single, streamlined page for sign in, registration, and password recovery.
         </p>
       </div>
     </main>
