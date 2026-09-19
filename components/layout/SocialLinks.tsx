@@ -26,7 +26,7 @@ export function SocialLinks({
   const iconButton = ICON_BUTTON_BY_TONE[tone];
 
   return (
-    <div className={`flex items-center gap-1 ${className}`}>
+    <div className={`flex items-center gap-4 ${className}`}>
       <WhatsAppConnect variant="icon" triggerClassName={iconButton} iconClassName={ICON_SIZE} />
       {PLACEHOLDER_SOCIALS.map(({ label, href, Icon }) => (
         <a key={label} href={href} aria-label={label} className={iconButton}>
