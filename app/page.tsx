@@ -90,11 +90,21 @@ export default function Home() {
           sizes="100vw"
           priority
         />
-        <div className="relative z-10 flex min-h-[480px] flex-col justify-end bg-gradient-to-t from-ink/80 via-ink/10 to-transparent p-8 md:min-h-[560px] md:p-16">
-          <h1 className="mx-auto max-w-xl text-center text-4xl text-cream md:mx-0 md:text-left md:text-6xl">
+        {/* Two stacked scrims: a bottom-heavy vertical wash for mobile's
+            centered text, plus a left-anchored horizontal wash so desktop's
+            left-aligned text always sits on a dark ground regardless of
+            what's directly behind it in the photo (Owen: "text clashes with
+            the image" — a single top gradient wasn't enough since the
+            subject's light jacket sits right where the headline lands). */}
+        <div className="absolute inset-0 z-[1] bg-gradient-to-t from-ink/90 via-ink/45 to-transparent" />
+        <div className="absolute inset-0 z-[1] hidden bg-gradient-to-r from-ink/80 via-ink/25 to-transparent md:block" />
+        <div className="relative z-10 flex min-h-[480px] flex-col justify-end p-8 md:min-h-[560px] md:p-16">
+          <h1
+            className="mx-auto max-w-xl text-center text-4xl text-cream [text-shadow:0_2px_16px_rgb(0_0_0_/_65%)] md:mx-0 md:text-left md:text-6xl"
+          >
             Where every stitch is a work of art.
           </h1>
-          <p className="mx-auto mt-6 max-w-lg text-center text-base text-cream/90 md:mx-0 md:text-left">
+          <p className="mx-auto mt-6 max-w-lg text-center text-base text-cream/95 [text-shadow:0_1px_10px_rgb(0_0_0_/_70%)] md:mx-0 md:text-left">
             Bespoke and made-to-measure tailoring, Nairobi. Cut from your own pattern, fitted in
             person, kept on record for the next one.
           </p>
