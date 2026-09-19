@@ -16,10 +16,21 @@ export type TaifaPayEnv = "sandbox" | "production";
 
 export class TaifaPayError extends Error {
   status?: number;
-  constructor(message: string, status?: number) {
+  /**
+   * True only when `message` came from TaifaPay's own API response (a real
+   * business-level rejection, e.g. a bad account reference) and is safe to
+   * show a customer as-is. Every other failure here — token/auth plumbing,
+   * a non-JSON response, a redirect landing on the wrong page — is an
+   * infra detail a customer should never see verbatim; callers must fall
+   * back to a generic message for those. Defaults to false so a new call
+   * site can't accidentally leak an internal error by forgetting to set it.
+   */
+  customerSafe: boolean;
+  constructor(message: string, status?: number, customerSafe = false) {
     super(message);
     this.name = "TaifaPayError";
     this.status = status;
+    this.customerSafe = customerSafe;
   }
 }
 
@@ -161,18 +172,25 @@ async function taifaPayFetch<T>(path: string, init: RequestInit = {}): Promise<T
 
   if (!res.ok) {
     let message = `TaifaPay request failed (${res.status}).`;
+    let customerSafe = false;
     let bodyText = "";
     try {
       bodyText = await res.clone().text();
       const body = JSON.parse(bodyText) as { message?: string };
-      if (body?.message) message = body.message;
+      if (body?.message) {
+        message = body.message;
+        // A parsed JSON error body from TaifaPay's own invoice/transaction
+        // API is a genuine business rejection (bad reference, expired
+        // invoice, etc.) — safe to show the customer as-is.
+        customerSafe = true;
+      }
     } catch {
-      // ignore — non-JSON error body
+      // Non-JSON error body — likely an infra page, not a real API error.
     }
     console.error(
       `[taifapay] request failed: path=${path} status=${res.status} body=${bodyText.slice(0, 500)}`,
     );
-    throw new TaifaPayError(message, res.status);
+    throw new TaifaPayError(message, res.status, customerSafe);
   }
 
   try {

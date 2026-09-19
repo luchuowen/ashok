@@ -143,8 +143,16 @@ export async function POST(request: NextRequest) {
       "[checkout/create-invoice] createInvoice failed:",
       error instanceof Error ? `${error.name}: ${error.message}` : error,
     );
+    // Only ever show the customer a message that came from TaifaPay's own
+    // API as a real business rejection (see TaifaPayError.customerSafe) —
+    // anything else here is an infra/integration detail (auth plumbing, an
+    // unexpected non-JSON response, a redirect into the wrong page) that
+    // would confuse a customer and expose implementation details for no
+    // benefit. The technical detail is already logged above for staff.
     const message =
-      error instanceof TaifaPayError ? error.message : "Could not start payment. Try again.";
+      error instanceof TaifaPayError && error.customerSafe
+        ? error.message
+        : "We couldn't start your payment just now — please try again in a moment, or contact us if it keeps happening.";
     return NextResponse.json({ ok: false, error: message }, { status: 502 });
   }
 }

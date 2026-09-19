@@ -188,14 +188,30 @@ export async function listCustomers(limit = 50): Promise<Customer[]> {
   return snap.docs.map((doc) => doc.data() as Customer);
 }
 
-export async function searchCustomersByPhone(query: string, limit = 20): Promise<Customer[]> {
+// Staff type phone numbers in whatever format is on hand (07XX..., 7XX...,
+// or the full 254XXXXXXXXX a customer record is actually keyed by) — a raw
+// digit prefix match against the stored `phone` field (always 254-prefixed,
+// see normalizeKenyanMobile) silently returns nothing for the exact
+// "07XX XXX XXX" format the search field's own placeholder suggests.
+// Normalize the query the same way a phone is normalized before storing,
+// tolerating a partial/in-progress number, so the prefix search below
+// actually lines up with what's stored.
+function normalizeSearchPrefix(query: string): string {
   const digits = query.replace(/[^\d]/g, "");
-  if (!digits) return [];
+  if (digits.startsWith("254")) return digits;
+  if (digits.startsWith("0")) return `254${digits.slice(1)}`;
+  if (digits.startsWith("7") || digits.startsWith("1")) return `254${digits}`;
+  return digits;
+}
+
+export async function searchCustomersByPhone(query: string, limit = 20): Promise<Customer[]> {
+  const prefix = normalizeSearchPrefix(query);
+  if (!prefix) return [];
   const snap = await adminDb()
     .collection(COLLECTIONS.customers)
     .orderBy("phone")
-    .startAt(digits)
-    .endAt(`${digits}`)
+    .startAt(prefix)
+    .endAt(`${prefix}`)
     .limit(limit)
     .get();
   return snap.docs.map((doc) => doc.data() as Customer);

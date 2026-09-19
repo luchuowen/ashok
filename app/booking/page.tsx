@@ -1,7 +1,8 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useAuthSession } from "@/app/auth-context";
 import { Section } from "@/components/ui/Section";
 import { TitleBand } from "@/components/ui/TitleBand";
 import { FormGrid } from "@/components/ui/FormGrid";
@@ -33,11 +34,20 @@ export default function BookingPage() {
 function BookingForm() {
   const searchParams = useSearchParams();
   const typeParam = searchParams.get("type");
+  const { phone: sessionPhone } = useAuthSession();
   const [selectedType, setSelectedType] = useState<string | null>(preselectedType(typeParam));
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [phone, setPhone] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Signed-in customers shouldn't have to retype the number their account
+  // is keyed by — prefill it, same pattern as /checkout. A guest booking
+  // still works; only the number they type links the record.
+  useEffect(() => {
+    if (sessionPhone) setPhone((prev) => prev || sessionPhone);
+  }, [sessionPhone]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -123,6 +133,8 @@ function BookingForm() {
                   name="phone"
                   type="tel"
                   required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
                 />
               </FormField>
@@ -173,10 +185,13 @@ function BookingForm() {
                 Ridgeways, Nairobi. You&rsquo;ll get a WhatsApp confirmation with a map link and
                 reminder the day before.
               </p>
-              <div className="mt-6 flex justify-center">
+              <p className="mt-6 text-center text-xs uppercase tracking-wide text-muted">
+                Prefer not to use the form?
+              </p>
+              <div className="mt-2 flex justify-center">
                 <WaCTA
-                  label="Confirm via WhatsApp"
-                  message={`Hi, I'd like to confirm my ${selectedType ?? "consultation"} booking for ${selectedSlot ?? "a time this week"} at Ridgeways.`}
+                  label="Book via WhatsApp Instead"
+                  message={`Hi, I'd like to book a ${selectedType ?? "consultation"} for ${selectedSlot ?? "a time this week"} at Ridgeways.`}
                 />
               </div>
             </div>
