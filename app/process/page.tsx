@@ -17,14 +17,16 @@ const steps = [
     week: "Day 0",
     image: "/photos/home/consultation-desk.jpg" as string | undefined,
     imageLabel: "IMG-45 · consultation desk",
+    caption: "Fig. 01 — the consultation desk",
   },
   {
     number: "02",
     name: "Measurements",
     body: "A dedicated session, entered once, kept on your record for every order after this one.",
     week: "Day 0–3",
-    image: "/photos/home/canvas-basting.jpg" as string | undefined,
-    imageLabel: "IMG-03 · canvas & basting",
+    image: "/photos/home/measurement-session.jpg" as string | undefined,
+    imageLabel: "IMG-46 · measurement session",
+    caption: "Fig. 02 — taking the shoulder measurement",
   },
   {
     number: "03",
@@ -33,6 +35,7 @@ const steps = [
     week: "Week 1–2",
     image: "/photos/home/cutting-table.jpg" as string | undefined,
     imageLabel: "IMG-02 · cutting table",
+    caption: "Fig. 03 — the cutting table",
   },
   {
     number: "04",
@@ -41,6 +44,7 @@ const steps = [
     week: "Week 2–3",
     image: "/photos/home/fitting-session.jpg" as string | undefined,
     imageLabel: "IMG-04 · fitting session",
+    caption: "Fig. 04 — first fitting, marked",
   },
   {
     number: "05",
@@ -49,6 +53,7 @@ const steps = [
     week: "Week 3–4",
     image: "/photos/portfolio/charcoal-three-piece.jpg" as string | undefined,
     imageLabel: "IMG-47 · finished garment",
+    caption: "Fig. 05 — ready to collect",
   },
 ];
 
@@ -72,12 +77,11 @@ export default function ProcessPage() {
 
       {/* Alternating steps — each its own full-bleed band so the
           cream/white alternation runs edge to edge, not just inside the
-          max-w-6xl column. Odd steps sit on white (bg-paper) instead of
-          the page's default cream, breaking up what was one long beige
-          field. The image column is now ~58% of the row (was a fixed
-          320-380px next to a much wider text column) so it actually reads
-          as the visual lead instead of an afterthought floating in empty
-          space. */}
+          max-w-6xl column. The text column now sizes to its own content
+          (max-w-sm) instead of reserving a fixed 38% of the row, so the
+          image — a "framed plate": a paper mat, an oxblood corner number
+          tab, and an italic caption underneath — claims all the width
+          that's left instead of stopping at an arbitrary column edge. */}
       {steps.map((step, index) => (
         <Section key={step.number} className={index % 2 === 1 ? "bg-paper" : ""}>
           <div
@@ -85,7 +89,7 @@ export default function ProcessPage() {
               index % 2 === 1 ? "sm:flex-row-reverse" : "sm:flex-row"
             }`}
           >
-            <div className="text-center sm:w-[38%] sm:flex-shrink-0 sm:text-left">
+            <div className="text-center sm:max-w-sm sm:flex-none sm:text-left">
               <p className="text-sm italic text-oxblood">{step.number}</p>
               <h3 className="mt-2 text-3xl">{step.name}</h3>
               <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-muted sm:mx-0">{step.body}</p>
@@ -93,14 +97,24 @@ export default function ProcessPage() {
                 <Tag variant={index === steps.length - 1 ? "stage" : "default"}>{step.week}</Tag>
               </div>
             </div>
-            <Photo
-              src={step.image}
-              label={step.imageLabel}
-              alt={step.name}
-              aspectRatio="3 / 2"
-              className="w-full sm:flex-1"
-              sizes="(min-width: 640px) 58vw, 100vw"
-            />
+
+            <div className="relative w-full sm:flex-1">
+              <div className="absolute -top-3.5 left-3 z-10 flex h-[42px] w-[42px] items-center justify-center bg-oxblood font-display text-xl italic text-cream shadow-md">
+                {step.number}
+              </div>
+              <div className="border border-line bg-paper p-[18px] shadow-[0_1px_0_rgb(var(--line))]">
+                <Photo
+                  src={step.image}
+                  label={step.imageLabel}
+                  alt={step.name}
+                  aspectRatio="3 / 2"
+                  className="w-full"
+                  sizes="(min-width: 640px) 58vw, 100vw"
+                  bordered={false}
+                />
+              </div>
+              <p className="mt-3 text-center font-display text-xs italic text-muted">{step.caption}</p>
+            </div>
           </div>
         </Section>
       ))}
