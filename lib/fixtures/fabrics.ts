@@ -41,6 +41,7 @@ export const fabrics: Fabric[] = [
     origin: "Italy",
     weight: "Super 100s, 320g/m²",
     imageLabel: "IMG-23 · swatch, ink flannel",
+    image: "/photos/fabrics/ink-flannel.jpg",
   },
   {
     id: "fab-oatmeal-linen",
