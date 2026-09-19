@@ -73,5 +73,6 @@ export const fabrics: Fabric[] = [
     origin: "Portugal",
     weight: "210g/m²",
     imageLabel: "IMG-27 · swatch, cream linen-cotton",
+    image: "/photos/fabrics/cream-linen-cotton.jpg",
   },
 ];
