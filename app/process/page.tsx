@@ -15,8 +15,8 @@ const steps = [
     name: "Consultation",
     body: "30–45 min at Ridgeways. Occasion, budget range and fabric direction — Style Advisor answers feed straight in if you took the quiz.",
     week: "Day 0",
-    image: "/photos/atelier/master-tailor-cutting-table.jpg" as string | undefined,
-    imageLabel: "IMG-01 · the atelier",
+    image: "/photos/home/consultation-desk.jpg" as string | undefined,
+    imageLabel: "IMG-45 · consultation desk",
   },
   {
     number: "02",
