@@ -128,7 +128,7 @@ export function Footer() {
           <FooterAccordionSection title="Account" links={accountLinks} />
         </div>
 
-        <div className="mx-auto mt-12 flex max-w-6xl flex-col items-center justify-between gap-3 text-center text-xs text-cream/50 md:flex-row md:items-center md:text-left">
+        <div className="mx-auto mt-12 flex max-w-6xl flex-col items-center justify-between gap-3 border-t border-cream/15 pt-6 text-center text-xs text-cream/50 md:flex-row md:items-center md:text-left">
           <p>
             © {new Date().getFullYear()} {siteConfig.fullName}, {siteConfig.address}.
           </p>
