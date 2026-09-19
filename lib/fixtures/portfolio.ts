@@ -5,6 +5,8 @@ export interface PortfolioItem {
   title: string;
   tag: "Bespoke Suit" | "Made-to-Measure" | "Wedding" | "Corporate";
   imageLabel: string;
+  /** Path under /public once real photography exists for this slot; falls back to the labelled placeholder until then. */
+  image?: string;
 }
 
 export const portfolioItems: PortfolioItem[] = [

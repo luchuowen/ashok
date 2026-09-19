@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
-import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder";
+import { Photo } from "@/components/ui/Photo";
 import { Quote } from "@/components/ui/Quote";
 import { fabrics } from "@/lib/fixtures/fabrics";
 
@@ -27,10 +27,24 @@ const introColumns = [
 ];
 
 const imageStrip = [
-  { label: "IMG-02 · cutting table", caption: "Pattern, cut from your own measurements" },
-  { label: "IMG-03 · canvas & basting", caption: "Canvas and basting, first stage" },
-  { label: "IMG-04 · fitting session", caption: "The fitting that matters" },
+  {
+    label: "IMG-02 · cutting table",
+    image: undefined as string | undefined, // "/photos/home/cutting-table.jpg" once generated
+    caption: "Pattern, cut from your own measurements",
+  },
+  {
+    label: "IMG-03 · canvas & basting",
+    image: undefined as string | undefined, // "/photos/home/canvas-basting.jpg" once generated
+    caption: "Canvas and basting, first stage",
+  },
+  {
+    label: "IMG-04 · fitting session",
+    image: undefined as string | undefined, // "/photos/home/fitting-session.jpg" once generated
+    caption: "The fitting that matters",
+  },
 ];
+
+const heroImage = undefined; // "/photos/home/hero.jpg" once generated
 
 const processSteps = [
   {
@@ -67,10 +81,14 @@ export default function Home() {
     <main>
       {/* Hero */}
       <div className="relative overflow-hidden border-b border-line">
-        <ImagePlaceholder
+        <Photo
+          src={heroImage}
           label="IMG-01 · fitting, hands & pin"
           aspectRatio="auto"
           className="absolute inset-0 h-full w-full"
+          bordered={false}
+          sizes="100vw"
+          priority
         />
         <div className="relative z-10 flex min-h-[480px] flex-col justify-end bg-gradient-to-t from-ink/80 via-ink/10 to-transparent p-8 md:min-h-[560px] md:p-16">
           <h1 className="mx-auto max-w-xl text-center text-4xl text-cream md:mx-0 md:text-left md:text-6xl">
@@ -112,7 +130,7 @@ export default function Home() {
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
           {imageStrip.map((image) => (
             <div key={image.label} className="text-center sm:text-left">
-              <ImagePlaceholder label={image.label} />
+              <Photo src={image.image} label={image.label} />
               <p className="mt-3 text-sm text-muted">{image.caption}</p>
             </div>
           ))}
@@ -162,7 +180,7 @@ export default function Home() {
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
           {homeFabrics.map((fabric) => (
             <div key={fabric.id} className="text-center md:text-left">
-              <ImagePlaceholder label={fabric.imageLabel} aspectRatio="1 / 1" />
+              <Photo src={fabric.image} label={fabric.imageLabel} aspectRatio="1 / 1" />
               <p className="mt-3 text-sm">
                 {fabric.name}
                 {fabric.origin ? ` · ${fabric.origin}` : ""}

@@ -1,6 +1,6 @@
 import { Section } from "@/components/ui/Section";
 import { TitleBand } from "@/components/ui/TitleBand";
-import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder";
+import { Photo } from "@/components/ui/Photo";
 import { Tag } from "@/components/ui/Tag";
 import { fabrics } from "@/lib/fixtures/fabrics";
 
@@ -36,7 +36,7 @@ export default function FabricLibraryPage() {
         <div className="mt-8 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
           {fabrics.map((fabric) => (
             <div key={fabric.id} className="bg-paper p-4 text-center sm:text-left">
-              <ImagePlaceholder label={fabric.imageLabel} aspectRatio="1 / 1" />
+              <Photo src={fabric.image} label={fabric.imageLabel} aspectRatio="1 / 1" />
               <p className="mt-3 text-sm">{fabric.name}</p>
               <p className="text-xs text-muted">
                 {fabric.origin} · {fabric.weight}

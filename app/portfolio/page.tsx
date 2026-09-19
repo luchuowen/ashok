@@ -1,7 +1,7 @@
 import { Section } from "@/components/ui/Section";
 import { TitleBand } from "@/components/ui/TitleBand";
 import { CardGrid } from "@/components/ui/CardGrid";
-import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder";
+import { Photo } from "@/components/ui/Photo";
 import { Tag } from "@/components/ui/Tag";
 import { Quote } from "@/components/ui/Quote";
 import { portfolioItems } from "@/lib/fixtures/portfolio";
@@ -27,7 +27,7 @@ export default function PortfolioPage() {
         <CardGrid columns={4} className="mt-8">
           {portfolioItems.map((item) => (
             <div key={item.id} className="bg-paper p-6 text-center sm:text-left">
-              <ImagePlaceholder label={item.imageLabel} aspectRatio="3 / 4" />
+              <Photo src={item.image} label={item.imageLabel} aspectRatio="3 / 4" />
               <p className="mt-2 text-sm">{item.title}</p>
               <Tag>{item.tag}</Tag>
             </div>

@@ -6,6 +6,8 @@ export interface Fabric {
   origin: string;
   weight: string;
   imageLabel: string;
+  /** Path under /public once real photography exists for this slot; falls back to the labelled placeholder until then. */
+  image?: string;
 }
 
 export const fabrics: Fabric[] = [

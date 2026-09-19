@@ -10,6 +10,8 @@ export interface Product {
   sizes: string[];
   description: string;
   imageLabel: string;
+  /** Path under /public once real photography exists for this slot; falls back to the labelled placeholder until then. */
+  image?: string;
 }
 
 export const products: Product[] = [
@@ -23,6 +25,7 @@ export const products: Product[] = [
     sizes: ["40", "41", "42", "43", "44", "45"],
     description: "Black calf leather derby, hand-welted, sits well under a full suit.",
     imageLabel: "IMG-11 · derby shoes, black calf",
+    image: "/photos/products/derby-shoes.jpg",
   },
   {
     id: "prod-silk-tie-oxblood",
@@ -34,6 +37,7 @@ export const products: Product[] = [
     sizes: ["One Size"],
     description: "Woven silk in oxblood, cut narrow to sit close under a two-button jacket.",
     imageLabel: "IMG-12 · silk tie, oxblood",
+    image: "/photos/products/silk-tie-oxblood.jpg",
   },
   {
     id: "prod-cufflinks-brass",

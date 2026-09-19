@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Section } from "@/components/ui/Section";
-import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder";
+import { Photo } from "@/components/ui/Photo";
 import { Tag } from "@/components/ui/Tag";
 import { Button } from "@/components/ui/Button";
 import { products } from "@/lib/fixtures/products";
@@ -23,7 +23,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
     <main>
       <Section border={false}>
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 items-start">
-          <ImagePlaceholder label={product.imageLabel} aspectRatio="1 / 1" />
+          <Photo src={product.image} label={product.imageLabel} aspectRatio="1 / 1" priority />
 
           <div className="text-center sm:text-left">
             <h1 className="font-display text-3xl">{product.name}</h1>
@@ -75,7 +75,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
           <div className="mx-auto mt-6 grid max-w-md grid-cols-1 gap-8 sm:mx-0 sm:grid-cols-2">
             {related.map((item) => (
               <Link key={item.slug} href={`/shop/${item.slug}`} className="group block">
-                <ImagePlaceholder label={item.imageLabel} aspectRatio="1 / 1" />
+                <Photo src={item.image} label={item.imageLabel} aspectRatio="1 / 1" />
                 <p className="mt-3 text-sm group-hover:text-oxblood">{item.name}</p>
               </Link>
             ))}

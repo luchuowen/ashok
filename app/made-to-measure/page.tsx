@@ -3,7 +3,9 @@ import { TitleBand } from "@/components/ui/TitleBand";
 import { CardGrid } from "@/components/ui/CardGrid";
 import { PriceChip } from "@/components/ui/PriceChip";
 import { QuizBand } from "@/components/ui/QuizBand";
-import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder";
+import { Photo } from "@/components/ui/Photo";
+
+const womensMtmImage = undefined; // set to "/photos/made-to-measure/womens-mtm-blazer.jpg" once generated
 
 const included = [
   {
@@ -39,7 +41,7 @@ export default function MadeToMeasurePage() {
       <Section className="bg-paper text-center sm:text-left">
         <h2 className="text-3xl">Made-to-measure for women</h2>
         <div className="mt-8 grid grid-cols-1 items-center gap-10 sm:grid-cols-2">
-          <ImagePlaceholder label="IMG-41 · women's MTM blazer" aspectRatio="4 / 3" />
+          <Photo src={womensMtmImage} label="IMG-41 · women's MTM blazer" aspectRatio="4 / 3" />
           <p className="text-base text-muted">
             Blazers, occasion dresses and tailored separates, fitted the same way as the
             men&apos;s line — same fabric library, same fitting standard.

@@ -1,7 +1,9 @@
 import { Section } from "@/components/ui/Section";
 import { TitleBand } from "@/components/ui/TitleBand";
 import { CardGrid } from "@/components/ui/CardGrid";
-import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder";
+import { Photo } from "@/components/ui/Photo";
+
+const masterTailorImage = undefined; // set to "/photos/atelier/master-tailor-cutting-table.jpg" once generated
 
 const beliefs = [
   {
@@ -31,7 +33,7 @@ export default function AtelierPage() {
 
       <Section className="bg-paper text-center sm:text-left">
         <div className="grid grid-cols-1 items-center gap-10 sm:grid-cols-2">
-          <ImagePlaceholder label="IMG-40 · master tailor at the cutting table" aspectRatio="4 / 3" />
+          <Photo src={masterTailorImage} label="IMG-40 · master tailor at the cutting table" aspectRatio="4 / 3" />
           <p className="text-base text-muted">
             Ashok Sunny built his name over years of work before the move to Ridgeways — the same
             hands, the same block-free approach to a suit, now with a workshop built for it.

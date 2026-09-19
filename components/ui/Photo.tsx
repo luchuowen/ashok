@@ -1,0 +1,49 @@
+import Image from "next/image";
+import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder";
+
+/**
+ * Drop-in replacement for ImagePlaceholder once real photography exists for a
+ * slot. Pass `src` from a fixture's optional `image` field; until it's set,
+ * this renders the same labelled placeholder box everything else still uses,
+ * so slots can be filled in one at a time without touching call sites twice.
+ */
+export function Photo({
+  src,
+  label,
+  alt,
+  aspectRatio = "4 / 3",
+  className = "",
+  sizes = "(min-width: 768px) 25vw, 50vw",
+  priority = false,
+  bordered = true,
+}: {
+  src?: string;
+  label: string;
+  alt?: string;
+  aspectRatio?: string;
+  className?: string;
+  sizes?: string;
+  priority?: boolean;
+  /** Set false for a full-bleed placement (e.g. a hero background) that shouldn't carry the hairline border every other photo slot has. */
+  bordered?: boolean;
+}) {
+  if (!src) {
+    return <ImagePlaceholder label={label} aspectRatio={aspectRatio} className={className} />;
+  }
+
+  return (
+    <div
+      className={`relative overflow-hidden ${bordered ? "border border-line" : ""} ${className}`}
+      style={{ aspectRatio }}
+    >
+      <Image
+        src={src}
+        alt={alt ?? label}
+        fill
+        sizes={sizes}
+        className="object-cover"
+        priority={priority}
+      />
+    </div>
+  );
+}
