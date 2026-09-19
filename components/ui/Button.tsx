@@ -8,6 +8,10 @@ type CommonProps = {
 
 type ButtonAsLink = CommonProps & {
   href: string;
+  /** Filename to save as — forces a plain <a download> instead of next/link,
+   *  which doesn't honor the download attribute. Used for generated files
+   *  (e.g. a data: URI .ics), never for internal navigation. */
+  download?: string;
   onClick?: never;
   type?: never;
   disabled?: never;
@@ -15,6 +19,7 @@ type ButtonAsLink = CommonProps & {
 
 type ButtonAsButton = CommonProps & {
   href?: undefined;
+  download?: never;
   onClick?: () => void;
   type?: "button" | "submit";
   disabled?: boolean;
@@ -25,6 +30,13 @@ export function Button(props: ButtonAsLink | ButtonAsButton) {
   const classes = `cta ${variant === "ghost" ? "ghost" : ""} ${className}`.trim();
 
   if (props.href) {
+    if (props.download) {
+      return (
+        <a href={props.href} download={props.download} className={classes}>
+          {children}
+        </a>
+      );
+    }
     return (
       <Link href={props.href} className={classes}>
         {children}

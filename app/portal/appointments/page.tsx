@@ -2,9 +2,20 @@ import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { WaCTA } from "@/components/ui/WaCTA";
 import { appointments } from "@/lib/fixtures/appointments";
+import { buildIcsDataUrl } from "@/lib/ics";
 
 export default function AppointmentsPage() {
   const [upcoming] = appointments;
+
+  const icsHref = upcoming
+    ? buildIcsDataUrl({
+        title: `${upcoming.type} — Ashok Sunny Tailored`,
+        location: upcoming.location,
+        date: upcoming.date,
+        time: upcoming.time,
+        description: `${upcoming.type} appointment with Ashok Sunny Tailored.`,
+      })
+    : undefined;
 
   return (
     <Section className="text-center sm:text-left">
@@ -22,14 +33,17 @@ export default function AppointmentsPage() {
             <Button href="/booking" variant="ghost">
               Reschedule
             </Button>
-            {/* Phase 1 mock — no real calendar integration yet, this is a no-op link. */}
-            <Button href="#">Add to Calendar</Button>
+            {icsHref ? (
+              <Button href={icsHref} download={`${upcoming.type.toLowerCase()}-appointment.ics`}>
+                Add to Calendar
+              </Button>
+            ) : null}
           </div>
         </div>
       ) : null}
 
       <p className="mt-6 text-sm text-muted">
-        You&apos;ll get a WhatsApp reminder the day before each visit.
+        You&apos;ll get a reminder the day before each visit.
       </p>
 
       <div className="mt-4">

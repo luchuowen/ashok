@@ -1,20 +1,14 @@
-import { waLink } from "@/lib/content/site";
+import { WhatsAppConnect } from "@/components/ui/WhatsAppConnect";
 
+/** Thin wrapper kept so call sites don't change — renders the on-site
+ *  message form (see WhatsAppConnect) as a bordered CTA link rather than
+ *  an icon button. */
 export function WaCTA({
   message,
-  label = "Message us on WhatsApp",
+  label = "Message the House",
 }: {
   message?: string;
   label?: string;
 }) {
-  return (
-    <a
-      href={waLink(message)}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="cta ghost"
-    >
-      {label}
-    </a>
-  );
+  return <WhatsAppConnect variant="cta" label={label} defaultMessage={message ?? ""} />;
 }

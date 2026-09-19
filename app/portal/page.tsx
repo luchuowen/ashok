@@ -31,9 +31,8 @@ export default function PortalOverviewPage() {
 
       <Section className="text-center sm:text-left">
         <p className="mx-auto max-w-2xl text-base text-muted sm:mx-0">
-          &ldquo;Your Record&rdquo; reads like the book the house has always kept on paper —
-          what you ordered, what fits, what&apos;s outstanding — not a generic account
-          dashboard.
+          Your Account — a simple place to view your orders, saved details, and account
+          information.
         </p>
       </Section>
     </>
