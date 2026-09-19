@@ -129,7 +129,7 @@ export default function Home() {
       <Section>
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
           {imageStrip.map((image) => (
-            <div key={image.label} className="text-center sm:text-left">
+            <div key={image.label} className="text-center">
               <Photo src={image.image} label={image.label} />
               <p className="mt-3 text-sm text-muted">{image.caption}</p>
             </div>
