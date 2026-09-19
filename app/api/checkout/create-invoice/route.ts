@@ -97,6 +97,10 @@ export async function POST(request: NextRequest) {
       description,
     });
   } catch (error) {
+    console.error(
+      "[checkout/create-invoice] createInvoice failed:",
+      error instanceof Error ? `${error.name}: ${error.message}` : error,
+    );
     const message =
       error instanceof TaifaPayError ? error.message : "Could not start payment. Try again.";
     return NextResponse.json({ ok: false, error: message }, { status: 502 });

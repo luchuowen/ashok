@@ -78,10 +78,20 @@ async function getAccessToken(env: TaifaPayEnv): Promise<string> {
   });
 
   if (!res.ok) {
+    const bodyText = await res.text().catch(() => "");
+    console.error(
+      `[taifapay] token request failed: status=${res.status} body=${bodyText.slice(0, 500)}`,
+    );
     throw new TaifaPayError(`TaifaPay token request failed (${res.status}).`, res.status);
   }
 
-  const data = (await res.json()) as { access_token: string; expires_in: string };
+  let data: { access_token: string; expires_in: string };
+  try {
+    data = (await res.json()) as { access_token: string; expires_in: string };
+  } catch (err) {
+    console.error("[taifapay] token response was not valid JSON:", err);
+    throw new TaifaPayError("TaifaPay token response was not valid JSON.");
+  }
   tokenCache[env] = {
     token: data.access_token,
     expiresAt: Date.now() + Number(data.expires_in) * 1000,
@@ -105,16 +115,30 @@ async function taifaPayFetch<T>(path: string, init: RequestInit = {}): Promise<T
 
   if (!res.ok) {
     let message = `TaifaPay request failed (${res.status}).`;
+    let bodyText = "";
     try {
-      const body = (await res.json()) as { message?: string };
+      bodyText = await res.clone().text();
+      const body = JSON.parse(bodyText) as { message?: string };
       if (body?.message) message = body.message;
     } catch {
       // ignore — non-JSON error body
     }
+    console.error(
+      `[taifapay] request failed: path=${path} status=${res.status} body=${bodyText.slice(0, 500)}`,
+    );
     throw new TaifaPayError(message, res.status);
   }
 
-  return res.json() as Promise<T>;
+  try {
+    return (await res.json()) as T;
+  } catch (err) {
+    const bodyText = await res.clone().text().catch(() => "");
+    console.error(
+      `[taifapay] success response was not valid JSON: path=${path} body=${bodyText.slice(0, 500)}`,
+      err,
+    );
+    throw new TaifaPayError("TaifaPay returned an unexpected response.");
+  }
 }
 
 export interface CreateInvoiceParams {
