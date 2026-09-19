@@ -15,14 +15,14 @@ const headerLinks = HEADER_SLUGS.map((slug) => nav.find((item) => item.slug === 
 export function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-cream/95 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4 md:px-12">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-3 md:px-12">
         <Link href="/" className="flex items-center gap-2" aria-label={siteConfig.fullName}>
           <Image
             src="/logo.avif"
             alt={siteConfig.fullName}
-            width={72}
-            height={72}
-            className="h-14 w-14 md:h-[72px] md:w-[72px]"
+            width={56}
+            height={56}
+            className="h-12 w-12 md:h-14 md:w-14"
             priority
           />
         </Link>
