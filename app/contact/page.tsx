@@ -1,6 +1,6 @@
 import { Section } from "@/components/ui/Section";
 import { TitleBand } from "@/components/ui/TitleBand";
-import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder";
+import { Photo } from "@/components/ui/Photo";
 import { WaCTA } from "@/components/ui/WaCTA";
 import { siteConfig } from "@/lib/content/site";
 
@@ -24,7 +24,12 @@ export default function ContactPage() {
 
       <Section className="bg-paper">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2">
-          <ImagePlaceholder label="IMG-50 · map / storefront, Ridgeways" aspectRatio="4 / 3" />
+          <Photo
+            src="/photos/home/contact-storefront.jpg"
+            label="IMG-50 · storefront, Ridgeways"
+            alt="Ashok Sunny Tailored storefront, Ridgeways, Nairobi"
+            aspectRatio="4 / 3"
+          />
           <div className="text-center sm:text-left">
             <div className="flex flex-col items-center gap-6 sm:items-start">
               {details.map((detail) => (
@@ -35,7 +40,7 @@ export default function ContactPage() {
               ))}
             </div>
             <div className="mt-8">
-              <WaCTA message="Hi, I'd like to ask about..." label="Message on WhatsApp" />
+              <WaCTA message="Hi, I'd like to ask about..." label="Message the House" />
             </div>
           </div>
         </div>
