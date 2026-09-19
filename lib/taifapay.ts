@@ -85,11 +85,16 @@ async function getAccessToken(env: TaifaPayEnv): Promise<string> {
     throw new TaifaPayError(`TaifaPay token request failed (${res.status}).`, res.status);
   }
 
+  const rawBody = await res.text();
   let data: { access_token: string; expires_in: string };
   try {
-    data = (await res.json()) as { access_token: string; expires_in: string };
+    data = JSON.parse(rawBody) as { access_token: string; expires_in: string };
   } catch (err) {
-    console.error("[taifapay] token response was not valid JSON:", err);
+    console.error(
+      `[taifapay] token response (status ${res.status}) was not valid JSON. ` +
+        `content-type=${res.headers.get("content-type")} url=${res.url} body=${rawBody.slice(0, 800)}`,
+      err,
+    );
     throw new TaifaPayError("TaifaPay token response was not valid JSON.");
   }
   tokenCache[env] = {
