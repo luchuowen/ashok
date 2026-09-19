@@ -29,6 +29,7 @@ export const portfolioItems: PortfolioItem[] = [
     title: "Navy blazer",
     tag: "Made-to-Measure",
     imageLabel: "IMG-32 · navy blazer, made-to-measure",
+    image: "/photos/portfolio/navy-blazer-mtm.jpg",
   },
   {
     id: "port-corporate-uniform-set",
