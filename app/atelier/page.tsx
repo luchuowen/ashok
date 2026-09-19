@@ -3,7 +3,7 @@ import { TitleBand } from "@/components/ui/TitleBand";
 import { CardGrid } from "@/components/ui/CardGrid";
 import { Photo } from "@/components/ui/Photo";
 
-const masterTailorImage = undefined; // set to "/photos/atelier/master-tailor-cutting-table.jpg" once generated
+const masterTailorImage = "/photos/atelier/master-tailor-cutting-table.jpg";
 
 const beliefs = [
   {
