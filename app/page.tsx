@@ -44,7 +44,7 @@ const imageStrip = [
   },
 ];
 
-const heroImage = undefined; // "/photos/home/hero.jpg" once generated
+const heroImage = "/photos/home/hero.jpg";
 
 const processSteps = [
   {
