@@ -65,6 +65,7 @@ export const fabrics: Fabric[] = [
     origin: "Japan",
     weight: "340g/m²",
     imageLabel: "IMG-26 · swatch, olive corduroy",
+    image: "/photos/fabrics/olive-corduroy.jpg",
   },
   {
     id: "fab-cream-linen-cotton",
