@@ -25,6 +25,7 @@ export const fabrics: Fabric[] = [
     origin: "England",
     weight: "260g/m²",
     imageLabel: "IMG-21 · swatch, mid-blue twill",
+    image: "/photos/fabrics/mid-blue-twill.jpg",
   },
   {
     id: "fab-houndstooth",
