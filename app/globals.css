@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #14120f;
+  --cream: #f4eee3;
+  --oxblood: #8a4432;
+  --muted: #5b5648;
+  --line: #ddd3c1;
+}
+
+* {
+  border-color: var(--line);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-body), sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display), serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+@layer components {
+  .cta {
+    @apply inline-flex items-center justify-center gap-2 border border-ink bg-ink px-6 py-3 text-sm font-medium uppercase tracking-wide text-cream transition-colors hover:bg-oxblood hover:border-oxblood;
+  }
+
+  .cta.ghost {
+    @apply border-ink bg-transparent text-ink hover:bg-ink hover:text-cream;
+  }
+}

@@ -1,0 +1,15 @@
+import Link from "next/link";
+import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder";
+import type { Product } from "@/lib/fixtures/products";
+
+export function ProductCard({ product }: { product: Product }) {
+  return (
+    <Link href={`/shop/${product.slug}`} className="group block bg-cream p-6">
+      <ImagePlaceholder label={product.imageLabel} />
+      <p className="mt-4 text-base group-hover:text-oxblood">{product.name}</p>
+      <p className="mt-1 text-sm text-muted">
+        {product.currency} {product.price.toLocaleString("en-KE")}
+      </p>
+    </Link>
+  );
+}

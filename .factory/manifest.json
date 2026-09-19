@@ -1,0 +1,31 @@
+{
+  "project": "ashok-sunny-tailored",
+  "description": "Bespoke / made-to-measure tailoring site for Nairobi, Kenya.",
+  "phase": 1,
+  "stack": {
+    "framework": "Next.js 14 (App Router)",
+    "language": "TypeScript",
+    "styling": "Tailwind CSS",
+    "lint": "ESLint (eslint-config-next)"
+  },
+  "gates": {
+    "quick": ["typecheck", "lint"],
+    "full": ["typecheck", "lint", "build"]
+  },
+  "critical_paths": [],
+  "append_only_dirs": ["app"],
+  "protected": [
+    "components/",
+    "lib/nav.ts",
+    "lib/content/site.ts",
+    "app/layout.tsx",
+    "app/globals.css",
+    "tailwind.config.ts"
+  ],
+  "notes": [
+    "critical_paths is intentionally empty in Phase 1: no auth, no payments, no live-database migrations.",
+    "Phase 2 will add auth/, lib/payments/, firestore.rules to critical_paths — those get standing-only-sized changes and extra review.",
+    "append_only_dirs means route folders under app/ only ever gain new files/routes; existing route files are not removed in Phase 1.",
+    "protected paths are this session's walking-skeleton output. A later batch session may only touch a protected path if the human owner names that exact file in their request."
+  ]
+}

@@ -1,0 +1,40 @@
+import Link from "next/link";
+import { nav } from "@/lib/nav";
+import { siteConfig } from "@/lib/content/site";
+import { Button } from "@/components/ui/Button";
+
+// Approved Home page nav is a curated subset of "core" (Atelier, Fabric Library,
+// Process, Portfolio) plus the Shop entry point from "commerce" — not the full
+// 8-item core group. Sourced from lib/nav by slug so hrefs/labels stay centralized.
+const HEADER_SLUGS = ["atelier", "fabric-library", "process", "portfolio", "shop"];
+const headerLinks = HEADER_SLUGS.map((slug) => nav.find((item) => item.slug === slug)).filter(
+  (item): item is NonNullable<typeof item> => Boolean(item),
+);
+
+export function Header() {
+  return (
+    <header className="sticky top-0 z-30 border-b border-line bg-cream/95 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4 md:px-12">
+        <Link href="/" className="font-display text-lg tracking-tight">
+          {siteConfig.name}
+        </Link>
+
+        <nav className="hidden items-center gap-6 md:flex">
+          {headerLinks.map((item) => (
+            <Link
+              key={item.slug}
+              href={item.href}
+              className="text-sm text-ink hover:text-oxblood"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        <Button href="/booking" className="hidden md:inline-flex">
+          Book a Consultation
+        </Button>
+      </div>
+    </header>
+  );
+}
