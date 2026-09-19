@@ -34,7 +34,7 @@ const imageStrip = [
   },
   {
     label: "IMG-03 · canvas & basting",
-    image: undefined as string | undefined, // "/photos/home/canvas-basting.jpg" once generated
+    image: "/photos/home/canvas-basting.jpg" as string | undefined,
     caption: "Canvas and basting, first stage",
   },
   {
