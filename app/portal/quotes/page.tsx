@@ -4,12 +4,37 @@ import { useState } from "react";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { Tag } from "@/components/ui/Tag";
-import { quotes } from "@/lib/fixtures/quotes";
-
-type QuoteDecision = "accepted" | "declined" | null;
+import { usePortalData } from "@/app/portal/portal-context";
 
 export default function QuotesPage() {
-  const [decisions, setDecisions] = useState<Record<string, QuoteDecision>>({});
+  const { quotes, refresh } = usePortalData();
+  const [pending, setPending] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function decide(quoteId: string, status: "Approved" | "Declined") {
+    setPending(quoteId);
+    setError(null);
+    try {
+      const res = await fetch(`/api/portal/quotes/${quoteId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(data.error || "Could not save your decision. Try again.");
+        return;
+      }
+      await refresh();
+    } catch {
+      setError("Could not reach the server. Check your connection and try again.");
+    } finally {
+      setPending(null);
+    }
+  }
+
+  const openQuotes = quotes.filter((q) => q.status === "Pending");
+  const decidedQuotes = quotes.filter((q) => q.status !== "Pending");
 
   return (
     <Section className="text-center sm:text-left">
@@ -20,47 +45,43 @@ export default function QuotesPage() {
         </p>
       ) : (
         <div className="mt-8 space-y-6">
-          {quotes.map((quote) => {
-            const decision = decisions[quote.id] ?? null;
-            return (
-              <div key={quote.id} className="border border-oxblood p-6">
-                <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
-                  <h3 className="font-display text-xl">{quote.item}</h3>
-                  <Tag>Expires {quote.expiresAt}</Tag>
-                </div>
-                <p className="mt-2 font-display text-2xl text-oxblood">
-                  {quote.currency} {quote.amount.toLocaleString("en-KE")}
-                </p>
-                <div className="mt-4">
-                  {decision ? (
-                    <p className="text-sm text-muted">
-                      {decision === "accepted" ? "Accepted" : "Declined"}
-                    </p>
-                  ) : (
-                    <div className="flex justify-center gap-3 sm:justify-start">
-                      <Button
-                        variant="ghost"
-                        onClick={() =>
-                          setDecisions((prev) => ({ ...prev, [quote.id]: "declined" }))
-                        }
-                      >
-                        Decline
-                      </Button>
-                      <Button
-                        onClick={() =>
-                          setDecisions((prev) => ({ ...prev, [quote.id]: "accepted" }))
-                        }
-                      >
-                        Accept Quote
-                      </Button>
-                    </div>
-                  )}
-                </div>
+          {openQuotes.map((quote) => (
+            <div key={quote.id} className="border border-oxblood p-6">
+              <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+                <h3 className="font-display text-xl">{quote.item}</h3>
+                <Tag>Expires {quote.expiresAt}</Tag>
               </div>
-            );
-          })}
+              <p className="mt-2 font-display text-2xl text-oxblood">
+                {quote.currency} {quote.amount.toLocaleString("en-KE")}
+              </p>
+              <div className="mt-4 flex justify-center gap-3 sm:justify-start">
+                <Button
+                  variant="ghost"
+                  disabled={pending === quote.id}
+                  onClick={() => decide(quote.id, "Declined")}
+                >
+                  Decline
+                </Button>
+                <Button disabled={pending === quote.id} onClick={() => decide(quote.id, "Approved")}>
+                  {pending === quote.id ? "Saving…" : "Accept Quote"}
+                </Button>
+              </div>
+            </div>
+          ))}
+          {decidedQuotes.map((quote) => (
+            <div key={quote.id} className="border border-line p-6">
+              <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+                <h3 className="font-display text-xl">{quote.item}</h3>
+                <Tag variant={quote.status === "Approved" ? "stage" : "default"}>{quote.status}</Tag>
+              </div>
+              <p className="mt-2 font-display text-2xl text-oxblood">
+                {quote.currency} {quote.amount.toLocaleString("en-KE")}
+              </p>
+            </div>
+          ))}
         </div>
       )}
+      {error ? <p className="mt-4 text-sm text-oxblood">{error}</p> : null}
     </Section>
   );
 }

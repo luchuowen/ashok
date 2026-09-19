@@ -3,6 +3,8 @@ env:
     secret: SOURCECODE_API_KEY
   - variable: OTP_SIGNING_SECRET
     secret: OTP_SIGNING_SECRET
+  - variable: ADMIN_PASSWORD
+    secret: ADMIN_PASSWORD
   - variable: TAIFAPAY_ENV
     value: production
   - variable: NEXT_PUBLIC_SITE_URL

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "@/app/cart-context";
+import { useAuthSession } from "@/app/auth-context";
 import { Section } from "@/components/ui/Section";
 import { StepBar } from "@/components/ui/StepBar";
 import { FormGrid } from "@/components/ui/FormGrid";
@@ -11,11 +12,21 @@ const PENDING_ORDER_KEY = "ashok-pending-order";
 
 export default function CheckoutPage() {
   const { items, subtotal } = useCart();
+  const { phone: sessionPhone } = useAuthSession();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const currency = items[0]?.currency ?? "KES";
+
+  // If they're signed in to the portal, use that phone number by default so
+  // this purchase shows up on their Orders/Payments pages once it's paid —
+  // otherwise this is a guest checkout, and only the manually entered phone
+  // links the order (it'll surface in their portal if they later sign in
+  // with the same number).
+  useEffect(() => {
+    if (sessionPhone) setPhone((prev) => prev || sessionPhone);
+  }, [sessionPhone]);
 
   async function handlePay(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

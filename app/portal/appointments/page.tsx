@@ -1,10 +1,13 @@
+"use client";
+
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { WaCTA } from "@/components/ui/WaCTA";
-import { appointments } from "@/lib/fixtures/appointments";
+import { usePortalData } from "@/app/portal/portal-context";
 import { buildGoogleCalendarUrl } from "@/lib/ics";
 
 export default function AppointmentsPage() {
+  const { appointments } = usePortalData();
   const [upcoming] = appointments;
 
   const calendarHref = upcoming

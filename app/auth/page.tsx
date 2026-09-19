@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
 
@@ -9,7 +9,16 @@ type AuthTab = "sign-in" | "register";
 type Step = "phone" | "code";
 
 export default function AuthPage() {
+  return (
+    <Suspense fallback={null}>
+      <AuthForm />
+    </Suspense>
+  );
+}
+
+function AuthForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState<AuthTab>("sign-in");
   const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
@@ -69,7 +78,8 @@ export default function AuthPage() {
         setError(data.error || "Could not verify that code.");
         return;
       }
-      router.push("/portal");
+      const next = searchParams.get("next");
+      router.push(next && next.startsWith("/") ? next : "/portal");
     } catch {
       setError("Could not reach the server. Check your connection and try again.");
     } finally {

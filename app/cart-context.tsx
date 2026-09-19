@@ -16,35 +16,39 @@ export interface CartItem {
   price: number;
   currency: string;
   qty: number;
+  /** Sized products (shoes) carry a size; one-size items (ties, cufflinks) omit it. */
+  size?: string;
 }
 
 interface CartContextValue {
   items: CartItem[];
   addItem: (item: Omit<CartItem, "qty">, qty?: number) => void;
-  removeItem: (productId: string) => void;
+  removeItem: (productId: string, size?: string) => void;
   clear: () => void;
   subtotal: number;
 }
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
 
+function sameLine(a: { productId: string; size?: string }, b: { productId: string; size?: string }): boolean {
+  return a.productId === b.productId && (a.size ?? "") === (b.size ?? "");
+}
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
 
   const addItem = (item: Omit<CartItem, "qty">, qty = 1) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.productId === item.productId);
+      const existing = prev.find((i) => sameLine(i, item));
       if (existing) {
-        return prev.map((i) =>
-          i.productId === item.productId ? { ...i, qty: i.qty + qty } : i,
-        );
+        return prev.map((i) => (sameLine(i, item) ? { ...i, qty: i.qty + qty } : i));
       }
       return [...prev, { ...item, qty }];
     });
   };
 
-  const removeItem = (productId: string) => {
-    setItems((prev) => prev.filter((i) => i.productId !== productId));
+  const removeItem = (productId: string, size?: string) => {
+    setItems((prev) => prev.filter((i) => !sameLine(i, { productId, size })));
   };
 
   const clear = () => setItems([]);

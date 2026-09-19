@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { bookingNotifyAddress, sendEmail } from "@/lib/resend";
+import { updateOrderByTransactionId, updatePaymentByTransactionId } from "@/lib/db";
 
 /**
  * TaifaPay server-to-server webhook (docs: /docs/guides/webhooks).
@@ -13,11 +14,12 @@ import { bookingNotifyAddress, sendEmail } from "@/lib/resend";
  * object, per their docs — re-serializing first would change the bytes and
  * break the signature.
  *
- * There's no database anywhere in this Phase 1 build (see lib/otp.ts), so
- * this can't update a persisted order yet. What it *can* do today: give the
- * business an immediate email the moment TaifaPay confirms money actually
- * moved, instead of relying solely on the customer's browser staying open
- * for the /checkout/complete poll to finish.
+ * Two things happen on a confirmed delivery: the persisted order/payment
+ * records created in app/api/checkout/create-invoice/route.ts are updated
+ * (so the customer's portal and /admin both reflect the real payment
+ * state), and the business gets an immediate email — instead of relying
+ * solely on the customer's browser staying open for the /checkout/complete
+ * poll to finish.
  */
 
 interface TaifaPayWebhookEvent {
@@ -77,6 +79,29 @@ export async function POST(request: NextRequest) {
   // could get cut off before the email actually goes out. notifyBusiness
   // swallows its own errors, so this never turns an email failure into a
   // failed webhook ack — we're comfortably inside TaifaPay's 30s timeout.
+  const transactionId = event.data?.transactionId;
+  if (transactionId) {
+    try {
+      const isCompleted = event.eventType === "transaction.completed" || event.data?.status === "complete";
+      const isFailed = /fail|cancel|expire/i.test(event.data?.status ?? "");
+      if (isCompleted) {
+        await updatePaymentByTransactionId(transactionId, { status: "Paid" });
+        await updateOrderByTransactionId(transactionId, {
+          stage: "Paid",
+          statusNote: "Payment received — preparing for collection",
+          balanceDue: 0,
+        });
+      } else if (isFailed) {
+        await updatePaymentByTransactionId(transactionId, { status: "Failed" });
+      }
+    } catch (dbError) {
+      console.error(
+        "[taifapay-webhook] Firestore update failed:",
+        dbError instanceof Error ? dbError.message : dbError,
+      );
+    }
+  }
+
   if (event.eventType === "transaction.completed" || event.data?.status === "complete") {
     await notifyBusiness(event, "Payment received");
   } else if (event.eventType.startsWith("transaction.") && event.data?.status) {

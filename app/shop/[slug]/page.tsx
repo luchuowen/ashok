@@ -14,6 +14,8 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
   const product = products.find((p) => p.slug === params.slug);
   const { addItem } = useCart();
   const [justAdded, setJustAdded] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<string | null>(product?.sizes[0] ?? null);
+  const [sizeError, setSizeError] = useState(false);
 
   useEffect(() => {
     if (!justAdded) return;
@@ -43,25 +45,36 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
             <div className="mt-6">
               <p className="text-xs uppercase tracking-wide text-muted">Size</p>
               <div className="mt-2 flex flex-wrap justify-center gap-2 sm:justify-start">
-                {product.sizes.map((size, index) => (
-                  // Decorative only in Phase 1 — the first size is shown as
-                  // "selected"; there's no real size-picker state yet.
-                  <Tag key={size} variant={index === 0 ? "stage" : "default"}>
-                    {size}
-                  </Tag>
+                {product.sizes.map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => {
+                      setSelectedSize(size);
+                      setSizeError(false);
+                    }}
+                  >
+                    <Tag variant={selectedSize === size ? "stage" : "default"}>{size}</Tag>
+                  </button>
                 ))}
               </div>
+              {sizeError ? <p className="mt-2 text-sm text-oxblood">Pick a size first.</p> : null}
             </div>
 
             <div className="mt-8">
               <Button
                 onClick={() => {
+                  if (!selectedSize) {
+                    setSizeError(true);
+                    return;
+                  }
                   addItem({
                     productId: product.id,
                     slug: product.slug,
                     name: product.name,
                     price: product.price,
                     currency: product.currency,
+                    size: selectedSize === "One Size" ? undefined : selectedSize,
                   });
                   setJustAdded(true);
                 }}

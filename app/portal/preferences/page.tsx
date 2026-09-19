@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Section } from "@/components/ui/Section";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { FormField } from "@/components/ui/FormField";
 import { FormGrid } from "@/components/ui/FormGrid";
 import { Button } from "@/components/ui/Button";
 import { Tag } from "@/components/ui/Tag";
-import { preferences } from "@/lib/fixtures/preferences";
+import { usePortalData } from "@/app/portal/portal-context";
 
 const inputClasses =
   "w-full border border-line bg-paper px-3 py-2 text-sm text-ink focus:border-oxblood focus:outline-none";
@@ -17,17 +17,54 @@ const LAPEL_OPTIONS = ["Notch", "Peak", "Shawl"] as const;
 const CHANNEL_OPTIONS = ["WhatsApp", "Email", "Phone"] as const;
 
 export default function PreferencesPage() {
-  const [profile] = preferences;
+  const { preferences, refresh } = usePortalData();
 
-  // Phase 1 mock — no backend yet, same pattern as /portal/settings: local
-  // state only, "Save Changes" just confirms. See lib/firebase.ts for the
-  // eventual write.
-  const [fit, setFit] = useState(profile?.fitPreference ?? "Classic");
-  const [fabricWeight, setFabricWeight] = useState(profile?.preferredFabricWeight ?? "");
-  const [lapel, setLapel] = useState(profile?.lapelStyle ?? "Notch");
-  const [channel, setChannel] = useState(profile?.communicationChannel ?? "WhatsApp");
-  const [notes, setNotes] = useState(profile?.notes ?? "");
+  const [fit, setFit] = useState<(typeof FIT_OPTIONS)[number]>("Classic");
+  const [fabricWeight, setFabricWeight] = useState("");
+  const [lapel, setLapel] = useState<(typeof LAPEL_OPTIONS)[number]>("Notch");
+  const [channel, setChannel] = useState<(typeof CHANNEL_OPTIONS)[number]>("WhatsApp");
+  const [notes, setNotes] = useState("");
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!preferences) return;
+    setFit(preferences.fitPreference);
+    setFabricWeight(preferences.preferredFabricWeight);
+    setLapel(preferences.lapelStyle);
+    setChannel(preferences.communicationChannel);
+    setNotes(preferences.notes);
+  }, [preferences]);
+
+  async function handleSave() {
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/portal/preferences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fitPreference: fit,
+          preferredFabricWeight: fabricWeight,
+          lapelStyle: lapel,
+          communicationChannel: channel,
+          notes,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(data.error || "Could not save your preferences. Try again.");
+        return;
+      }
+      setSaved(true);
+      await refresh();
+    } catch {
+      setError("Could not reach the server. Check your connection and try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <Section>
@@ -120,10 +157,11 @@ export default function PreferencesPage() {
         </FormGrid>
 
         <div className="mt-8 flex items-center gap-4">
-          <Button type="button" onClick={() => setSaved(true)}>
-            Save Changes
+          <Button type="button" disabled={saving} onClick={handleSave}>
+            {saving ? "Saving…" : "Save Changes"}
           </Button>
           {saved ? <p className="text-sm text-oxblood">Saved.</p> : null}
+          {error ? <p className="text-sm text-oxblood">{error}</p> : null}
         </div>
       </div>
     </Section>

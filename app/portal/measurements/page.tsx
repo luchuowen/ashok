@@ -1,9 +1,14 @@
+"use client";
+
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { LedgerTable } from "@/components/portal/LedgerTable";
-import { measurements, type ClientMeasurements } from "@/lib/fixtures/measurements";
+import { usePortalData } from "@/app/portal/portal-context";
+import type { ClientMeasurements } from "@/lib/db";
 
 export default function MeasurementsPage() {
+  const { measurements } = usePortalData();
+
   return (
     <Section>
       <h2 className="text-2xl">Measurements</h2>
@@ -13,11 +18,7 @@ export default function MeasurementsPage() {
             { key: "chest", header: "Chest", render: (row) => `${row.chest} cm` },
             { key: "waist", header: "Waist", render: (row) => `${row.waist} cm` },
             { key: "shoulder", header: "Shoulder", render: (row) => `${row.shoulder} cm` },
-            {
-              key: "sleeveLength",
-              header: "Sleeve",
-              render: (row) => `${row.sleeveLength} cm`,
-            },
+            { key: "sleeveLength", header: "Sleeve", render: (row) => `${row.sleeveLength} cm` },
             { key: "inseam", header: "Inseam", render: (row) => `${row.inseam} cm` },
             { key: "takenAt", header: "Taken" },
           ]}

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { normalizeKenyanMobile } from "@/lib/sms";
 import { createInvoice, TaifaPayError } from "@/lib/taifapay";
 import { products } from "@/lib/fixtures/products";
+import { createOrder, createPayment, getOrCreateCustomer } from "@/lib/db";
 
 interface CartItemInput {
   productId?: string;
@@ -86,6 +87,47 @@ export async function POST(request: NextRequest) {
       returnUrl: `${siteUrl}/checkout/complete`,
       expiresInMinutes: 30,
     });
+
+    // Record a pending order + payment so this purchase shows up for staff
+    // on /admin immediately, and on the customer's portal once the TaifaPay
+    // webhook confirms the money actually moved (see
+    // app/api/webhooks/taifapay/route.ts). Best-effort: the invoice above
+    // already succeeded, so a Firestore hiccup here must never stop the
+    // customer from reaching the TaifaPay checkout page.
+    try {
+      const customer = await getOrCreateCustomer(mobile, { name: body.customerName });
+      const startedAt = new Date().toISOString().slice(0, 10);
+      await createOrder({
+        clientId: mobile,
+        clientName: customer.name || mobile,
+        item: description,
+        stage: "Payment Pending",
+        statusNote: "Awaiting payment confirmation",
+        startedAt,
+        estimatedCompletion: "",
+        price: amount,
+        currency: "KES",
+        balanceDue: amount,
+        source: "shop",
+        transactionId: invoice.transactionId,
+      });
+      await createPayment({
+        clientId: mobile,
+        clientName: customer.name || mobile,
+        orderId: reference,
+        amount,
+        currency: "KES",
+        method: "M-Pesa",
+        date: startedAt,
+        status: "Outstanding",
+        transactionId: invoice.transactionId,
+      });
+    } catch (dbError) {
+      console.error(
+        "[checkout/create-invoice] Firestore write failed (invoice still created):",
+        dbError instanceof Error ? dbError.message : dbError,
+      );
+    }
 
     return NextResponse.json({
       ok: true,

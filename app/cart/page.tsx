@@ -34,6 +34,9 @@ export default function CartPage() {
                       Item
                     </th>
                     <th className="border-b border-line px-4 py-3 text-xs uppercase tracking-wide text-muted">
+                      Size
+                    </th>
+                    <th className="border-b border-line px-4 py-3 text-xs uppercase tracking-wide text-muted">
                       Qty
                     </th>
                     <th className="border-b border-line px-4 py-3 text-xs uppercase tracking-wide text-muted">
@@ -46,8 +49,9 @@ export default function CartPage() {
                 </thead>
                 <tbody>
                   {items.map((item) => (
-                    <tr key={item.productId}>
+                    <tr key={`${item.productId}-${item.size ?? "one-size"}`}>
                       <td className="border-b border-line px-4 py-3">{item.name}</td>
+                      <td className="border-b border-line px-4 py-3">{item.size ?? "One Size"}</td>
                       <td className="border-b border-line px-4 py-3">{item.qty}</td>
                       <td className="border-b border-line px-4 py-3">
                         {item.currency} {(item.price * item.qty).toLocaleString("en-KE")}
@@ -55,7 +59,7 @@ export default function CartPage() {
                       <td className="border-b border-line px-4 py-3 text-right">
                         <button
                           type="button"
-                          onClick={() => removeItem(item.productId)}
+                          onClick={() => removeItem(item.productId, item.size)}
                           className="text-xs uppercase tracking-wide text-muted hover:text-oxblood"
                         >
                           Remove
@@ -66,7 +70,7 @@ export default function CartPage() {
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td className="border-t-2 border-ink px-4 py-3 font-medium" colSpan={2}>
+                    <td className="border-t-2 border-ink px-4 py-3 font-medium" colSpan={3}>
                       Subtotal
                     </td>
                     <td className="border-t-2 border-ink px-4 py-3 font-medium" colSpan={2}>

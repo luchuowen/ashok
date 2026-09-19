@@ -1,12 +1,11 @@
-// TODO(phase-2): gate this route behind Firebase Auth — redirect to /auth if no session.
-// Deliberately open in Phase 1 so reviewers can see it.
+"use client";
+
 import { Section } from "@/components/ui/Section";
 import { StatCard } from "@/components/portal/StatCard";
-import { orders } from "@/lib/fixtures/orders";
-import { appointments } from "@/lib/fixtures/appointments";
-import { measurements } from "@/lib/fixtures/measurements";
+import { usePortalData } from "@/app/portal/portal-context";
 
 export default function PortalOverviewPage() {
+  const { orders, appointments, measurements } = usePortalData();
   const order = orders[0];
   const appointment = appointments[0];
   const measurement = measurements[0];

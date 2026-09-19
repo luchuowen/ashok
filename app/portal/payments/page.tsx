@@ -1,11 +1,14 @@
+"use client";
+
 import { Section } from "@/components/ui/Section";
 import { LedgerTable } from "@/components/portal/LedgerTable";
 import { Balance } from "@/components/portal/Balance";
 import { Tag } from "@/components/ui/Tag";
-import { orders } from "@/lib/fixtures/orders";
-import { payments, type Payment } from "@/lib/fixtures/payments";
+import { usePortalData } from "@/app/portal/portal-context";
+import type { Payment } from "@/lib/db";
 
 export default function PaymentsPage() {
+  const { orders, payments } = usePortalData();
   const outstanding = orders.find((order) => order.balanceDue > 0);
 
   return (
@@ -23,8 +26,7 @@ export default function PaymentsPage() {
             {
               key: "orderId",
               header: "For",
-              render: (row) =>
-                orders.find((order) => order.id === row.orderId)?.item ?? row.orderId,
+              render: (row) => orders.find((order) => order.id === row.orderId)?.item ?? row.orderId,
             },
             { key: "method", header: "Method", render: (row) => `${row.method}` },
             {
@@ -36,9 +38,7 @@ export default function PaymentsPage() {
               key: "status",
               header: "Status",
               render: (row) => (
-                <Tag variant={row.status === "Outstanding" ? "stage" : "default"}>
-                  {row.status}
-                </Tag>
+                <Tag variant={row.status === "Paid" ? "default" : "stage"}>{row.status}</Tag>
               ),
             },
           ]}

@@ -7,30 +7,64 @@ import { FormGrid } from "@/components/ui/FormGrid";
 import { Button } from "@/components/ui/Button";
 import { Tag } from "@/components/ui/Tag";
 import { useAuthSession } from "@/app/auth-context";
+import { usePortalData } from "@/app/portal/portal-context";
 
 const inputClasses =
   "border border-line bg-paper px-3 py-2 text-sm text-ink focus:border-oxblood focus:outline-none";
 
 export default function SettingsPage() {
-  // Phase 1 mock — no backend yet, so "Save Changes" just flips local state to
-  // show a confirmation message. See lib/firebase.ts for the eventual write.
   const { phone } = useAuthSession();
-  const [saved, setSaved] = useState(false);
+  const { customer, refresh } = usePortalData();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [phoneValue, setPhoneValue] = useState("");
-
-  useEffect(() => {
-    if (phone) setPhoneValue(phone);
-  }, [phone]);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [channels, setChannels] = useState<Record<string, boolean>>({
     WhatsApp: true,
     SMS: false,
     Email: false,
   });
 
+  useEffect(() => {
+    if (phone) setPhoneValue(phone);
+  }, [phone]);
+
+  useEffect(() => {
+    if (customer) {
+      setName(customer.name ?? "");
+      setEmail(customer.email ?? "");
+    }
+  }, [customer]);
+
   const toggleChannel = (channel: string) => {
     setChannels((prev) => ({ ...prev, [channel]: !prev[channel] }));
     setSaved(false);
   };
+
+  async function handleSave() {
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/portal/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(data.error || "Could not save your details. Try again.");
+        return;
+      }
+      setSaved(true);
+      await refresh();
+    } catch {
+      setError("Could not reach the server. Check your connection and try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <Section>
@@ -43,9 +77,13 @@ export default function SettingsPage() {
               id="name"
               name="name"
               type="text"
+              value={name}
               placeholder="Enter Your Name"
               className={inputClasses}
-              onChange={() => setSaved(false)}
+              onChange={(e) => {
+                setName(e.target.value);
+                setSaved(false);
+              }}
             />
           </FormField>
           <FormField label="Phone" htmlFor="phone">
@@ -54,12 +92,9 @@ export default function SettingsPage() {
               name="phone"
               type="tel"
               value={phoneValue}
+              disabled
               placeholder="+254 7xx xxx xxx"
-              className={inputClasses}
-              onChange={(e) => {
-                setPhoneValue(e.target.value);
-                setSaved(false);
-              }}
+              className={`${inputClasses} cursor-not-allowed opacity-70`}
             />
           </FormField>
           <FormField label="Email" htmlFor="email">
@@ -67,9 +102,13 @@ export default function SettingsPage() {
               id="email"
               name="email"
               type="email"
+              value={email}
               placeholder="Enter Your Email"
               className={inputClasses}
-              onChange={() => setSaved(false)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setSaved(false);
+              }}
             />
           </FormField>
           <FormField label="Notify me by" htmlFor="notify">
@@ -89,15 +128,17 @@ export default function SettingsPage() {
         </FormGrid>
 
         <div className="mt-8 flex items-center gap-4">
-          <Button type="button" onClick={() => setSaved(true)}>
-            Save Changes
+          <Button type="button" disabled={saving} onClick={handleSave}>
+            {saving ? "Saving…" : "Save Changes"}
           </Button>
           {saved ? <p className="text-sm text-oxblood">Saved.</p> : null}
+          {error ? <p className="text-sm text-oxblood">{error}</p> : null}
         </div>
       </div>
 
       <p className="mt-12 text-xs text-muted">
-        Sign-in is phone + one-time code — no password to reset here.
+        Sign-in is phone + one-time code — no password to reset here. Your phone number is your
+        account and can&apos;t be changed here — message us on WhatsApp if it changed.
       </p>
     </Section>
   );

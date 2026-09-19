@@ -1,9 +1,14 @@
+"use client";
+
 import { Section } from "@/components/ui/Section";
 import { LedgerTable } from "@/components/portal/LedgerTable";
 import { Tag } from "@/components/ui/Tag";
-import { orders, type Order } from "@/lib/fixtures/orders";
+import { usePortalData } from "@/app/portal/portal-context";
+import type { Order } from "@/lib/db";
 
 export default function OrdersPage() {
+  const { orders } = usePortalData();
+
   return (
     <Section>
       <h2 className="text-2xl">Orders</h2>

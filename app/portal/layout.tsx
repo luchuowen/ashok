@@ -1,21 +1,25 @@
 import { PortalHeader } from "@/components/portal/PortalHeader";
 import { PortalTabs } from "@/components/portal/PortalTabs";
+import { PortalDataProvider } from "@/app/portal/portal-context";
+import { PortalGate } from "@/app/portal/portal-gate";
 
 // Shared chrome for all 8 portal routes. "Your Record with the House" — never
-// "Dashboard" or "Account" (Improvement 5). No Firebase Auth gate yet in Phase 1;
-// TODO(phase-2): redirect unauthenticated visitors to /auth before rendering.
-//
-// White instead of the site's cream, with a vertical left nav (PortalTabs)
-// on md+ — makes the portal read as its own account/ledger surface rather
-// than another cream page with top tabs.
+// "Dashboard" or "Account" (Improvement 5). middleware.ts redirects a visitor
+// with no session cookie away before this ever renders; PortalDataProvider +
+// PortalGate below do the real, server-verified check and supply every
+// portal page's data from one fetch.
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-paper">
-      <PortalHeader />
-      <div className="mx-auto flex max-w-6xl flex-col md:flex-row">
-        <PortalTabs />
-        <div className="min-w-0 flex-1">{children}</div>
+    <PortalDataProvider>
+      <div className="min-h-screen bg-paper">
+        <PortalHeader />
+        <div className="mx-auto flex max-w-6xl flex-col md:flex-row">
+          <PortalTabs />
+          <div className="min-w-0 flex-1">
+            <PortalGate>{children}</PortalGate>
+          </div>
+        </div>
       </div>
-    </div>
+    </PortalDataProvider>
   );
 }

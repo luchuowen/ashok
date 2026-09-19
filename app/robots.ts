@@ -7,9 +7,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      // Client-record area — not for search engines even though there's no
-      // auth gate yet in Phase 1.
-      disallow: "/portal",
+      // Client-record and staff areas — never for search engines.
+      disallow: ["/portal", "/admin"],
     },
     sitemap: `${BASE_URL}/sitemap.xml`,
   };
