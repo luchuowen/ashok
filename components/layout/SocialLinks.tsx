@@ -14,7 +14,7 @@ const ICON_BUTTON_BY_TONE = {
   dark: "flex h-9 w-9 items-center justify-center text-cream transition-colors hover:text-ember",
   light: "flex h-9 w-9 items-center justify-center text-muted transition-colors hover:text-oxblood",
 } as const;
-const ICON_SIZE = "h-5 w-5";
+const ICON_SIZE = "h-6 w-6";
 
 export function SocialLinks({
   className = "",
