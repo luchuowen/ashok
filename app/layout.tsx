@@ -10,6 +10,7 @@ import { CartProvider } from "@/app/cart-context";
 const fraunces = Fraunces({
   subsets: ["latin"],
   axes: ["opsz"],
+  style: ["normal", "italic"],
   variable: "--font-display",
   display: "swap",
 });
