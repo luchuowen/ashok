@@ -47,7 +47,7 @@ const steps = [
     name: "Ready",
     body: "Final fitting, then yours to collect — or delivered, on request.",
     week: "Week 3–4",
-    image: undefined as string | undefined,
+    image: "/photos/portfolio/charcoal-three-piece.jpg" as string | undefined,
     imageLabel: "IMG-47 · finished garment",
   },
 ];
@@ -68,41 +68,48 @@ export default function ProcessPage() {
             <p className="mt-1 italic text-muted">N&deg; 05 &middot; Five Stages</p>
           </div>
         </div>
+      </Section>
 
-        {/* Alternating steps */}
-        {steps.map((step, index) => (
-          <div key={step.number}>
-            <div
-              className={`flex flex-col items-center gap-10 py-14 sm:items-center sm:gap-14 md:gap-16 md:py-16 ${
-                index === steps.length - 1 ? "" : "border-b border-line"
-              } ${index % 2 === 1 ? "sm:flex-row-reverse" : "sm:flex-row"}`}
-            >
-              <div className="flex-1 text-center sm:text-left">
-                <p className="text-sm italic text-oxblood">{step.number}</p>
-                <h3 className="mt-2 text-3xl">{step.name}</h3>
-                <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-muted sm:mx-0">{step.body}</p>
-                <div className="mt-5">
-                  <Tag variant={index === steps.length - 1 ? "stage" : "default"}>{step.week}</Tag>
-                </div>
+      {/* Alternating steps — each its own full-bleed band so the
+          cream/white alternation runs edge to edge, not just inside the
+          max-w-6xl column. Odd steps sit on white (bg-paper) instead of
+          the page's default cream, breaking up what was one long beige
+          field. The image column is now ~58% of the row (was a fixed
+          320-380px next to a much wider text column) so it actually reads
+          as the visual lead instead of an afterthought floating in empty
+          space. */}
+      {steps.map((step, index) => (
+        <Section key={step.number} className={index % 2 === 1 ? "bg-paper" : ""}>
+          <div
+            className={`flex flex-col items-center gap-10 py-14 sm:items-center sm:gap-14 md:gap-16 md:py-16 ${
+              index % 2 === 1 ? "sm:flex-row-reverse" : "sm:flex-row"
+            }`}
+          >
+            <div className="text-center sm:w-[38%] sm:flex-shrink-0 sm:text-left">
+              <p className="text-sm italic text-oxblood">{step.number}</p>
+              <h3 className="mt-2 text-3xl">{step.name}</h3>
+              <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-muted sm:mx-0">{step.body}</p>
+              <div className="mt-5">
+                <Tag variant={index === steps.length - 1 ? "stage" : "default"}>{step.week}</Tag>
               </div>
-              <Photo
-                src={step.image}
-                label={step.imageLabel}
-                alt={step.name}
-                aspectRatio="4 / 3"
-                className="w-full sm:w-[320px] md:w-[380px]"
-                sizes="(min-width: 768px) 380px, (min-width: 640px) 320px, 100vw"
-              />
             </div>
-
-            {index === 2 ? (
-              <div className="border-b border-line py-14 text-center md:py-16">
-                <p className="text-3xl italic text-oxblood">&ldquo;</p>
-                <p className="mx-auto max-w-xl text-2xl italic leading-snug">{pullQuote}</p>
-              </div>
-            ) : null}
+            <Photo
+              src={step.image}
+              label={step.imageLabel}
+              alt={step.name}
+              aspectRatio="3 / 2"
+              className="w-full sm:flex-1"
+              sizes="(min-width: 640px) 58vw, 100vw"
+            />
           </div>
-        ))}
+        </Section>
+      ))}
+
+      <Section className={3 % 2 === 1 ? "bg-paper" : ""}>
+        <div className="py-14 text-center md:py-16">
+          <p className="text-3xl italic text-oxblood">&ldquo;</p>
+          <p className="mx-auto max-w-xl text-2xl italic leading-snug">{pullQuote}</p>
+        </div>
       </Section>
     </main>
   );
