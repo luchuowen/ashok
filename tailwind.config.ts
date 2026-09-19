@@ -14,6 +14,7 @@ const config: Config = {
         oxblood: "var(--oxblood)",
         muted: "var(--muted)",
         line: "var(--line)",
+        paper: "var(--paper)",
       },
       fontFamily: {
         display: ["var(--font-display)"],

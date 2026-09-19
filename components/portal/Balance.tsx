@@ -8,7 +8,7 @@ export function Balance({
   currency?: string;
 }) {
   return (
-    <div className="flex flex-col items-start justify-between gap-4 border border-oxblood p-6 sm:flex-row sm:items-center">
+    <div className="flex flex-col items-start justify-between gap-4 border border-oxblood bg-paper p-6 sm:flex-row sm:items-center">
       <div>
         <p className="text-xs uppercase tracking-wide text-muted">Outstanding balance</p>
         <p className="mt-1 font-display text-2xl text-oxblood">

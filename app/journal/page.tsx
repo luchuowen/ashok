@@ -39,7 +39,7 @@ export default function JournalPage() {
       <Section>
         <CardGrid columns={3}>
           {teasers.map((teaser) => (
-            <div key={teaser.title} className="bg-cream p-6">
+            <div key={teaser.title} className="bg-paper p-6">
               <ImagePlaceholder label={teaser.image} aspectRatio="3 / 2" />
               <h2 className="mt-4 text-xl">{teaser.title}</h2>
               <p className="mt-2 text-sm text-muted">{teaser.body}</p>

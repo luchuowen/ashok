@@ -12,7 +12,7 @@ export function LedgerTable<T extends { id: string }>({
   rows: T[];
 }) {
   return (
-    <div className="overflow-x-auto border border-line">
+    <div className="overflow-x-auto border border-line bg-paper">
       <table className="w-full min-w-[480px] border-collapse text-left text-sm">
         <thead>
           <tr className="border-b border-line">

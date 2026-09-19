@@ -54,7 +54,7 @@ export default function CheckoutPage() {
                         id="mpesa-phone"
                         type="tel"
                         placeholder="07XX XXX XXX"
-                        className="border border-line bg-cream px-3 py-2 text-sm focus:border-ink focus:outline-none"
+                        className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
                       />
                     </FormField>
                     <p className="text-sm text-muted">
@@ -69,7 +69,7 @@ export default function CheckoutPage() {
                         id="card-number"
                         type="text"
                         placeholder="0000 0000 0000 0000"
-                        className="border border-line bg-cream px-3 py-2 text-sm focus:border-ink focus:outline-none"
+                        className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
                       />
                     </FormField>
                     <FormField label="Expiry" htmlFor="card-expiry">
@@ -77,7 +77,7 @@ export default function CheckoutPage() {
                         id="card-expiry"
                         type="text"
                         placeholder="MM/YY"
-                        className="border border-line bg-cream px-3 py-2 text-sm focus:border-ink focus:outline-none"
+                        className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
                       />
                     </FormField>
                   </FormGrid>

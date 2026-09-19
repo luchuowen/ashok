@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Tag } from "@/components/ui/Tag";
 
 const inputClasses =
-  "border border-line bg-cream px-3 py-2 text-sm text-ink focus:border-oxblood focus:outline-none";
+  "border border-line bg-paper px-3 py-2 text-sm text-ink focus:border-oxblood focus:outline-none";
 
 export default function SettingsPage() {
   // Phase 1 mock — no backend yet, so "Save Changes" just flips local state to

@@ -70,7 +70,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
       </Section>
 
       {related.length > 0 ? (
-        <Section>
+        <Section className="bg-paper">
           <p className="text-xs uppercase tracking-wide text-muted">Pairs well with</p>
           <div className="mt-6 grid max-w-md grid-cols-2 gap-8">
             {related.map((item) => (

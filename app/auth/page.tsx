@@ -54,7 +54,7 @@ export default function AuthPage() {
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
               placeholder="+254 7XX XXX XXX"
-              className="border border-line bg-cream px-4 py-3 text-sm text-ink outline-none focus:border-oxblood"
+              className="border border-line bg-paper px-4 py-3 text-sm text-ink outline-none focus:border-oxblood"
             />
           </FormField>
           <p className="text-xs text-muted">

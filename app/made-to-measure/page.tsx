@@ -36,7 +36,7 @@ export default function MadeToMeasurePage() {
         <QuizBand />
       </Section>
 
-      <Section>
+      <Section className="bg-paper">
         <h2 className="text-3xl">Made-to-measure for women</h2>
         <div className="mt-8 grid grid-cols-1 items-center gap-10 sm:grid-cols-2">
           <ImagePlaceholder label="IMG-41 · women's MTM blazer" aspectRatio="4 / 3" />
@@ -51,7 +51,7 @@ export default function MadeToMeasurePage() {
         <h2 className="text-3xl">What&apos;s included</h2>
         <CardGrid columns={3} className="mt-8">
           {included.map((item) => (
-            <div key={item.title} className="bg-cream p-6">
+            <div key={item.title} className="bg-paper p-6">
               <h3 className="text-xl">{item.title}</h3>
               <p className="mt-3 text-sm text-muted">{item.body}</p>
             </div>

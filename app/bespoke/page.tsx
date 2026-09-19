@@ -36,7 +36,7 @@ export default function BespokePage() {
         <h2 className="text-3xl">What&apos;s included</h2>
         <CardGrid columns={3} className="mt-8">
           {included.map((item) => (
-            <div key={item.title} className="bg-cream p-6">
+            <div key={item.title} className="bg-paper p-6">
               <h3 className="text-xl">{item.title}</h3>
               <p className="mt-3 text-sm text-muted">{item.body}</p>
             </div>
@@ -44,7 +44,7 @@ export default function BespokePage() {
         </CardGrid>
       </Section>
 
-      <Section>
+      <Section className="bg-paper">
         <h2 className="text-3xl">Who it&apos;s for</h2>
         <p className="mt-4 max-w-2xl text-base text-muted">
           Wedding suits, boardroom wardrobes, the one suit you want to stop thinking about once

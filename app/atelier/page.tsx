@@ -29,7 +29,7 @@ export default function AtelierPage() {
         />
       </Section>
 
-      <Section>
+      <Section className="bg-paper">
         <div className="grid grid-cols-1 items-center gap-10 sm:grid-cols-2">
           <ImagePlaceholder label="IMG-40 · master tailor at the cutting table" aspectRatio="4 / 3" />
           <p className="text-base text-muted">
@@ -52,7 +52,7 @@ export default function AtelierPage() {
         <h2 className="text-3xl">What we believe about fit</h2>
         <CardGrid columns={3} className="mt-8">
           {beliefs.map((belief) => (
-            <div key={belief.title} className="bg-cream p-6">
+            <div key={belief.title} className="bg-paper p-6">
               <h3 className="text-xl">{belief.title}</h3>
               <p className="mt-3 text-sm text-muted">{belief.body}</p>
             </div>

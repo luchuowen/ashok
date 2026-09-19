@@ -74,7 +74,7 @@ function BookingForm() {
                 <input
                   id="name"
                   type="text"
-                  className="border border-line bg-cream px-3 py-2 text-sm focus:border-ink focus:outline-none"
+                  className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
                 />
               </FormField>
 
@@ -82,7 +82,7 @@ function BookingForm() {
                 <input
                   id="phone"
                   type="tel"
-                  className="border border-line bg-cream px-3 py-2 text-sm focus:border-ink focus:outline-none"
+                  className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
                 />
               </FormField>
 
@@ -91,7 +91,7 @@ function BookingForm() {
                   <input
                     id="email"
                     type="email"
-                    className="border border-line bg-cream px-3 py-2 text-sm focus:border-ink focus:outline-none"
+                    className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
                   />
                 </FormField>
               </div>
@@ -101,7 +101,7 @@ function BookingForm() {
                   <textarea
                     id="note"
                     rows={4}
-                    className="border border-line bg-cream px-3 py-2 text-sm focus:border-ink focus:outline-none"
+                    className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
                   />
                 </FormField>
               </div>

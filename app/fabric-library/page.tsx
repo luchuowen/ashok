@@ -35,7 +35,7 @@ export default function FabricLibraryPage() {
 
         <div className="mt-8 grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-4">
           {fabrics.map((fabric) => (
-            <div key={fabric.id} className="bg-cream p-4">
+            <div key={fabric.id} className="bg-paper p-4">
               <ImagePlaceholder label={fabric.imageLabel} aspectRatio="1 / 1" />
               <p className="mt-3 text-sm">{fabric.name}</p>
               <p className="text-xs text-muted">
@@ -46,7 +46,7 @@ export default function FabricLibraryPage() {
         </div>
       </Section>
 
-      <Section>
+      <Section className="bg-paper">
         <h2 className="text-3xl">Reserve a swatch</h2>
         <p className="mt-4 max-w-2xl text-base text-muted">
           Tap any bolt to hold it against your consultation booking — no separate account needed,

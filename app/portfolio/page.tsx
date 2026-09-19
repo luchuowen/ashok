@@ -26,7 +26,7 @@ export default function PortfolioPage() {
         </div>
         <CardGrid columns={4} className="mt-8">
           {portfolioItems.map((item) => (
-            <div key={item.id} className="bg-cream p-6">
+            <div key={item.id} className="bg-paper p-6">
               <ImagePlaceholder label={item.imageLabel} aspectRatio="3 / 4" />
               <p className="mt-2 text-sm">{item.title}</p>
               <Tag>{item.tag}</Tag>
@@ -34,7 +34,7 @@ export default function PortfolioPage() {
           ))}
         </CardGrid>
       </Section>
-      <Section>
+      <Section className="bg-paper">
         <Quote attribution="A CLIENT, EXECUTIVE WARDROBE, 2026">
           Dressed for the room I was about to walk into — boardroom, this time.
         </Quote>

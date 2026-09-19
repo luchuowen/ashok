@@ -90,7 +90,7 @@ export default function Home() {
       </div>
 
       {/* Three-column intro */}
-      <Section>
+      <Section className="bg-paper">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
           {introColumns.map((col) => (
             <div key={col.title}>
@@ -120,7 +120,7 @@ export default function Home() {
       </Section>
 
       {/* Process */}
-      <Section>
+      <Section className="bg-paper">
         <h2 className="text-3xl">The Process</h2>
         <ol className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
           {processSteps.map((step) => (
@@ -149,7 +149,7 @@ export default function Home() {
       </div>
 
       {/* Quote */}
-      <Section>
+      <Section className="bg-paper">
         <Quote attribution="A CLIENT, WEDDING SUIT, 2026">
           &ldquo;He measured me the way he talks — slowly, and like it mattered.&rdquo;
         </Quote>

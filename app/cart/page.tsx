@@ -84,7 +84,7 @@ export default function CartPage() {
                     id="promo"
                     type="text"
                     placeholder="Enter code"
-                    className="border border-line bg-cream px-3 py-2 text-sm focus:border-ink focus:outline-none"
+                    className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
                   />
                 </FormField>
                 {/* Phase 1 mock — no real promo-code validation yet; this is a no-op. */}
