@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { nav } from "@/lib/nav";
 import { siteConfig } from "@/lib/content/site";
 import { SocialLinks } from "@/components/layout/SocialLinks";
+import { useAuthSession } from "@/app/auth-context";
 
 interface FooterLink {
   slug: string;
@@ -19,8 +22,9 @@ const houseSlugs = [
   "weddings-corporate",
 ];
 const shopSlugs = ["shop", "cart", "checkout"];
+// "auth" is handled separately below (AccountLinks) since it needs to
+// switch between "Sign In" and the signed-in phone/Sign Out state.
 const accountOverrides: { slug: string; label: string }[] = [
-  { slug: "auth", label: "Sign In" },
   { slug: "portal", label: "Your Record with the House" },
   { slug: "booking", label: "Book a Consultation" },
   { slug: "contact", label: "Contact" },
@@ -55,6 +59,42 @@ function FooterLinkList({ links }: { links: FooterLink[] }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+/** The "Sign In" link (signed out) or phone number + Sign Out control
+ * (signed in), rendered before the rest of the Account links. Reads the
+ * real session via useAuthSession — see app/auth-context.tsx. */
+function AccountAuthItem({ className = "" }: { className?: string }) {
+  const { loading, signedIn, phone, signOut } = useAuthSession();
+
+  if (loading) {
+    // Reserve the line's height so the column doesn't jump once the
+    // session check resolves.
+    return <li className={`text-sm text-cream/0 ${className}`}>Sign In</li>;
+  }
+
+  if (!signedIn) {
+    return (
+      <li className={className}>
+        <Link href="/auth" className="text-sm hover:text-ember">
+          Sign In
+        </Link>
+      </li>
+    );
+  }
+
+  return (
+    <li className={className}>
+      <p className="text-sm text-cream/70">{phone}</p>
+      <button
+        type="button"
+        onClick={() => void signOut()}
+        className="text-sm hover:text-ember"
+      >
+        Sign Out
+      </button>
+    </li>
   );
 }
 
@@ -115,7 +155,16 @@ export function Footer() {
           <div className="hidden md:block">
             <p className="text-xs uppercase tracking-wide text-cream/60">Account</p>
             <div className="mt-3">
-              <FooterLinkList links={accountLinks} />
+              <ul className="space-y-1.5">
+                <AccountAuthItem />
+                {accountLinks.map((item) => (
+                  <li key={item.slug}>
+                    <Link href={item.href} className="text-sm hover:text-ember">
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
@@ -125,7 +174,29 @@ export function Footer() {
         <div className="mt-10 md:hidden">
           <FooterAccordionSection title="The House" links={houseLinks} />
           <FooterAccordionSection title="Shop" links={shopLinks} />
-          <FooterAccordionSection title="Account" links={accountLinks} />
+          <details className="group border-b border-cream/15 py-4 first:border-t">
+            <summary className="flex cursor-pointer list-none items-center justify-between text-xs uppercase tracking-wide text-cream/60 [&::-webkit-details-marker]:hidden">
+              Account
+              <span
+                className="text-base leading-none text-cream/40 transition-transform duration-200 group-open:rotate-45"
+                aria-hidden="true"
+              >
+                +
+              </span>
+            </summary>
+            <div className="mt-4 pb-1">
+              <ul className="space-y-1.5">
+                <AccountAuthItem />
+                {accountLinks.map((item) => (
+                  <li key={item.slug}>
+                    <Link href={item.href} className="text-sm hover:text-ember">
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </details>
         </div>
 
         <div className="mx-auto mt-12 flex max-w-6xl flex-col items-center justify-between gap-3 border-t border-cream/15 pt-6 text-center text-xs text-cream/50 md:flex-row md:items-center md:text-left">
