@@ -8,7 +8,23 @@ import { buildGoogleCalendarUrl } from "@/lib/ics";
 
 export default function AppointmentsPage() {
   const { appointments } = usePortalData();
-  const [upcoming] = appointments;
+
+  // The portal used to just take appointments[0] — the most recently
+  // *dated* row — and show it as "upcoming" with Reschedule/Add to
+  // Calendar actions, regardless of its status. Once staff marked a
+  // consultation Completed (or Cancelled) in /admin, that same appointment
+  // kept showing here as if it still needed to happen, and there was no
+  // way to ever see past visits (the section below was static copy that
+  // never rendered anything). Split on status instead: only a Scheduled
+  // appointment is "upcoming"; everything else is history.
+  const scheduled = appointments.filter((a) => a.status === "Scheduled");
+  const upcoming = scheduled.reduce<typeof scheduled[number] | undefined>(
+    (soonest, a) => (!soonest || a.date < soonest.date ? a : soonest),
+    undefined,
+  );
+  const past = appointments
+    .filter((a) => a.status !== "Scheduled")
+    .sort((a, b) => b.date.localeCompare(a.date));
 
   const calendarHref = upcoming
     ? buildGoogleCalendarUrl({
@@ -64,9 +80,31 @@ export default function AppointmentsPage() {
       </div>
 
       <div className="mt-12 border-t border-line pt-6">
-        <p className="text-sm text-muted">
-          Past visits will appear here once you&apos;ve had your first appointment.
-        </p>
+        {past.length > 0 ? (
+          <>
+            <p className="text-xs uppercase tracking-wide text-muted">Past Visits</p>
+            <div className="mt-4 space-y-3">
+              {past.map((visit) => (
+                <div
+                  key={visit.id}
+                  className="flex flex-col gap-1 border border-line p-4 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div>
+                    <p className="font-display text-lg">{visit.type}</p>
+                    <p className="text-sm text-muted">
+                      {visit.date} · {visit.time} · {visit.location}
+                    </p>
+                  </div>
+                  <span className="text-xs uppercase tracking-wide text-muted">{visit.status}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <p className="text-sm text-muted">
+            Past visits will appear here once you&apos;ve had your first appointment.
+          </p>
+        )}
       </div>
     </Section>
   );

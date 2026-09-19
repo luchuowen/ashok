@@ -7,7 +7,16 @@ import { usePortalData } from "@/app/portal/portal-context";
 export default function PortalOverviewPage() {
   const { orders, appointments, measurements } = usePortalData();
   const order = orders[0];
-  const appointment = appointments[0];
+  // Only a still-Scheduled appointment belongs in "Next Appointment" — a
+  // Completed/Cancelled one (set by staff in /admin) shouldn't keep
+  // showing here as if it hasn't happened yet. See the fuller fix and
+  // explanation on /portal/appointments.
+  const appointment = appointments
+    .filter((a) => a.status === "Scheduled")
+    .reduce<typeof appointments[number] | undefined>(
+      (soonest, a) => (!soonest || a.date < soonest.date ? a : soonest),
+      undefined,
+    );
   const measurement = measurements[0];
 
   return (
