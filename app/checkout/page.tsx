@@ -6,22 +6,68 @@ import { Section } from "@/components/ui/Section";
 import { StepBar } from "@/components/ui/StepBar";
 import { FormGrid } from "@/components/ui/FormGrid";
 import { FormField } from "@/components/ui/FormField";
-import { Tag } from "@/components/ui/Tag";
 
-type PaymentMethod = "mpesa" | "card";
+const PENDING_ORDER_KEY = "ashok-pending-order";
 
 export default function CheckoutPage() {
   const { items, subtotal } = useCart();
-  const [method, setMethod] = useState<PaymentMethod>("mpesa");
-  // Phase 1 mock: there is no real payment API call here. "Pay" just flips
-  // this flag to show an inline confirmation. A real M-Pesa/Pesapal
-  // integration is Phase 2.
-  const [paid, setPaid] = useState(false);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const currency = items[0]?.currency ?? "KES";
 
-  function handlePay(e: React.FormEvent<HTMLFormElement>) {
+  async function handlePay(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setPaid(true);
+    if (items.length === 0) {
+      setError("Your cart is empty.");
+      return;
+    }
+    if (!phone.trim()) {
+      setError("Enter a phone number to continue.");
+      return;
+    }
+
+    setError(null);
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/checkout/create-invoice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map((item) => ({ productId: item.productId, qty: item.qty })),
+          customerName: name,
+          customerPhone: phone,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(data.error || "Could not start payment. Try again.");
+        setSubmitting(false);
+        return;
+      }
+
+      try {
+        sessionStorage.setItem(
+          PENDING_ORDER_KEY,
+          JSON.stringify({
+            transactionId: data.transactionId,
+            amount: data.amount,
+            currency: data.currency,
+            description: data.description,
+            createdAt: Date.now(),
+          }),
+        );
+      } catch {
+        // sessionStorage unavailable — the complete page will fall back to a
+        // generic "check your M-Pesa/email" message without item detail.
+      }
+
+      window.location.href = data.checkoutUrl;
+    } catch {
+      setError("Could not reach the server. Check your connection and try again.");
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -31,68 +77,36 @@ export default function CheckoutPage() {
 
         <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-2">
           <div>
-            {paid ? (
-              <div className="border border-line p-6">
-                <p className="text-base">
-                  Payment simulated — a real M-Pesa/Pesapal integration is Phase 2.
-                </p>
-              </div>
-            ) : (
-              <form id="checkout-payment-form" onSubmit={handlePay}>
+            <form id="checkout-payment-form" onSubmit={handlePay}>
               <FormGrid columns={1}>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted">Payment Method</p>
-                  <div className="mt-2 flex gap-2">
-                    <button type="button" onClick={() => setMethod("mpesa")}>
-                      <Tag variant={method === "mpesa" ? "stage" : "default"}>M-Pesa</Tag>
-                    </button>
-                    <button type="button" onClick={() => setMethod("card")}>
-                      <Tag variant={method === "card" ? "stage" : "default"}>Card</Tag>
-                    </button>
-                  </div>
-                </div>
-
-                {method === "mpesa" ? (
-                  <>
-                    <FormField label="M-Pesa Phone Number" htmlFor="mpesa-phone">
-                      <input
-                        id="mpesa-phone"
-                        type="tel"
-                        required
-                        placeholder="07XX XXX XXX"
-                        className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
-                      />
-                    </FormField>
-                    <p className="text-sm text-muted">
-                      You&rsquo;ll get an STK push on your phone to confirm — no card details
-                      needed for M-Pesa.
-                    </p>
-                  </>
-                ) : (
-                  <FormGrid columns={2}>
-                    <FormField label="Card Number" htmlFor="card-number">
-                      <input
-                        id="card-number"
-                        type="text"
-                        required
-                        placeholder="0000 0000 0000 0000"
-                        className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
-                      />
-                    </FormField>
-                    <FormField label="Expiry" htmlFor="card-expiry">
-                      <input
-                        id="card-expiry"
-                        type="text"
-                        required
-                        placeholder="MM/YY"
-                        className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
-                      />
-                    </FormField>
-                  </FormGrid>
-                )}
+                <FormField label="Full Name" htmlFor="customer-name">
+                  <input
+                    id="customer-name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Jane Doe"
+                    className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
+                  />
+                </FormField>
+                <FormField label="Phone Number" htmlFor="customer-phone">
+                  <input
+                    id="customer-phone"
+                    type="tel"
+                    required
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="07XX XXX XXX"
+                    className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
+                  />
+                </FormField>
+                <p className="text-sm text-muted">
+                  You&rsquo;ll be taken to a secure payment page to pay by M-Pesa, card or bank
+                  transfer.
+                </p>
+                {error ? <p className="text-sm text-oxblood">{error}</p> : null}
               </FormGrid>
-              </form>
-            )}
+            </form>
           </div>
 
           <div className="border border-line p-6">
@@ -120,8 +134,13 @@ export default function CheckoutPage() {
               </span>
             </div>
             <div className="mt-6">
-              <button type="submit" form="checkout-payment-form" className="cta">
-                Pay
+              <button
+                type="submit"
+                form="checkout-payment-form"
+                disabled={submitting || items.length === 0}
+                className="cta disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {submitting ? "Redirecting to payment…" : "Pay"}
               </button>
             </div>
           </div>
