@@ -39,7 +39,7 @@ const imageStrip = [
   },
   {
     label: "IMG-04 · fitting session",
-    image: undefined as string | undefined, // "/photos/home/fitting-session.jpg" once generated
+    image: "/photos/home/fitting-session.jpg" as string | undefined,
     caption: "The fitting that matters",
   },
 ];
