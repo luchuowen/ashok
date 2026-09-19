@@ -8,6 +8,7 @@ import { FormGrid } from "@/components/ui/FormGrid";
 import { FormField } from "@/components/ui/FormField";
 import { Tag } from "@/components/ui/Tag";
 import { Button } from "@/components/ui/Button";
+import { WaCTA } from "@/components/ui/WaCTA";
 
 const VISIT_TYPES = ["Bespoke", "Made-to-Measure", "Alterations", "Wedding Party"];
 
@@ -92,10 +93,8 @@ function BookingForm() {
             </p>
           </div>
         ) : (
-          <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-1 gap-10 lg:grid-cols-2"
-          >
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+            <form onSubmit={handleSubmit}>
             <FormGrid columns={2}>
               <div className="sm:col-span-2">
                 <p className="text-xs uppercase tracking-wide text-muted">Visit Type</p>
@@ -157,6 +156,7 @@ function BookingForm() {
                 {formError ? <p className="mt-3 text-sm text-oxblood">{formError}</p> : null}
               </div>
             </FormGrid>
+            </form>
 
             <div className="border border-line p-6">
               <p className="text-center text-xs uppercase tracking-wide text-muted">
@@ -174,12 +174,13 @@ function BookingForm() {
                 reminder the day before.
               </p>
               <div className="mt-6 flex justify-center">
-                <Button type="submit" variant="ghost" disabled={submitting}>
-                  Confirm via WhatsApp
-                </Button>
+                <WaCTA
+                  label="Confirm via WhatsApp"
+                  message={`Hi, I'd like to confirm my ${selectedType ?? "consultation"} booking for ${selectedSlot ?? "a time this week"} at Ridgeways.`}
+                />
               </div>
             </div>
-          </form>
+          </div>
         )}
       </Section>
     </main>
