@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useCart } from "@/app/cart-context";
 import { useAuthSession } from "@/app/auth-context";
 import { Section } from "@/components/ui/Section";
-import { StepBar } from "@/components/ui/StepBar";
 import { FormGrid } from "@/components/ui/FormGrid";
 import { FormField } from "@/components/ui/FormField";
 
@@ -84,7 +83,13 @@ export default function CheckoutPage() {
   return (
     <main>
       <Section border={false}>
-        <StepBar steps={["Delivery", "Payment", "Review"]} currentStep={2} />
+        {/* This is a single-step checkout — enter details, then Pay takes
+            you straight to TaifaPay's hosted page. A "Delivery / Payment /
+            Review" step bar used to sit here always showing "Delivery" as
+            already done and promising a "Review" step, even though no
+            delivery info is collected and there is no review step — a
+            stepper for a flow this page doesn't actually have. */}
+        <h1 className="font-display text-3xl">Checkout</h1>
 
         <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-2">
           <div>
