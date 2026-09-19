@@ -22,6 +22,7 @@ export const portfolioItems: PortfolioItem[] = [
     title: "Ivory dinner jacket",
     tag: "Wedding",
     imageLabel: "IMG-31 · ivory dinner jacket, groom",
+    image: "/photos/portfolio/ivory-dinner-jacket.jpg",
   },
   {
     id: "port-navy-blazer-mtm",
