@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { nav } from "@/lib/nav";
 import { siteConfig } from "@/lib/content/site";
 import { Button } from "@/components/ui/Button";
@@ -15,8 +16,15 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-cream/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4 md:px-12">
-        <Link href="/" className="font-display text-lg tracking-tight">
-          {siteConfig.name}
+        <Link href="/" className="flex items-center gap-2" aria-label={siteConfig.fullName}>
+          <Image
+            src="/logo.avif"
+            alt={siteConfig.fullName}
+            width={44}
+            height={44}
+            className="h-10 w-10 md:h-11 md:w-11"
+            priority
+          />
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">
