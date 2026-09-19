@@ -11,10 +11,10 @@ const PLACEHOLDER_SOCIALS = [
 ];
 
 const ICON_BUTTON_BY_TONE = {
-  dark: "flex h-9 w-9 items-center justify-center text-cream transition-colors hover:text-ember",
-  light: "flex h-9 w-9 items-center justify-center text-muted transition-colors hover:text-oxblood",
+  dark: "flex h-11 w-11 items-center justify-center text-cream transition-colors hover:text-ember",
+  light: "flex h-11 w-11 items-center justify-center text-muted transition-colors hover:text-oxblood",
 } as const;
-const ICON_SIZE = "h-6 w-6";
+const ICON_SIZE = "h-8 w-8";
 
 export function SocialLinks({
   className = "",
@@ -26,7 +26,7 @@ export function SocialLinks({
   const iconButton = ICON_BUTTON_BY_TONE[tone];
 
   return (
-    <div className={`flex items-center gap-4 ${className}`}>
+    <div className={`flex items-center gap-2 ${className}`}>
       <WhatsAppConnect variant="icon" triggerClassName={iconButton} iconClassName={ICON_SIZE} />
       {PLACEHOLDER_SOCIALS.map(({ label, href, Icon }) => (
         <a key={label} href={href} aria-label={label} className={iconButton}>
