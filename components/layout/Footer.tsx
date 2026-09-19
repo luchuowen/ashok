@@ -49,7 +49,7 @@ export function Footer() {
 
         <div>
           <p className="text-xs uppercase tracking-wide text-cream/60">The House</p>
-          <ul className="mt-4 space-y-2">
+          <ul className="mt-3 space-y-1.5">
             {houseLinks.map((item) => (
               <li key={item.slug}>
                 <Link href={item.href} className="text-sm hover:text-oxblood">
@@ -62,7 +62,7 @@ export function Footer() {
 
         <div>
           <p className="text-xs uppercase tracking-wide text-cream/60">Shop</p>
-          <ul className="mt-4 space-y-2">
+          <ul className="mt-3 space-y-1.5">
             {shopLinks.map((item) => (
               <li key={item.slug}>
                 <Link href={item.href} className="text-sm hover:text-oxblood">
@@ -75,7 +75,7 @@ export function Footer() {
 
         <div>
           <p className="text-xs uppercase tracking-wide text-cream/60">Account</p>
-          <ul className="mt-4 space-y-2">
+          <ul className="mt-3 space-y-1.5">
             {accountLinks.map(({ slug, label }) => {
               const item = nav.find((n) => n.slug === slug);
               if (!item) return null;
@@ -95,14 +95,17 @@ export function Footer() {
         <p>
           © {new Date().getFullYear()} {siteConfig.fullName}, {siteConfig.address}.
         </p>
-        <a
-          href="https://navac.co.ke"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-cream/50 hover:text-oxblood"
-        >
-          Designed by NAVAC GLOBAL
-        </a>
+        <p>
+          Designed by{" "}
+          <a
+            href="https://navac.co.ke"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-cream/50 hover:text-oxblood"
+          >
+            NAVAC GLOBAL
+          </a>
+        </p>
       </div>
     </footer>
   );
