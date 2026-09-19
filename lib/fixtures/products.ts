@@ -61,5 +61,6 @@ export const products: Product[] = [
     sizes: ["40", "41", "42", "43", "44", "45"],
     description: "Closed-lacing oxford in black calf, built for the formal end of the wardrobe.",
     imageLabel: "IMG-14 · oxford shoes, black calf",
+    image: "/photos/products/oxford-shoes-black-calf.jpg",
   },
 ];
