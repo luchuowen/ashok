@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { StickyBookBar } from "@/components/layout/StickyBookBar";
 import { siteConfig } from "@/lib/content/site";
+import { CartProvider } from "@/app/cart-context";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -37,7 +38,7 @@ export default function RootLayout({
         className={`${fraunces.variable} ${workSans.variable} pb-20 antialiased min-[900px]:pb-0`}
       >
         <Header />
-        {children}
+        <CartProvider>{children}</CartProvider>
         <Footer />
         <StickyBookBar />
       </body>
