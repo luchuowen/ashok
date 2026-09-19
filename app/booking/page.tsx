@@ -34,19 +34,44 @@ function BookingForm() {
   const typeParam = searchParams.get("type");
   const [selectedType, setSelectedType] = useState<string | null>(preselectedType(typeParam));
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
-  // Phase 1 mock: there is no real booking-submission endpoint yet.
-  // "Confirm Booking" just flips this flag to show a success message inline.
   const [confirmed, setConfirmed] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!selectedType || !selectedSlot) {
       setFormError("Pick a visit type and a time slot to continue.");
       return;
     }
+    const form = e.currentTarget;
+    const data = new FormData(form);
     setFormError(null);
-    setConfirmed(true);
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          visitType: selectedType,
+          slot: selectedSlot,
+          name: data.get("name"),
+          phone: data.get("phone"),
+          email: data.get("email"),
+          note: data.get("note"),
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.ok) {
+        setFormError(result.error || "Could not submit your booking. Try again.");
+        setSubmitting(false);
+        return;
+      }
+      setConfirmed(true);
+    } catch {
+      setFormError("Could not reach the server. Check your connection and try again.");
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -86,6 +111,7 @@ function BookingForm() {
               <FormField label="Name" htmlFor="name">
                 <input
                   id="name"
+                  name="name"
                   type="text"
                   required
                   className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
@@ -95,6 +121,7 @@ function BookingForm() {
               <FormField label="Phone" htmlFor="phone">
                 <input
                   id="phone"
+                  name="phone"
                   type="tel"
                   required
                   className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
@@ -105,6 +132,7 @@ function BookingForm() {
                 <FormField label="Email" htmlFor="email">
                   <input
                     id="email"
+                    name="email"
                     type="email"
                     className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
                   />
@@ -115,6 +143,7 @@ function BookingForm() {
                 <FormField label="Note (optional)" htmlFor="note">
                   <textarea
                     id="note"
+                    name="note"
                     rows={4}
                     className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
                   />
@@ -122,7 +151,9 @@ function BookingForm() {
               </div>
 
               <div className="sm:col-span-2">
-                <Button type="submit">Confirm Booking</Button>
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? "Sending…" : "Confirm Booking"}
+                </Button>
                 {formError ? <p className="mt-3 text-sm text-oxblood">{formError}</p> : null}
               </div>
             </FormGrid>
@@ -143,7 +174,7 @@ function BookingForm() {
                 reminder the day before.
               </p>
               <div className="mt-6 flex justify-center">
-                <Button type="submit" variant="ghost">
+                <Button type="submit" variant="ghost" disabled={submitting}>
                   Confirm via WhatsApp
                 </Button>
               </div>
