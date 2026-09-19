@@ -44,7 +44,7 @@ export function Header() {
           ))}
         </nav>
 
-        <Button href="/booking" className="hidden md:inline-flex">
+        <Button href="/booking" className="hidden md:inline-flex !px-4 !py-2 !text-xs">
           Book a Consultation
         </Button>
 
