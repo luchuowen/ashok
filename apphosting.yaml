@@ -3,3 +3,11 @@ env:
     secret: SOURCECODE_API_KEY
   - variable: OTP_SIGNING_SECRET
     secret: OTP_SIGNING_SECRET
+  - variable: TAIFAPAY_ENV
+    value: sandbox
+  - variable: NEXT_PUBLIC_SITE_URL
+    value: https://ashok.navac.co.ke
+  - variable: TAIFAPAY_SANDBOX_CLIENT_ID
+    secret: TAIFAPAY_SANDBOX_CLIENT_ID
+  - variable: TAIFAPAY_SANDBOX_CLIENT_SECRET
+    secret: TAIFAPAY_SANDBOX_CLIENT_SECRET
