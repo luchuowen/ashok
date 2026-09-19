@@ -20,9 +20,9 @@ export function Header() {
           <Image
             src="/logo.avif"
             alt={siteConfig.fullName}
-            width={44}
-            height={44}
-            className="h-10 w-10 md:h-11 md:w-11"
+            width={72}
+            height={72}
+            className="h-14 w-14 md:h-[72px] md:w-[72px]"
             priority
           />
         </Link>
