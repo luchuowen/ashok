@@ -49,6 +49,7 @@ export const products: Product[] = [
     sizes: ["One Size"],
     description: "Solid brass, weighted, a plain face that doesn't compete with a cuff.",
     imageLabel: "IMG-13 · cufflinks, brass",
+    image: "/photos/products/cufflinks-brass.jpg",
   },
   {
     id: "prod-oxford-shoes-black-calf",
