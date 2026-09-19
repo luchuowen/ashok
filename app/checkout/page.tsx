@@ -7,7 +7,6 @@ import { StepBar } from "@/components/ui/StepBar";
 import { FormGrid } from "@/components/ui/FormGrid";
 import { FormField } from "@/components/ui/FormField";
 import { Tag } from "@/components/ui/Tag";
-import { Button } from "@/components/ui/Button";
 
 type PaymentMethod = "mpesa" | "card";
 
@@ -19,6 +18,11 @@ export default function CheckoutPage() {
   // integration is Phase 2.
   const [paid, setPaid] = useState(false);
   const currency = items[0]?.currency ?? "KES";
+
+  function handlePay(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setPaid(true);
+  }
 
   return (
     <main>
@@ -34,6 +38,7 @@ export default function CheckoutPage() {
                 </p>
               </div>
             ) : (
+              <form id="checkout-payment-form" onSubmit={handlePay}>
               <FormGrid columns={1}>
                 <div>
                   <p className="text-xs uppercase tracking-wide text-muted">Payment Method</p>
@@ -53,6 +58,7 @@ export default function CheckoutPage() {
                       <input
                         id="mpesa-phone"
                         type="tel"
+                        required
                         placeholder="07XX XXX XXX"
                         className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
                       />
@@ -68,6 +74,7 @@ export default function CheckoutPage() {
                       <input
                         id="card-number"
                         type="text"
+                        required
                         placeholder="0000 0000 0000 0000"
                         className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
                       />
@@ -76,6 +83,7 @@ export default function CheckoutPage() {
                       <input
                         id="card-expiry"
                         type="text"
+                        required
                         placeholder="MM/YY"
                         className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
                       />
@@ -83,6 +91,7 @@ export default function CheckoutPage() {
                   </FormGrid>
                 )}
               </FormGrid>
+              </form>
             )}
           </div>
 
@@ -111,7 +120,9 @@ export default function CheckoutPage() {
               </span>
             </div>
             <div className="mt-6">
-              <Button onClick={() => setPaid(true)}>Pay</Button>
+              <button type="submit" form="checkout-payment-form" className="cta">
+                Pay
+              </button>
             </div>
           </div>
         </div>

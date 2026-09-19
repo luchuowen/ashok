@@ -46,7 +46,7 @@ export function Footer() {
           <ul className="mt-3 space-y-1.5">
             {houseLinks.map((item) => (
               <li key={item.slug}>
-                <Link href={item.href} className="text-sm hover:text-oxblood">
+                <Link href={item.href} className="text-sm hover:text-ember">
                   {item.label}
                 </Link>
               </li>
@@ -59,7 +59,7 @@ export function Footer() {
           <ul className="mt-3 space-y-1.5">
             {shopLinks.map((item) => (
               <li key={item.slug}>
-                <Link href={item.href} className="text-sm hover:text-oxblood">
+                <Link href={item.href} className="text-sm hover:text-ember">
                   {item.label}
                 </Link>
               </li>
@@ -75,7 +75,7 @@ export function Footer() {
               if (!item) return null;
               return (
                 <li key={slug}>
-                  <Link href={item.href} className="text-sm hover:text-oxblood">
+                  <Link href={item.href} className="text-sm hover:text-ember">
                     {label}
                   </Link>
                 </li>
@@ -95,7 +95,7 @@ export function Footer() {
             href="https://navac.co.ke"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-cream/50 hover:text-oxblood"
+            className="text-cream/50 hover:text-ember"
           >
             NAVAC GLOBAL
           </a>

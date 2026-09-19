@@ -38,6 +38,17 @@ function BookingForm() {
   // Phase 1 mock: there is no real booking-submission endpoint yet.
   // "Confirm Booking" just flips this flag to show a success message inline.
   const [confirmed, setConfirmed] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!selectedType || !selectedSlot) {
+      setFormError("Pick a visit type and a time slot to continue.");
+      return;
+    }
+    setFormError(null);
+    setConfirmed(true);
+  }
 
   return (
     <main>
@@ -57,7 +68,10 @@ function BookingForm() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+          <form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 gap-10 lg:grid-cols-2"
+          >
             <FormGrid columns={2}>
               <div className="sm:col-span-2">
                 <p className="text-xs uppercase tracking-wide text-muted">Visit Type</p>
@@ -74,6 +88,7 @@ function BookingForm() {
                 <input
                   id="name"
                   type="text"
+                  required
                   className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
                 />
               </FormField>
@@ -82,6 +97,7 @@ function BookingForm() {
                 <input
                   id="phone"
                   type="tel"
+                  required
                   className="border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none"
                 />
               </FormField>
@@ -107,7 +123,8 @@ function BookingForm() {
               </div>
 
               <div className="sm:col-span-2">
-                <Button onClick={() => setConfirmed(true)}>Confirm Booking</Button>
+                <Button type="submit">Confirm Booking</Button>
+                {formError ? <p className="mt-3 text-sm text-oxblood">{formError}</p> : null}
               </div>
             </FormGrid>
 
@@ -133,7 +150,7 @@ function BookingForm() {
                 />
               </div>
             </div>
-          </div>
+          </form>
         )}
       </Section>
     </main>

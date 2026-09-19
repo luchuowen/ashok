@@ -21,10 +21,27 @@ const workSans = Work_Sans({
   display: "swap",
 });
 
+const TITLE = `${siteConfig.name} — Bespoke & Made-to-Measure Tailoring, Nairobi`;
+const DESCRIPTION =
+  "Bespoke and made-to-measure tailoring in Nairobi. Cut from your own pattern, fitted in person, kept on record for the next one.";
+
 export const metadata: Metadata = {
-  title: `${siteConfig.name} — Bespoke & Made-to-Measure Tailoring, Nairobi`,
-  description:
-    "Bespoke and made-to-measure tailoring in Nairobi. Cut from your own pattern, fitted in person, kept on record for the next one.",
+  metadataBase: new URL("https://ashok.navac.co.ke"),
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "/",
+    siteName: siteConfig.fullName,
+    locale: "en_KE",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
 };
 
 export default function RootLayout({

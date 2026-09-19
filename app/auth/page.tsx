@@ -10,8 +10,16 @@ export default function AuthPage() {
   const [tab, setTab] = useState<AuthTab>("sign-in");
   const [phone, setPhone] = useState("");
   const [codeSent, setCodeSent] = useState(false);
+  const [phoneError, setPhoneError] = useState(false);
 
-  function handleSendCode() {
+  function handleSendCode(e: React.FormEvent) {
+    e.preventDefault();
+    if (!phone.trim()) {
+      setPhoneError(true);
+      setCodeSent(false);
+      return;
+    }
+    setPhoneError(false);
     // Phase 1 mock: no real Firebase Auth call yet. This just flips local state
     // to show the "code sent" confirmation. Phase 2 wires this to Firebase Phone Auth.
     setCodeSent(true);
@@ -46,13 +54,17 @@ export default function AuthPage() {
           </button>
         </div>
 
-        <div className="mt-8 flex flex-col gap-6">
+        <form onSubmit={handleSendCode} className="mt-8 flex flex-col gap-6">
           <FormField label="Phone Number" htmlFor="phone">
             <input
               id="phone"
               type="tel"
+              required
               value={phone}
-              onChange={(event) => setPhone(event.target.value)}
+              onChange={(event) => {
+                setPhone(event.target.value);
+                setPhoneError(false);
+              }}
               placeholder="+254 7XX XXX XXX"
               className="border border-line bg-paper px-4 py-3 text-sm text-ink outline-none focus:border-oxblood"
             />
@@ -61,14 +73,15 @@ export default function AuthPage() {
             We&apos;ll text a one-time code — no password to remember.
           </p>
 
-          <Button type="button" onClick={handleSendCode}>
-            Send Code
-          </Button>
+          <Button type="submit">Send Code</Button>
 
+          {phoneError ? (
+            <p className="text-sm text-oxblood">Enter a phone number first.</p>
+          ) : null}
           {codeSent ? (
             <p className="text-sm text-oxblood">Code sent — check your phone.</p>
           ) : null}
-        </div>
+        </form>
 
         <p className="mt-12 text-center text-xs text-muted">
           One page for sign in, registration and password recovery — merged from three separate

@@ -11,7 +11,7 @@ const PLACEHOLDER_SOCIALS = [
 ];
 
 const DARK_ICON_BUTTON =
-  "flex h-9 w-9 items-center justify-center border border-cream/25 text-cream transition-colors hover:border-oxblood hover:text-oxblood";
+  "flex h-9 w-9 items-center justify-center border border-cream/25 text-cream transition-colors hover:border-ember hover:text-ember";
 
 export function SocialLinks({ className = "" }: { className?: string }) {
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { waLink, siteConfig } from "@/lib/content/site";
 import { FormField } from "@/components/ui/FormField";
 import { WhatsAppIcon } from "@/components/ui/SocialIcon";
@@ -28,6 +28,23 @@ export function WhatsAppConnect({
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [message, setMessage] = useState(defaultMessage);
+
+  // Close on Escape and lock background scroll while the modal is open —
+  // without this it behaves like a broken modal (scrollable page behind it,
+  // no keyboard way out).
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKey);
+    };
+  }, [open]);
 
   function handleSend(e: React.FormEvent) {
     e.preventDefault();
@@ -65,6 +82,9 @@ export function WhatsAppConnect({
           onClick={() => setOpen(false)}
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="wa-modal-title"
             className="w-full max-w-sm border border-line bg-paper p-6"
             onClick={(e) => e.stopPropagation()}
           >
@@ -73,7 +93,9 @@ export function WhatsAppConnect({
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-oxblood">
                   WhatsApp
                 </p>
-                <h2 className="mt-1 font-display text-xl text-ink">Message the House</h2>
+                <h2 id="wa-modal-title" className="mt-1 font-display text-xl text-ink">
+                  Message the House
+                </h2>
               </div>
               <button
                 type="button"

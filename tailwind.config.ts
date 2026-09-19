@@ -15,6 +15,7 @@ const config: Config = {
         muted: "var(--muted)",
         line: "var(--line)",
         paper: "var(--paper)",
+        ember: "var(--ember)",
       },
       fontFamily: {
         display: ["var(--font-display)"],
