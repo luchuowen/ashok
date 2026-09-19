@@ -39,9 +39,21 @@ function getEnv(): TaifaPayEnv {
 }
 
 function getBaseUrl(env: TaifaPayEnv): string {
+  // Root cause of the production payment outage (found by comparing against
+  // NAVAC CRM's working TaifaPay integration, which reads its base URL from
+  // a secret whose live value is confirmed to be .../api/v1): TaifaPay's
+  // merchants.taifapay.africa host runs its merchant dashboard's Next.js
+  // locale-detection middleware in front of every route EXCEPT genuine
+  // `/api/*` routes (the framework's own default middleware matcher excludes
+  // `/api`). A path of `/v1/...` looks like a dashboard page route to that
+  // middleware, so it gets 307-redirected into `/en/v1/...` regardless of
+  // headers (the previous `Accept-Language: en` workaround addressed a
+  // symptom, not this). `/api/v1/...` is a real API route and is never
+  // touched by the redirect. NAVAC CRM has always called .../api/v1 and has
+  // never hit this; Ashok's URL was simply missing the `/api` segment.
   return env === "production"
-    ? "https://merchants.taifapay.africa/v1"
-    : "https://sandbox.merchants.taifapay.africa/v1";
+    ? "https://merchants.taifapay.africa/api/v1"
+    : "https://sandbox.merchants.taifapay.africa/api/v1";
 }
 
 function getCredentials(env: TaifaPayEnv): { clientId: string; clientSecret: string } {
