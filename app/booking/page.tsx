@@ -129,7 +129,7 @@ function BookingForm() {
             </FormGrid>
 
             <div className="border border-line p-6">
-              <p className="text-center text-xs uppercase tracking-wide text-muted sm:text-left">
+              <p className="text-center text-xs uppercase tracking-wide text-muted">
                 Available slots this week
               </p>
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -139,11 +139,11 @@ function BookingForm() {
                   </button>
                 ))}
               </div>
-              <p className="mt-6 text-center text-sm text-muted sm:text-left">
+              <p className="mt-6 text-center text-sm text-muted">
                 Ridgeways, Nairobi. You&rsquo;ll get a WhatsApp confirmation with a map link and
                 reminder the day before.
               </p>
-              <div className="mt-6 flex justify-center sm:justify-start">
+              <div className="mt-6 flex justify-center">
                 <WaCTA
                   message="Hi, I'd like to confirm my consultation booking."
                   label="Confirm via WhatsApp"
