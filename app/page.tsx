@@ -73,14 +73,14 @@ export default function Home() {
           className="absolute inset-0 h-full w-full"
         />
         <div className="relative z-10 flex min-h-[480px] flex-col justify-end bg-gradient-to-t from-ink/80 via-ink/10 to-transparent p-8 md:min-h-[560px] md:p-16">
-          <h1 className="max-w-xl text-4xl text-cream md:text-6xl">
+          <h1 className="mx-auto max-w-xl text-center text-4xl text-cream md:mx-0 md:text-left md:text-6xl">
             Where every stitch is a work of art.
           </h1>
-          <p className="mt-6 max-w-lg text-base text-cream/90">
+          <p className="mx-auto mt-6 max-w-lg text-center text-base text-cream/90 md:mx-0 md:text-left">
             Bespoke and made-to-measure tailoring, Nairobi. Cut from your own pattern, fitted in
             person, kept on record for the next one.
           </p>
-          <div className="mt-8 flex flex-wrap gap-4">
+          <div className="mt-8 flex flex-wrap justify-center gap-4 md:justify-start">
             <Button href="/booking">Book a Fitting</Button>
             <Button href="/process" variant="ghost" className="!border-cream !text-cream">
               Read the Process
@@ -119,12 +119,36 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* Process */}
+      {/* Process — mobile gets a connected vertical timeline (Owen's chosen
+          "Process A" direction); sm and up keep the original column grid
+          untouched. */}
       <Section className="bg-paper">
         <h2 className="text-center text-3xl sm:text-left">The Process</h2>
-        <ol className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
+
+        <ol className="mt-10 sm:hidden">
+          {processSteps.map((step, index) => {
+            const isLast = index === processSteps.length - 1;
+            return (
+              <li key={step.number} className={`relative pl-[52px] ${isLast ? "" : "pb-10"}`}>
+                {isLast ? null : (
+                  <span
+                    aria-hidden="true"
+                    className="absolute left-5 top-10 bottom-0 w-px bg-line"
+                  />
+                )}
+                <span className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-full border border-oxblood bg-paper font-display text-sm text-oxblood">
+                  {step.number}
+                </span>
+                <p className="font-display text-lg">{step.title}</p>
+                <p className="mt-1 text-sm text-muted">{step.body}</p>
+              </li>
+            );
+          })}
+        </ol>
+
+        <ol className="mt-8 hidden sm:grid sm:grid-cols-2 sm:gap-8 lg:grid-cols-5">
           {processSteps.map((step) => (
-            <li key={step.number} className="text-center sm:text-left">
+            <li key={step.number}>
               <p className="font-display text-2xl text-oxblood">{step.number}</p>
               <p className="mt-2 text-base">{step.title}</p>
               <p className="mt-2 text-sm text-muted">{step.body}</p>
@@ -135,7 +159,7 @@ export default function Home() {
 
       {/* Fabric row */}
       <div className="border-b border-line px-6 py-10 md:px-12">
-        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 md:grid-cols-4">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
           {homeFabrics.map((fabric) => (
             <div key={fabric.id} className="text-center md:text-left">
               <ImagePlaceholder label={fabric.imageLabel} aspectRatio="1 / 1" />

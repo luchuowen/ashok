@@ -72,7 +72,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
       {related.length > 0 ? (
         <Section className="bg-paper text-center sm:text-left">
           <p className="text-xs uppercase tracking-wide text-muted">Pairs well with</p>
-          <div className="mx-auto mt-6 grid max-w-md grid-cols-2 gap-8 sm:mx-0">
+          <div className="mx-auto mt-6 grid max-w-md grid-cols-1 gap-8 sm:mx-0 sm:grid-cols-2">
             {related.map((item) => (
               <Link key={item.slug} href={`/shop/${item.slug}`} className="group block">
                 <ImagePlaceholder label={item.imageLabel} aspectRatio="1 / 1" />

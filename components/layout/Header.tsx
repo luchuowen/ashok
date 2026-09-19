@@ -16,8 +16,12 @@ const headerLinks = HEADER_SLUGS.map((slug) => nav.find((item) => item.slug === 
 export function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-cream/95 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-3 md:px-12">
-        <Link href="/" className="flex items-center gap-2" aria-label={siteConfig.fullName}>
+      <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-3 md:px-12">
+        <Link
+          href="/"
+          className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 md:static md:left-auto md:top-auto md:translate-x-0 md:translate-y-0"
+          aria-label={siteConfig.fullName}
+        >
           <Image
             src="/logo.avif"
             alt={siteConfig.fullName}
@@ -44,7 +48,7 @@ export function Header() {
           Book a Consultation
         </Button>
 
-        <MobileNav links={headerLinks} />
+        <MobileNav links={headerLinks} className="ml-auto md:ml-0" />
       </div>
     </header>
   );

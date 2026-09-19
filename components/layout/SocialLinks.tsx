@@ -10,16 +10,27 @@ const PLACEHOLDER_SOCIALS = [
   { label: "TikTok", href: "#", Icon: TikTokIcon },
 ];
 
-const DARK_ICON_BUTTON =
-  "flex h-9 w-9 items-center justify-center border border-cream/25 text-cream transition-colors hover:border-ember hover:text-ember";
+const ICON_BUTTON_BY_TONE = {
+  dark: "flex h-9 w-9 items-center justify-center text-cream transition-colors hover:text-ember",
+  light: "flex h-9 w-9 items-center justify-center text-muted transition-colors hover:text-oxblood",
+} as const;
+const ICON_SIZE = "h-5 w-5";
 
-export function SocialLinks({ className = "" }: { className?: string }) {
+export function SocialLinks({
+  className = "",
+  tone = "dark",
+}: {
+  className?: string;
+  tone?: keyof typeof ICON_BUTTON_BY_TONE;
+}) {
+  const iconButton = ICON_BUTTON_BY_TONE[tone];
+
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <WhatsAppConnect variant="icon" triggerClassName={DARK_ICON_BUTTON} />
+    <div className={`flex items-center gap-1 ${className}`}>
+      <WhatsAppConnect variant="icon" triggerClassName={iconButton} iconClassName={ICON_SIZE} />
       {PLACEHOLDER_SOCIALS.map(({ label, href, Icon }) => (
-        <a key={label} href={href} aria-label={label} className={DARK_ICON_BUTTON}>
-          <Icon className="h-4 w-4" />
+        <a key={label} href={href} aria-label={label} className={iconButton}>
+          <Icon className={ICON_SIZE} />
         </a>
       ))}
     </div>

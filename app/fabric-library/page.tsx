@@ -33,7 +33,7 @@ export default function FabricLibraryPage() {
           ))}
         </div>
 
-        <div className="mt-8 grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-4">
+        <div className="mt-8 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
           {fabrics.map((fabric) => (
             <div key={fabric.id} className="bg-paper p-4 text-center sm:text-left">
               <ImagePlaceholder label={fabric.imageLabel} aspectRatio="1 / 1" />

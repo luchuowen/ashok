@@ -19,11 +19,13 @@ export function WhatsAppConnect({
   label = "Message us on WhatsApp",
   defaultMessage = "",
   triggerClassName = "",
+  iconClassName = "h-4 w-4",
 }: {
   variant?: "icon" | "cta";
   label?: string;
   defaultMessage?: string;
   triggerClassName?: string;
+  iconClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -67,7 +69,7 @@ export function WhatsAppConnect({
         }
       >
         {variant === "icon" ? (
-          <WhatsAppIcon className="h-4 w-4" />
+          <WhatsAppIcon className={iconClassName} />
         ) : (
           <span className="inline-flex items-center gap-2">
             <WhatsAppIcon className="h-4 w-4" />
