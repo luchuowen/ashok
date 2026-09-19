@@ -72,6 +72,12 @@ async function getAccessToken(env: TaifaPayEnv): Promise<string> {
     headers: {
       Authorization: `Basic ${basic}`,
       "Content-Type": "application/json",
+      // TaifaPay's production host appears to run locale-detection
+      // middleware in front of /v1/*: a request without an explicit
+      // Accept: application/json ends up redirected to /en/v1/... and
+      // served their dashboard's HTML instead of a token. Asking
+      // explicitly for JSON is a cheap, harmless attempt to dodge that.
+      Accept: "application/json",
     },
     body: JSON.stringify({ grant_type: "client_credentials" }),
     cache: "no-store",
@@ -113,6 +119,7 @@ async function taifaPayFetch<T>(path: string, init: RequestInit = {}): Promise<T
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
+      Accept: "application/json",
       ...init.headers,
     },
     cache: "no-store",
