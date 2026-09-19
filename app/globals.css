@@ -3,17 +3,24 @@
 @tailwind utilities;
 
 :root {
-  --ink: #14120f;
-  --cream: #f4eee3;
-  --oxblood: #8a4432;
-  --muted: #5b5648;
-  --line: #ddd3c1;
-  --paper: #ffffff;
-  --ember: #aa7767;
+  /* Space-separated RGB channels (not hex) so Tailwind's opacity
+     modifiers (bg-ink/60, text-cream/95, etc.) can compose them as
+     rgb(var(--x) / <alpha-value>) below — a bare hex string can't take
+     an alpha channel, so every /NN utility on these colors was
+     silently failing to generate and falling back to inherited text
+     color (this is what made the hero paragraph and footer/header
+     translucency invisible). */
+  --ink: 20 18 15;
+  --cream: 244 238 227;
+  --oxblood: 138 68 50;
+  --muted: 91 86 72;
+  --line: 221 211 193;
+  --paper: 255 255 255;
+  --ember: 170 119 103;
 }
 
 * {
-  border-color: var(--line);
+  border-color: rgb(var(--line));
 }
 
 html {
@@ -21,8 +28,8 @@ html {
 }
 
 body {
-  background: var(--cream);
-  color: var(--ink);
+  background: rgb(var(--cream));
+  color: rgb(var(--ink));
   font-family: var(--font-body), sans-serif;
 }
 

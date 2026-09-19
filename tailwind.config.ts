@@ -9,13 +9,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "var(--ink)",
-        cream: "var(--cream)",
-        oxblood: "var(--oxblood)",
-        muted: "var(--muted)",
-        line: "var(--line)",
-        paper: "var(--paper)",
-        ember: "var(--ember)",
+        ink: "rgb(var(--ink) / <alpha-value>)",
+        cream: "rgb(var(--cream) / <alpha-value>)",
+        oxblood: "rgb(var(--oxblood) / <alpha-value>)",
+        muted: "rgb(var(--muted) / <alpha-value>)",
+        line: "rgb(var(--line) / <alpha-value>)",
+        paper: "rgb(var(--paper) / <alpha-value>)",
+        ember: "rgb(var(--ember) / <alpha-value>)",
       },
       fontFamily: {
         display: ["var(--font-display)"],
