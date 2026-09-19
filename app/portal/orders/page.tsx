@@ -24,6 +24,7 @@ export default function OrdersPage() {
             },
           ]}
           rows={orders}
+          emptyMessage="No orders yet — place a booking to start your first one."
         />
       </div>
     </Section>

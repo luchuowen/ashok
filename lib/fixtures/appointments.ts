@@ -14,15 +14,4 @@ export interface Appointment {
   status: AppointmentStatus;
 }
 
-export const appointments: Appointment[] = [
-  {
-    id: "appt-001",
-    clientId: "client-wanjiru-kamau",
-    clientName: "Wanjiru Kamau",
-    type: "Fitting",
-    date: "2026-09-25",
-    time: "15:00",
-    location: "Ashok Sunny, Ridgeways, Nairobi",
-    status: "Scheduled",
-  },
-];
+export const appointments: Appointment[] = [];

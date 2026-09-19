@@ -23,18 +23,4 @@ export interface Order {
   balanceDue: number;
 }
 
-export const orders: Order[] = [
-  {
-    id: "order-charcoal-bespoke-suit",
-    clientId: "client-wanjiru-kamau",
-    clientName: "Wanjiru Kamau",
-    item: "Charcoal Bespoke Suit",
-    stage: "First Fitting",
-    statusNote: "First Fitting done",
-    startedAt: "2026-07-14",
-    estimatedCompletion: "2026-09-30",
-    price: 145000,
-    currency: "KES",
-    balanceDue: 58000,
-  },
-];
+export const orders: Order[] = [];

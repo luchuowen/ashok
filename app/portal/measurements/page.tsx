@@ -22,6 +22,7 @@ export default function MeasurementsPage() {
             { key: "takenAt", header: "Taken" },
           ]}
           rows={measurements}
+          emptyMessage="No measurements on file yet — they're taken at your first fitting."
         />
       </div>
       <p className="mt-6 text-sm text-muted">

@@ -40,7 +40,14 @@ export default function AppointmentsPage() {
             ) : null}
           </div>
         </div>
-      ) : null}
+      ) : (
+        <div className="mt-8 border border-line p-6 text-center">
+          <p className="text-sm text-muted">No appointments scheduled yet.</p>
+          <div className="mt-4">
+            <Button href="/booking">Book a Consultation</Button>
+          </div>
+        </div>
+      )}
 
       <p className="mt-6 text-sm text-muted">
         You&apos;ll get a reminder the day before each visit.
@@ -48,8 +55,8 @@ export default function AppointmentsPage() {
 
       <div className="mt-4">
         <WaCTA
-          message="Hi, I'd like to reschedule my appointment."
-          label="Message About This Appointment"
+          message="Hi, I'd like to ask about my appointment."
+          label="Message About Appointments"
         />
       </div>
 

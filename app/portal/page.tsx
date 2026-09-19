@@ -15,16 +15,20 @@ export default function PortalOverviewPage() {
     <>
       <Section border={false}>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-          <StatCard label="Active Order" value={order.item} hint={order.statusNote} />
+          <StatCard
+            label="Active Order"
+            value={order ? order.item : "None yet"}
+            hint={order ? order.statusNote : "Book a consultation to start one."}
+          />
           <StatCard
             label="Next Appointment"
-            value={`${appointment.date} · ${appointment.time}`}
-            hint={`${appointment.type} · ${appointment.location}`}
+            value={appointment ? `${appointment.date} · ${appointment.time}` : "None scheduled"}
+            hint={appointment ? `${appointment.type} · ${appointment.location}` : undefined}
           />
           <StatCard
             label="Measurements"
-            value="On File"
-            hint={`Last updated ${measurement.takenAt}`}
+            value={measurement ? "On File" : "Not on File"}
+            hint={measurement ? `Last updated ${measurement.takenAt}` : "Taken at your first fitting."}
           />
         </div>
       </Section>

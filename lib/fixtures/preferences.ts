@@ -10,15 +10,4 @@ export interface ClientPreferences {
   notes: string;
 }
 
-export const preferences: ClientPreferences[] = [
-  {
-    clientId: "client-wanjiru-kamau",
-    clientName: "Wanjiru Kamau",
-    fitPreference: "Classic",
-    preferredFabricWeight: "260–300g/m²",
-    lapelStyle: "Peak",
-    communicationChannel: "WhatsApp",
-    // TODO: placeholder note pending the House's real client preferences file
-    notes: "Prefers surgeon's cuffs, functional buttonholes.",
-  },
-];
+export const preferences: ClientPreferences[] = [];

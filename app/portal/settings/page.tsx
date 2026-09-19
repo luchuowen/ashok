@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Section } from "@/components/ui/Section";
 import { FormField } from "@/components/ui/FormField";
 import { FormGrid } from "@/components/ui/FormGrid";
 import { Button } from "@/components/ui/Button";
 import { Tag } from "@/components/ui/Tag";
+import { useAuthSession } from "@/app/auth-context";
 
 const inputClasses =
   "border border-line bg-paper px-3 py-2 text-sm text-ink focus:border-oxblood focus:outline-none";
@@ -13,7 +14,13 @@ const inputClasses =
 export default function SettingsPage() {
   // Phase 1 mock — no backend yet, so "Save Changes" just flips local state to
   // show a confirmation message. See lib/firebase.ts for the eventual write.
+  const { phone } = useAuthSession();
   const [saved, setSaved] = useState(false);
+  const [phoneValue, setPhoneValue] = useState("");
+
+  useEffect(() => {
+    if (phone) setPhoneValue(phone);
+  }, [phone]);
   const [channels, setChannels] = useState<Record<string, boolean>>({
     WhatsApp: true,
     SMS: false,
@@ -36,7 +43,6 @@ export default function SettingsPage() {
               id="name"
               name="name"
               type="text"
-              defaultValue="Wanjiru Kamau"
               placeholder="Enter Your Name"
               className={inputClasses}
               onChange={() => setSaved(false)}
@@ -47,9 +53,13 @@ export default function SettingsPage() {
               id="phone"
               name="phone"
               type="tel"
+              value={phoneValue}
               placeholder="+254 7xx xxx xxx"
               className={inputClasses}
-              onChange={() => setSaved(false)}
+              onChange={(e) => {
+                setPhoneValue(e.target.value);
+                setSaved(false);
+              }}
             />
           </FormField>
           <FormField label="Email" htmlFor="email">

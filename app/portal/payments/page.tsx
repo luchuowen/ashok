@@ -6,12 +6,16 @@ import { orders } from "@/lib/fixtures/orders";
 import { payments, type Payment } from "@/lib/fixtures/payments";
 
 export default function PaymentsPage() {
+  const outstanding = orders.find((order) => order.balanceDue > 0);
+
   return (
     <Section>
       <h2 className="text-2xl">Payments</h2>
-      <div className="mt-8">
-        <Balance amount={orders[0].balanceDue} />
-      </div>
+      {outstanding ? (
+        <div className="mt-8">
+          <Balance amount={outstanding.balanceDue} />
+        </div>
+      ) : null}
       <div className="mt-8">
         <LedgerTable<Payment>
           columns={[
@@ -39,6 +43,7 @@ export default function PaymentsPage() {
             },
           ]}
           rows={payments}
+          emptyMessage="No payments on file yet — they'll appear here once you place an order."
         />
       </div>
     </Section>
