@@ -67,38 +67,72 @@ async function getAccessToken(env: TaifaPayEnv): Promise<string> {
   const { clientId, clientSecret } = getCredentials(env);
   const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
-  const res = await fetch(`${getBaseUrl(env)}/auth/token`, {
+  // TaifaPay's production host (merchants.taifapay.africa) also serves
+  // their merchant dashboard, and runs locale-detection middleware in
+  // front of every route, /v1/* API routes included. Confirmed via
+  // production logs: our POST to /v1/auth/token was 307-redirected to
+  // /en/v1/auth/token, which isn't a real API route — it lands on the
+  // dashboard's own Next.js HTML shell instead of returning a token.
+  // Asking for application/json (below) doesn't stop this: it's a
+  // *locale* redirect, not a content-negotiation one. Explicitly
+  // declaring an Accept-Language does, since the middleware only needs
+  // to guess a locale when the request doesn't already state one, and
+  // "en" happens to be the exact locale it was redirecting into anyway.
+  const url = `${getBaseUrl(env)}/auth/token`;
+  const res = await fetch(url, {
     method: "POST",
+    redirect: "manual",
     headers: {
       Authorization: `Basic ${basic}`,
       "Content-Type": "application/json",
-      // TaifaPay's production host appears to run locale-detection
-      // middleware in front of /v1/*: a request without an explicit
-      // Accept: application/json ends up redirected to /en/v1/... and
-      // served their dashboard's HTML instead of a token. Asking
-      // explicitly for JSON is a cheap, harmless attempt to dodge that.
       Accept: "application/json",
+      "Accept-Language": "en",
     },
     body: JSON.stringify({ grant_type: "client_credentials" }),
     cache: "no-store",
   });
 
-  if (!res.ok) {
-    const bodyText = await res.text().catch(() => "");
+  // With redirect: "manual", a locale redirect surfaces as an opaqueredirect
+  // (or a plain 3xx) instead of being silently followed into the wrong
+  // page. Retry once, following redirects normally, only if the first
+  // attempt didn't redirect (a genuine same-URL response) — this keeps
+  // the Accept-Language fix as the primary path while still working if
+  // TaifaPay's middleware ever stops redirecting altogether.
+  let finalRes = res;
+  if (res.type === "opaqueredirect" || (res.status >= 300 && res.status < 400)) {
     console.error(
-      `[taifapay] token request failed: status=${res.status} body=${bodyText.slice(0, 500)}`,
+      `[taifapay] token request to ${url} was redirected (status=${res.status || "opaque"}) ` +
+        `despite Accept-Language: en — retrying once with redirects followed.`,
     );
-    throw new TaifaPayError(`TaifaPay token request failed (${res.status}).`, res.status);
+    finalRes = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${basic}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "Accept-Language": "en",
+      },
+      body: JSON.stringify({ grant_type: "client_credentials" }),
+      cache: "no-store",
+    });
   }
 
-  const rawBody = await res.text();
+  if (!finalRes.ok) {
+    const bodyText = await finalRes.text().catch(() => "");
+    console.error(
+      `[taifapay] token request failed: status=${finalRes.status} body=${bodyText.slice(0, 500)}`,
+    );
+    throw new TaifaPayError(`TaifaPay token request failed (${finalRes.status}).`, finalRes.status);
+  }
+
+  const rawBody = await finalRes.text();
   let data: { access_token: string; expires_in: string };
   try {
     data = JSON.parse(rawBody) as { access_token: string; expires_in: string };
   } catch (err) {
     console.error(
-      `[taifapay] token response (status ${res.status}) was not valid JSON. ` +
-        `content-type=${res.headers.get("content-type")} url=${res.url} body=${rawBody.slice(0, 800)}`,
+      `[taifapay] token response (status ${finalRes.status}) was not valid JSON. ` +
+        `content-type=${finalRes.headers.get("content-type")} url=${finalRes.url} body=${rawBody.slice(0, 800)}`,
       err,
     );
     throw new TaifaPayError("TaifaPay token response was not valid JSON.");
