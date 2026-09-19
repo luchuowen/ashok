@@ -33,6 +33,7 @@ export const fabrics: Fabric[] = [
     origin: "England",
     weight: "300g/m²",
     imageLabel: "IMG-22 · swatch, houndstooth",
+    image: "/photos/fabrics/houndstooth.jpg",
   },
   {
     id: "fab-ink-flannel",
