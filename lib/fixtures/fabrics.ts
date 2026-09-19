@@ -17,6 +17,7 @@ export const fabrics: Fabric[] = [
     origin: "Italy",
     weight: "Super 120s, 280g/m²",
     imageLabel: "IMG-20 · swatch, charcoal wool",
+    image: "/photos/fabrics/charcoal-wool.jpg",
   },
   {
     id: "fab-mid-blue-twill",
