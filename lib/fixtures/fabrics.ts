@@ -49,6 +49,7 @@ export const fabrics: Fabric[] = [
     origin: "Ireland",
     weight: "220g/m²",
     imageLabel: "IMG-24 · swatch, oatmeal linen",
+    image: "/photos/fabrics/oatmeal-linen.jpg",
   },
   {
     id: "fab-navy-birdseye",
