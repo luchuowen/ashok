@@ -15,6 +15,7 @@ export const portfolioItems: PortfolioItem[] = [
     title: "Charcoal three-piece",
     tag: "Bespoke Suit",
     imageLabel: "IMG-30 · charcoal three-piece suit",
+    image: "/photos/portfolio/charcoal-three-piece.jpg",
   },
   {
     id: "port-wedding-ivory-jacket",
