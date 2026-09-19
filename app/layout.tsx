@@ -55,10 +55,12 @@ export default function RootLayout({
       <body
         className={`${fraunces.variable} ${workSans.variable} pb-20 antialiased min-[900px]:pb-0`}
       >
-        <Header />
-        <CartProvider>{children}</CartProvider>
-        <Footer />
-        <StickyBookBar />
+        <CartProvider>
+          <Header />
+          {children}
+          <Footer />
+          <StickyBookBar />
+        </CartProvider>
       </body>
     </html>
   );

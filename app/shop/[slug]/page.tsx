@@ -8,10 +8,18 @@ import { Tag } from "@/components/ui/Tag";
 import { Button } from "@/components/ui/Button";
 import { products } from "@/lib/fixtures/products";
 import { useCart } from "@/app/cart-context";
+import { useEffect, useState } from "react";
 
 export default function ProductPage({ params }: { params: { slug: string } }) {
   const product = products.find((p) => p.slug === params.slug);
   const { addItem } = useCart();
+  const [justAdded, setJustAdded] = useState(false);
+
+  useEffect(() => {
+    if (!justAdded) return;
+    const timer = window.setTimeout(() => setJustAdded(false), 1800);
+    return () => window.clearTimeout(timer);
+  }, [justAdded]);
 
   if (!product) {
     notFound();
@@ -47,18 +55,28 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
 
             <div className="mt-8">
               <Button
-                onClick={() =>
+                onClick={() => {
                   addItem({
                     productId: product.id,
                     slug: product.slug,
                     name: product.name,
                     price: product.price,
                     currency: product.currency,
-                  })
-                }
+                  });
+                  setJustAdded(true);
+                }}
               >
-                Add to Cart
+                {justAdded ? "Added \u2713" : "Add to Cart"}
               </Button>
+              {justAdded ? (
+                <p className="mt-3 text-sm text-oxblood">
+                  Added to cart —{" "}
+                  <Link href="/cart" className="underline hover:no-underline">
+                    view cart
+                  </Link>
+                  .
+                </p>
+              ) : null}
             </div>
 
             <p className="mt-4 text-sm text-muted">
