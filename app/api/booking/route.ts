@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { EmailSendError, bookingNotifyAddress, sendEmail } from "@/lib/resend";
+import { bookingReceivedEmail } from "@/lib/email-templates";
 import { siteConfig } from "@/lib/content/site";
 
 interface BookingBody {
@@ -68,12 +69,7 @@ export async function POST(request: NextRequest) {
       await sendEmail({
         to: email,
         subject: `Booking received — ${siteConfig.fullName}`,
-        html: `<div style="font-family:sans-serif;font-size:14px;color:#222;">
-          <p>Hi ${escapeHtml(name)},</p>
-          <p>We've received your booking request for <strong>${escapeHtml(visitType)}</strong> at <strong>${escapeHtml(slot)}</strong>.</p>
-          <p>We'll follow up on WhatsApp (${escapeHtml(siteConfig.phone)}) to confirm the details.</p>
-          <p>${escapeHtml(siteConfig.fullName)}<br/>${escapeHtml(siteConfig.address)}</p>
-        </div>`,
+        html: bookingReceivedEmail({ name, visitType, slot }),
       });
     }
 

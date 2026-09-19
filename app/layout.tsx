@@ -1,3 +1,7 @@
+/**
+ * Ashok Sunny Tailored — ashok.navac.co.ke
+ * Developer: Owen Luchu <luchuowen@gmail.com>
+ */
 import type { Metadata } from "next";
 import { Fraunces, Work_Sans } from "next/font/google";
 import "./globals.css";
