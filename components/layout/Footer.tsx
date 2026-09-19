@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { nav } from "@/lib/nav";
-import { siteConfig, waLink } from "@/lib/content/site";
+import { siteConfig } from "@/lib/content/site";
+import { SocialLinks } from "@/components/layout/SocialLinks";
 
 const houseSlugs = [
   "atelier",
@@ -37,14 +38,7 @@ export function Footer() {
           <p className="mt-3 text-sm text-cream/70">{siteConfig.address}</p>
           <p className="mt-1 text-sm text-cream/70">{siteConfig.phone}</p>
           <p className="mt-1 text-sm text-cream/70">{siteConfig.email}</p>
-          <a
-            href={waLink()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-block text-sm text-oxblood hover:underline"
-          >
-            Message us on WhatsApp
-          </a>
+          <SocialLinks className="mt-4" />
         </div>
 
         <div>
