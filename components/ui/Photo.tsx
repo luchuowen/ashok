@@ -31,9 +31,11 @@ export function Photo({
     return <ImagePlaceholder label={label} aspectRatio={aspectRatio} className={className} />;
   }
 
+  const positionClass = className.includes("absolute") ? "" : "relative";
+
   return (
     <div
-      className={`relative overflow-hidden ${bordered ? "border border-line" : ""} ${className}`}
+      className={`${positionClass} overflow-hidden ${bordered ? "border border-line" : ""} ${className}`}
       style={{ aspectRatio }}
     >
       <Image
