@@ -5,7 +5,7 @@ import { PriceChip } from "@/components/ui/PriceChip";
 import { QuizBand } from "@/components/ui/QuizBand";
 import { Photo } from "@/components/ui/Photo";
 
-const womensMtmImage = undefined; // set to "/photos/made-to-measure/womens-mtm-blazer.jpg" once generated
+const womensMtmImage = "/photos/made-to-measure/womens-mtm-blazer.jpg";
 
 const included = [
   {
