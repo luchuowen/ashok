@@ -57,6 +57,7 @@ export const fabrics: Fabric[] = [
     origin: "Italy",
     weight: "Super 130s, 250g/m²",
     imageLabel: "IMG-25 · swatch, navy birdseye",
+    image: "/photos/fabrics/navy-birdseye.jpg",
   },
   {
     id: "fab-olive-corduroy",
