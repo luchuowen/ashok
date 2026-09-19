@@ -12,14 +12,14 @@ export default function QuotesPage() {
   const [decisions, setDecisions] = useState<Record<string, QuoteDecision>>({});
 
   return (
-    <Section>
+    <Section className="text-center sm:text-left">
       <h2 className="text-2xl">Quotes</h2>
       <div className="mt-8 space-y-6">
         {quotes.map((quote) => {
           const decision = decisions[quote.id] ?? null;
           return (
             <div key={quote.id} className="border border-oxblood p-6">
-              <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
                 <h3 className="font-display text-xl">{quote.item}</h3>
                 <Tag>Expires {quote.expiresAt}</Tag>
               </div>
@@ -32,7 +32,7 @@ export default function QuotesPage() {
                     {decision === "accepted" ? "Accepted" : "Declined"}
                   </p>
                 ) : (
-                  <div className="flex gap-3">
+                  <div className="flex justify-center gap-3 sm:justify-start">
                     <Button
                       variant="ghost"
                       onClick={() =>

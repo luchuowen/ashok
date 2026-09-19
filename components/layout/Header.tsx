@@ -3,6 +3,7 @@ import Image from "next/image";
 import { nav } from "@/lib/nav";
 import { siteConfig } from "@/lib/content/site";
 import { Button } from "@/components/ui/Button";
+import { MobileNav } from "@/components/layout/MobileNav";
 
 // Approved Home page nav is a curated subset of "core" (Atelier, Fabric Library,
 // Process, Portfolio) plus the Shop entry point from "commerce" — not the full
@@ -42,6 +43,8 @@ export function Header() {
         <Button href="/booking" className="hidden md:inline-flex">
           Book a Consultation
         </Button>
+
+        <MobileNav links={headerLinks} />
       </div>
     </header>
   );

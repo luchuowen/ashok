@@ -6,7 +6,7 @@ import { Ribbon } from "./Ribbon";
 // Phase 2 scope. For now this is a static promo banner into booking.
 export function QuizBand() {
   return (
-    <div className="flex flex-col items-start gap-4 border border-line bg-paper p-8 md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-col items-center gap-4 border border-line bg-paper p-8 text-center md:flex-row md:items-center md:justify-between md:text-left">
       <div>
         <Ribbon>Style Advisor</Ribbon>
         <p className="mt-3 max-w-md font-display text-xl">

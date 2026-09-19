@@ -17,7 +17,7 @@ export default function PortfolioPage() {
           title="Garments and the people who commissioned them."
           intro="Portfolio and client stories in one place — a finished jacket next to the sentence someone actually said about it."
         />
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="mt-6 flex flex-wrap justify-center gap-2 sm:justify-start">
           {filters.map((filter) => (
             <Tag key={filter} variant={filter === "All" ? "stage" : "default"}>
               {filter}
@@ -26,7 +26,7 @@ export default function PortfolioPage() {
         </div>
         <CardGrid columns={4} className="mt-8">
           {portfolioItems.map((item) => (
-            <div key={item.id} className="bg-paper p-6">
+            <div key={item.id} className="bg-paper p-6 text-center sm:text-left">
               <ImagePlaceholder label={item.imageLabel} aspectRatio="3 / 4" />
               <p className="mt-2 text-sm">{item.title}</p>
               <Tag>{item.tag}</Tag>

@@ -18,7 +18,7 @@ export default function CartPage() {
 
       <Section>
         {items.length === 0 ? (
-          <div>
+          <div className="text-center sm:text-left">
             <p className="text-sm text-muted">Your cart is empty.</p>
             <div className="mt-6">
               <Button href="/shop">Continue Shopping</Button>

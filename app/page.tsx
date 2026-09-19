@@ -93,7 +93,7 @@ export default function Home() {
       <Section className="bg-paper">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
           {introColumns.map((col) => (
-            <div key={col.title}>
+            <div key={col.title} className="text-center sm:text-left">
               <h2 className="text-2xl">{col.title}</h2>
               <p className="mt-3 text-sm text-muted">{col.body}</p>
               <Link
@@ -111,7 +111,7 @@ export default function Home() {
       <Section>
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
           {imageStrip.map((image) => (
-            <div key={image.label}>
+            <div key={image.label} className="text-center sm:text-left">
               <ImagePlaceholder label={image.label} />
               <p className="mt-3 text-sm text-muted">{image.caption}</p>
             </div>
@@ -121,10 +121,10 @@ export default function Home() {
 
       {/* Process */}
       <Section className="bg-paper">
-        <h2 className="text-3xl">The Process</h2>
+        <h2 className="text-center text-3xl sm:text-left">The Process</h2>
         <ol className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
           {processSteps.map((step) => (
-            <li key={step.number}>
+            <li key={step.number} className="text-center sm:text-left">
               <p className="font-display text-2xl text-oxblood">{step.number}</p>
               <p className="mt-2 text-base">{step.title}</p>
               <p className="mt-2 text-sm text-muted">{step.body}</p>
@@ -137,7 +137,7 @@ export default function Home() {
       <div className="border-b border-line px-6 py-10 md:px-12">
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 md:grid-cols-4">
           {homeFabrics.map((fabric) => (
-            <div key={fabric.id}>
+            <div key={fabric.id} className="text-center md:text-left">
               <ImagePlaceholder label={fabric.imageLabel} aspectRatio="1 / 1" />
               <p className="mt-3 text-sm">
                 {fabric.name}
@@ -157,7 +157,7 @@ export default function Home() {
 
       {/* Shop teaser */}
       <Section>
-        <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
           <p className="max-w-md text-base text-muted">
             The accessories line — shoes, cufflinks, ties — kept in its own corner of the house,
             priced plainly.

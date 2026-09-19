@@ -7,18 +7,18 @@ export default function AppointmentsPage() {
   const [upcoming] = appointments;
 
   return (
-    <Section>
+    <Section className="text-center sm:text-left">
       <h1 className="font-display text-3xl">Appointments</h1>
 
       {upcoming ? (
-        <div className="mt-8 flex flex-col gap-6 border border-oxblood p-6 md:flex-row md:items-center md:justify-between">
+        <div className="mt-8 flex flex-col items-center gap-6 border border-oxblood p-6 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="font-display text-xl">{upcoming.type}</p>
             <p className="mt-1 text-sm text-muted">
               {upcoming.date} · {upcoming.time} · {upcoming.location}
             </p>
           </div>
-          <div className="flex flex-shrink-0 gap-3">
+          <div className="flex flex-shrink-0 justify-center gap-3">
             <Button href="/booking" variant="ghost">
               Reschedule
             </Button>

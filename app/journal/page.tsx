@@ -26,7 +26,7 @@ export default function JournalPage() {
   return (
     <main>
       <Section border={false}>
-        <div className="mb-3">
+        <div className="mb-3 text-center sm:text-left">
           <Ribbon>Phase 2 — Not In The Initial Build</Ribbon>
         </div>
         <TitleBand
@@ -37,7 +37,7 @@ export default function JournalPage() {
       </Section>
 
       <Section>
-        <CardGrid columns={3}>
+        <CardGrid columns={3} className="text-center sm:text-left">
           {teasers.map((teaser) => (
             <div key={teaser.title} className="bg-paper p-6">
               <ImagePlaceholder label={teaser.image} aspectRatio="3 / 2" />

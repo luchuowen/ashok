@@ -45,7 +45,7 @@ export default function ProcessPage() {
           {steps.map((step) => (
             <li
               key={step.name}
-              className="grid grid-cols-1 gap-2 py-6 sm:grid-cols-[160px_1fr_120px] sm:items-start"
+              className="grid grid-cols-1 gap-2 py-6 text-center sm:grid-cols-[160px_1fr_120px] sm:items-start sm:text-left"
             >
               <p className="font-medium">{step.name}</p>
               <p className="text-sm text-muted">{step.body}</p>

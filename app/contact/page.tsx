@@ -25,8 +25,8 @@ export default function ContactPage() {
       <Section className="bg-paper">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2">
           <ImagePlaceholder label="IMG-50 · map / storefront, Ridgeways" aspectRatio="4 / 3" />
-          <div>
-            <div className="flex flex-col gap-6">
+          <div className="text-center sm:text-left">
+            <div className="flex flex-col items-center gap-6 sm:items-start">
               {details.map((detail) => (
                 <div key={detail.label}>
                   <p className="text-xs uppercase tracking-wide text-muted">{detail.label}</p>

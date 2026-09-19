@@ -29,7 +29,7 @@ export default function AtelierPage() {
         />
       </Section>
 
-      <Section className="bg-paper">
+      <Section className="bg-paper text-center sm:text-left">
         <div className="grid grid-cols-1 items-center gap-10 sm:grid-cols-2">
           <ImagePlaceholder label="IMG-40 · master tailor at the cutting table" aspectRatio="4 / 3" />
           <p className="text-base text-muted">
@@ -39,7 +39,7 @@ export default function AtelierPage() {
         </div>
       </Section>
 
-      <Section>
+      <Section className="text-center sm:text-left">
         <h2 className="text-3xl">The relocation</h2>
         <p className="mt-4 max-w-2xl text-base text-muted">
           The house has moved from its previous location to Ridgeways. If you&apos;ve visited us
@@ -48,7 +48,7 @@ export default function AtelierPage() {
         </p>
       </Section>
 
-      <Section>
+      <Section className="text-center sm:text-left">
         <h2 className="text-3xl">What we believe about fit</h2>
         <CardGrid columns={3} className="mt-8">
           {beliefs.map((belief) => (

@@ -12,7 +12,7 @@ export function TitleBand({
   priceChip?: React.ReactNode;
 }) {
   return (
-    <div className="max-w-2xl">
+    <div className="mx-auto max-w-2xl text-center md:mx-0 md:text-left">
       <Eyebrow>{eyebrow}</Eyebrow>
       <h1 className="mt-3 text-4xl md:text-5xl">{title}</h1>
       {intro ? <p className="mt-4 text-base text-muted">{intro}</p> : null}

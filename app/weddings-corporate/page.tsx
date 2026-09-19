@@ -45,10 +45,10 @@ export default function WeddingsCorporatePage() {
           title="For the wedding party, or the whole office."
           intro="Group tailoring with one point of contact — coordinated fittings, one invoice, matched fabric across the group."
         />
-        <h2 className="mt-12 text-3xl">Two paths</h2>
+        <h2 className="mt-12 text-center text-3xl sm:text-left">Two paths</h2>
         <CardGrid columns={2} className="mt-8">
           {paths.map((path) => (
-            <div key={path.title} className="bg-paper p-6">
+            <div key={path.title} className="bg-paper p-6 text-center sm:text-left">
               <h3 className="text-xl">{path.title}</h3>
               <p className="mt-3 text-sm text-muted">{path.body}</p>
               <Link href={path.href} className="mt-4 inline-block text-sm text-oxblood hover:underline">
@@ -59,7 +59,7 @@ export default function WeddingsCorporatePage() {
         </CardGrid>
       </Section>
 
-      <Section className="bg-paper">
+      <Section className="bg-paper text-center sm:text-left">
         <h2 className="text-3xl">How group bookings work</h2>
         <ol className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-3">
           {groupSteps.map((step) => (

@@ -29,8 +29,8 @@ export default function PortalOverviewPage() {
         </div>
       </Section>
 
-      <Section>
-        <p className="max-w-2xl text-base text-muted">
+      <Section className="text-center sm:text-left">
+        <p className="mx-auto max-w-2xl text-base text-muted sm:mx-0">
           &ldquo;Your Record&rdquo; reads like the book the house has always kept on paper —
           what you ordered, what fits, what&apos;s outstanding — not a generic account
           dashboard.

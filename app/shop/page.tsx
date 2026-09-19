@@ -24,14 +24,14 @@ export default function ShopPage() {
       </Section>
 
       <Section>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
           {filters.map((filter) => (
             <Tag key={filter} variant={filter === "All" ? "stage" : "default"}>
               {filter}
             </Tag>
           ))}
         </div>
-        <CardGrid columns={4} className="mt-8">
+        <CardGrid columns={4} className="mt-8 text-center sm:text-left">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
