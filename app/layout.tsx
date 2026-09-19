@@ -42,11 +42,20 @@ export const metadata: Metadata = {
     siteName: siteConfig.fullName,
     locale: "en_KE",
     type: "website",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: TITLE,
+      },
+    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: TITLE,
     description: DESCRIPTION,
+    images: ["/og-image.jpg"],
   },
 };
 
