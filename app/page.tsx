@@ -29,7 +29,7 @@ const introColumns = [
 const imageStrip = [
   {
     label: "IMG-02 · cutting table",
-    image: undefined as string | undefined, // "/photos/home/cutting-table.jpg" once generated
+    image: "/photos/home/cutting-table.jpg" as string | undefined,
     caption: "Pattern, cut from your own measurements",
   },
   {
