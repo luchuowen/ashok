@@ -139,7 +139,7 @@ function BookingForm() {
                   </button>
                 ))}
               </div>
-              <p className="mt-6 text-sm text-muted">
+              <p className="mt-6 text-center text-sm text-muted sm:text-left">
                 Ridgeways, Nairobi. You&rsquo;ll get a WhatsApp confirmation with a map link and
                 reminder the day before.
               </p>
