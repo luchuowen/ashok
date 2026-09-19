@@ -36,5 +36,6 @@ export const portfolioItems: PortfolioItem[] = [
     title: "Corporate uniform set",
     tag: "Corporate",
     imageLabel: "IMG-33 · corporate uniform set, five staff",
+    image: "/photos/portfolio/corporate-uniform-set.jpg",
   },
 ];
