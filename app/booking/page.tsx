@@ -8,7 +8,6 @@ import { FormGrid } from "@/components/ui/FormGrid";
 import { FormField } from "@/components/ui/FormField";
 import { Tag } from "@/components/ui/Tag";
 import { Button } from "@/components/ui/Button";
-import { WaCTA } from "@/components/ui/WaCTA";
 
 const VISIT_TYPES = ["Bespoke", "Made-to-Measure", "Alterations", "Wedding Party"];
 
@@ -144,10 +143,9 @@ function BookingForm() {
                 reminder the day before.
               </p>
               <div className="mt-6 flex justify-center">
-                <WaCTA
-                  message="Hi, I'd like to confirm my consultation booking."
-                  label="Confirm via WhatsApp"
-                />
+                <Button type="submit" variant="ghost">
+                  Confirm via WhatsApp
+                </Button>
               </div>
             </div>
           </form>
