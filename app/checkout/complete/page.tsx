@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
+import { useCart } from "@/app/cart-context";
 
 const PENDING_ORDER_KEY = "ashok-pending-order";
 const POLL_INTERVAL_MS = 3000;
@@ -20,9 +21,17 @@ interface PendingOrder {
 type Outcome = "checking" | "completed" | "failed" | "timeout" | "unknown";
 
 export default function CheckoutCompletePage() {
+  const { clear } = useCart();
   const [order, setOrder] = useState<PendingOrder | null>(null);
   const [outcome, setOutcome] = useState<Outcome>("checking");
   const pollCount = useRef(0);
+  // CartProvider hands out a new `clear` function on most renders (it's
+  // not memoized independently of cart contents), so putting it straight
+  // in the effect's dependency array would restart the poll loop on every
+  // cart change. A ref keeps the effect running once on mount while still
+  // calling the current `clear`.
+  const clearRef = useRef(clear);
+  clearRef.current = clear;
 
   useEffect(() => {
     let stored: PendingOrder | null = null;
@@ -60,6 +69,11 @@ export default function CheckoutCompletePage() {
             } catch {
               // ignore
             }
+            // Cart now persists across page loads (see app/cart-context.tsx),
+            // so without this a paid-for item would still sit in the cart
+            // and could be bought again — clear it once payment is
+            // confirmed, same as sessionStorage above.
+            clearRef.current();
             return;
           }
           if (data.status === "FAILED") {
