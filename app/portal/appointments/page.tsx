@@ -2,13 +2,13 @@ import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { WaCTA } from "@/components/ui/WaCTA";
 import { appointments } from "@/lib/fixtures/appointments";
-import { buildIcsDataUrl } from "@/lib/ics";
+import { buildGoogleCalendarUrl } from "@/lib/ics";
 
 export default function AppointmentsPage() {
   const [upcoming] = appointments;
 
-  const icsHref = upcoming
-    ? buildIcsDataUrl({
+  const calendarHref = upcoming
+    ? buildGoogleCalendarUrl({
         title: `${upcoming.type} — Ashok Sunny Tailored`,
         location: upcoming.location,
         date: upcoming.date,
@@ -33,8 +33,8 @@ export default function AppointmentsPage() {
             <Button href="/booking" variant="ghost">
               Reschedule
             </Button>
-            {icsHref ? (
-              <Button href={icsHref} download={`${upcoming.type.toLowerCase()}-appointment.ics`}>
+            {calendarHref ? (
+              <Button href={calendarHref} target="_blank" rel="noopener noreferrer">
                 Add to Calendar
               </Button>
             ) : null}

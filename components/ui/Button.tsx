@@ -12,6 +12,10 @@ type ButtonAsLink = CommonProps & {
    *  which doesn't honor the download attribute. Used for generated files
    *  (e.g. a data: URI .ics), never for internal navigation. */
   download?: string;
+  /** Opens the link in a new tab — for external destinations (e.g. Google
+   *  Calendar) so we don't navigate the visitor away from the site. */
+  target?: "_blank";
+  rel?: string;
   onClick?: never;
   type?: never;
   disabled?: never;
@@ -20,6 +24,8 @@ type ButtonAsLink = CommonProps & {
 type ButtonAsButton = CommonProps & {
   href?: undefined;
   download?: never;
+  target?: never;
+  rel?: never;
   onClick?: () => void;
   type?: "button" | "submit";
   disabled?: boolean;
@@ -38,7 +44,7 @@ export function Button(props: ButtonAsLink | ButtonAsButton) {
       );
     }
     return (
-      <Link href={props.href} className={classes}>
+      <Link href={props.href} className={classes} target={props.target} rel={props.rel}>
         {children}
       </Link>
     );

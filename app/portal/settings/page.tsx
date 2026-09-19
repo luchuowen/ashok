@@ -37,6 +37,7 @@ export default function SettingsPage() {
               name="name"
               type="text"
               defaultValue="Wanjiru Kamau"
+              placeholder="Enter Your Name"
               className={inputClasses}
               onChange={() => setSaved(false)}
             />
@@ -56,7 +57,7 @@ export default function SettingsPage() {
               id="email"
               name="email"
               type="email"
-              placeholder="you@example.com"
+              placeholder="Enter Your Email"
               className={inputClasses}
               onChange={() => setSaved(false)}
             />
