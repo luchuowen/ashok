@@ -402,108 +402,134 @@ function CustomerDetailPanel({
 
   return (
     <Section border={false}>
-      <h2 className="text-xl">{detail.customer.name || phone}</h2>
-      <p className="text-sm text-muted">
+      <h2 className="text-2xl">{detail.customer.name || phone}</h2>
+      <p className="mt-1 text-sm text-muted">
         {phone}
         {detail.customer.email ? ` · ${detail.customer.email}` : ""}
       </p>
 
-      <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-2">
-        <div>
-          <p className="text-xs uppercase tracking-wide text-muted">Appointments</p>
-          {detail.appointments.length === 0 ? (
-            <p className="mt-3 text-sm text-muted">None on file.</p>
-          ) : (
-            <ul className="mt-3 space-y-2">
-              {detail.appointments.map((a) => (
-                <li key={a.id} className="flex items-center justify-between border border-line p-3 text-sm">
-                  <span>
-                    {a.type} — {a.date} {a.time}
-                  </span>
-                  <AppointmentStatusControl appointment={a} onChanged={onChanged} />
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div>
-          <p className="text-xs uppercase tracking-wide text-muted">Measurements</p>
-          {detail.measurements.length === 0 ? (
-            <p className="mt-3 text-sm text-muted">None on file.</p>
-          ) : (
-            <ul className="mt-3 space-y-2">
-              {detail.measurements.map((m) => (
-                <li key={m.id} className="border border-line p-3 text-sm">
-                  <p>Taken {m.takenAt}</p>
-                  <p className="text-muted">
-                    Chest {m.chest} · Waist {m.waist} · Hips {m.hips} · Shoulder {m.shoulder} · Sleeve{" "}
-                    {m.sleeveLength} · Inseam {m.inseam} · Neck {m.neck}
-                  </p>
-                  {m.notes ? <p className="mt-1 italic text-muted">{m.notes}</p> : null}
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="mt-4">
-            <AddMeasurementForm phone={phone} onSaved={onChanged} />
+      <div className="mt-8 space-y-6">
+        <div className="border border-line">
+          <p className="border-b border-line px-6 py-3 text-xs font-semibold uppercase tracking-[0.1em] text-oxblood sm:px-8">
+            Appointments
+          </p>
+          <div className="p-6 sm:p-8">
+            {detail.appointments.length === 0 ? (
+              <p className="text-sm text-muted">None on file.</p>
+            ) : (
+              <ul className="space-y-2">
+                {detail.appointments.map((a) => (
+                  <li key={a.id} className="flex items-center justify-between border border-line p-3 text-sm">
+                    <span>
+                      {a.type} — {a.date} {a.time}
+                    </span>
+                    <AppointmentStatusControl appointment={a} onChanged={onChanged} />
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
 
-        <div>
-          <p className="text-xs uppercase tracking-wide text-muted">Orders</p>
-          {detail.orders.length === 0 ? (
-            <p className="mt-3 text-sm text-muted">None on file.</p>
-          ) : (
-            <ul className="mt-3 space-y-2">
-              {detail.orders.map((o) => (
-                <li key={o.id} className="border border-line p-3 text-sm">
-                  <p>
-                    {o.item} — {o.currency} {o.price.toLocaleString("en-KE")}
-                  </p>
-                  <OrderStageControl order={o} onChanged={onChanged} />
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="mt-4">
-            <CreateOrderForm phone={phone} onSaved={onChanged} />
+        <div className="border border-line">
+          <p className="border-b border-line px-6 py-3 text-xs font-semibold uppercase tracking-[0.1em] text-oxblood sm:px-8">
+            Measurements
+          </p>
+          <div className="flex flex-col lg:flex-row">
+            <div className="flex-1 border-b border-line p-6 lg:border-b-0 lg:border-r lg:p-8">
+              {detail.measurements.length === 0 ? (
+                <p className="text-sm text-muted">None on file.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {detail.measurements.map((m) => (
+                    <li key={m.id} className="border border-line p-3 text-sm">
+                      <p>Taken {m.takenAt}</p>
+                      <p className="text-muted">
+                        Chest {m.chest} · Waist {m.waist} · Hips {m.hips} · Shoulder {m.shoulder} · Sleeve{" "}
+                        {m.sleeveLength} · Inseam {m.inseam} · Neck {m.neck}
+                      </p>
+                      {m.notes ? <p className="mt-1 italic text-muted">{m.notes}</p> : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="flex-1 bg-cream p-6 lg:p-8">
+              <AddMeasurementForm phone={phone} onSaved={onChanged} />
+            </div>
           </div>
         </div>
 
-        <div>
-          <p className="text-xs uppercase tracking-wide text-muted">Quotes</p>
-          {detail.quotes.length === 0 ? (
-            <p className="mt-3 text-sm text-muted">None on file.</p>
-          ) : (
-            <ul className="mt-3 space-y-2">
-              {detail.quotes.map((q) => (
-                <li key={q.id} className="border border-line p-3 text-sm">
-                  {q.item} — {q.currency} {q.amount.toLocaleString("en-KE")} —{" "}
-                  <Tag variant={q.status === "Approved" ? "stage" : "default"}>{q.status}</Tag>
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="mt-4">
-            <CreateQuoteForm phone={phone} onSaved={onChanged} />
+        <div className="border border-line">
+          <p className="border-b border-line px-6 py-3 text-xs font-semibold uppercase tracking-[0.1em] text-oxblood sm:px-8">
+            Orders
+          </p>
+          <div className="flex flex-col lg:flex-row">
+            <div className="flex-1 border-b border-line p-6 lg:border-b-0 lg:border-r lg:p-8">
+              {detail.orders.length === 0 ? (
+                <p className="text-sm text-muted">None on file.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {detail.orders.map((o) => (
+                    <li key={o.id} className="border border-line p-3 text-sm">
+                      <p>
+                        {o.item} — {o.currency} {o.price.toLocaleString("en-KE")}
+                      </p>
+                      <OrderStageControl order={o} onChanged={onChanged} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="flex-1 bg-cream p-6 lg:p-8">
+              <CreateOrderForm phone={phone} onSaved={onChanged} />
+            </div>
           </div>
         </div>
 
-        <div className="lg:col-span-2">
-          <p className="text-xs uppercase tracking-wide text-muted">Payments</p>
-          {detail.payments.length === 0 ? (
-            <p className="mt-3 text-sm text-muted">None on file.</p>
-          ) : (
-            <ul className="mt-3 space-y-2">
-              {detail.payments.map((p) => (
-                <li key={p.id} className="border border-line p-3 text-sm">
-                  {p.date} — {p.currency} {p.amount.toLocaleString("en-KE")} — {p.method} —{" "}
-                  <Tag variant={p.status === "Paid" ? "stage" : "default"}>{p.status}</Tag>
-                </li>
-              ))}
-            </ul>
-          )}
+        <div className="border border-line">
+          <p className="border-b border-line px-6 py-3 text-xs font-semibold uppercase tracking-[0.1em] text-oxblood sm:px-8">
+            Quotes
+          </p>
+          <div className="flex flex-col lg:flex-row">
+            <div className="flex-1 border-b border-line p-6 lg:border-b-0 lg:border-r lg:p-8">
+              {detail.quotes.length === 0 ? (
+                <p className="text-sm text-muted">None on file.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {detail.quotes.map((q) => (
+                    <li key={q.id} className="border border-line p-3 text-sm">
+                      {q.item} — {q.currency} {q.amount.toLocaleString("en-KE")} —{" "}
+                      <Tag variant={q.status === "Approved" ? "stage" : "default"}>{q.status}</Tag>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="flex-1 bg-cream p-6 lg:p-8">
+              <CreateQuoteForm phone={phone} onSaved={onChanged} />
+            </div>
+          </div>
+        </div>
+
+        <div className="border border-line">
+          <p className="border-b border-line px-6 py-3 text-xs font-semibold uppercase tracking-[0.1em] text-oxblood sm:px-8">
+            Payments
+          </p>
+          <div className="p-6 sm:p-8">
+            {detail.payments.length === 0 ? (
+              <p className="text-sm text-muted">None on file.</p>
+            ) : (
+              <ul className="space-y-2">
+                {detail.payments.map((p) => (
+                  <li key={p.id} className="border border-line p-3 text-sm">
+                    {p.date} — {p.currency} {p.amount.toLocaleString("en-KE")} — {p.method} —{" "}
+                    <Tag variant={p.status === "Paid" ? "stage" : "default"}>{p.status}</Tag>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
     </Section>
