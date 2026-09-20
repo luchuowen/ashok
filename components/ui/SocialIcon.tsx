@@ -1,8 +1,9 @@
 /**
  * Minimal single-stroke outline glyphs, drawn to match the site's hairline
  * (border-line) aesthetic rather than pasted-in brand logos — same
- * currentColor / stroke-weight family across all four so the row reads as
- * one system.
+ * currentColor / stroke-weight family across all five so the row reads as
+ * one system. SocialLinks renders these white-on-ink inside a rounded tile
+ * per Owen's request, echoing the familiar black-badge social-icon look.
  */
 type IconProps = { className?: string };
 
@@ -85,6 +86,22 @@ export function TikTokIcon({ className = "h-4 w-4" }: IconProps) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+export function YouTubeIcon({ className = "h-4 w-4" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      className={className}
+      aria-hidden="true"
+    >
+      <rect x="4" y="4" width="16" height="16" rx="4.5" />
+      <path d="M10.3 8.7v6.6l5.4-3.3-5.4-3.3Z" fill="currentColor" stroke="none" />
     </svg>
   );
 }
