@@ -56,6 +56,10 @@ export interface Payment {
   date: string; // ISO date
   status: PaymentStatus;
   transactionId?: string;
+  /** Staff-entered context for a manually recorded payment (a receipt
+   *  number, "paid via Sarah's M-Pesa", etc.) -- gateway payments never
+   *  set this. */
+  note?: string;
 }
 
 export type AppointmentType = "Consultation" | "Measurement" | "Fitting";
@@ -274,6 +278,12 @@ export async function listRecentOrders(limit = 20): Promise<Order[]> {
 export async function createOrder(data: Omit<Order, "id">): Promise<string> {
   const ref = await adminDb().collection(COLLECTIONS.orders).add(data);
   return ref.id;
+}
+
+export async function getOrder(id: string): Promise<Order | null> {
+  const snap = await adminDb().collection(COLLECTIONS.orders).doc(id).get();
+  if (!snap.exists) return null;
+  return { id: snap.id, ...(snap.data() as Omit<Order, "id">) };
 }
 
 export async function updateOrder(id: string, patch: Partial<Order>): Promise<void> {

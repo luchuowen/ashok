@@ -475,7 +475,15 @@ function CustomerDetailPanel({
                       <p>
                         {o.item} — {o.currency} {o.price.toLocaleString("en-KE")}
                       </p>
-                      <OrderStageControl order={o} onChanged={onChanged} />
+                      {o.balanceDue > 0 ? (
+                        <p className="mt-1 text-xs text-muted">
+                          Balance due: {o.currency} {o.balanceDue.toLocaleString("en-KE")}
+                        </p>
+                      ) : null}
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <OrderStageControl order={o} onChanged={onChanged} />
+                        <GeneratePaymentLinkControl order={o} />
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -516,19 +524,25 @@ function CustomerDetailPanel({
           <p className="border-b border-line px-6 py-3 text-xs font-semibold uppercase tracking-[0.1em] text-oxblood sm:px-8">
             Payments
           </p>
-          <div className="p-6 sm:p-8">
-            {detail.payments.length === 0 ? (
-              <p className="text-sm text-muted">None on file.</p>
-            ) : (
-              <ul className="space-y-2">
-                {detail.payments.map((p) => (
-                  <li key={p.id} className="border border-line p-3 text-sm">
-                    {p.date} — {p.currency} {p.amount.toLocaleString("en-KE")} — {p.method} —{" "}
-                    <Tag variant={p.status === "Paid" ? "stage" : "default"}>{p.status}</Tag>
-                  </li>
-                ))}
-              </ul>
-            )}
+          <div className="flex flex-col lg:flex-row">
+            <div className="flex-1 border-b border-line p-6 lg:border-b-0 lg:border-r lg:p-8">
+              {detail.payments.length === 0 ? (
+                <p className="text-sm text-muted">None on file.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {detail.payments.map((p) => (
+                    <li key={p.id} className="border border-line p-3 text-sm">
+                      {p.date} — {p.currency} {p.amount.toLocaleString("en-KE")} — {p.method} —{" "}
+                      <Tag variant={p.status === "Paid" ? "stage" : "default"}>{p.status}</Tag>
+                      {p.note ? <p className="mt-1 italic text-muted">{p.note}</p> : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="flex-1 bg-cream p-6 lg:p-8">
+              <RecordPaymentForm phone={phone} orders={detail.orders} onSaved={onChanged} />
+            </div>
           </div>
         </div>
       </div>
@@ -597,6 +611,159 @@ function OrderStageControl({ order, onChanged }: { order: Order; onChanged: () =
         </option>
       ))}
     </select>
+  );
+}
+
+function GeneratePaymentLinkControl({ order }: { order: Order }) {
+  const [loading, setLoading] = useState(false);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  if (order.balanceDue <= 0) return null;
+
+  async function generate() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}/invoice`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(data.error || "Could not generate a payment link.");
+        return;
+      }
+      setCheckoutUrl(data.checkoutUrl);
+    } catch {
+      setError("Could not reach the server.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (checkoutUrl) {
+    return (
+      <input
+        readOnly
+        value={checkoutUrl}
+        onFocus={(e) => e.currentTarget.select()}
+        className="min-w-0 flex-1 border border-line bg-paper px-2 py-1 text-xs text-ink"
+      />
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={generate}
+        disabled={loading}
+        className="border border-oxblood px-2 py-1 text-xs uppercase tracking-wide text-oxblood hover:bg-oxblood hover:text-cream"
+      >
+        {loading ? "Generating…" : "Get Payment Link"}
+      </button>
+      {error ? <span className="text-xs text-oxblood">{error}</span> : null}
+    </div>
+  );
+}
+
+function RecordPaymentForm({
+  phone,
+  orders,
+  onSaved,
+}: {
+  phone: string;
+  orders: Order[];
+  onSaved: () => void;
+}) {
+  const [orderId, setOrderId] = useState("");
+  const [amount, setAmount] = useState("");
+  const [method, setMethod] = useState<Payment["method"]>("Cash");
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/payments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone,
+          orderId: orderId || undefined,
+          amount: Number(amount),
+          method,
+          note,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(data.error || "Could not record that payment.");
+        return;
+      }
+      setAmount("");
+      setNote("");
+      onSaved();
+    } catch {
+      setError("Could not reach the server.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="border border-line p-4">
+      <p className="text-xs uppercase tracking-wide text-muted">Record a Payment</p>
+      <div className="mt-3 flex flex-col gap-2">
+        {orders.length > 0 ? (
+          <select
+            value={orderId}
+            onChange={(e) => setOrderId(e.target.value)}
+            className={`${inputClasses} text-xs`}
+          >
+            <option value="">No specific order</option>
+            {orders.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.item} — balance {o.currency} {o.balanceDue.toLocaleString("en-KE")}
+              </option>
+            ))}
+          </select>
+        ) : null}
+        <input
+          type="number"
+          min={0}
+          required
+          placeholder="Amount (KES)"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          className={`${inputClasses} text-xs`}
+        />
+        <select
+          value={method}
+          onChange={(e) => setMethod(e.target.value as Payment["method"])}
+          className={`${inputClasses} text-xs`}
+        >
+          <option value="Cash">Cash</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+          <option value="M-Pesa">M-Pesa</option>
+          <option value="Card">Card</option>
+        </select>
+        <input
+          type="text"
+          placeholder="Note (optional)"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          className={`${inputClasses} text-xs`}
+        />
+      </div>
+      <div className="mt-3 flex items-center gap-3">
+        <Button type="submit" disabled={saving}>
+          {saving ? "Saving…" : "Record Payment"}
+        </Button>
+        {error ? <p className="text-xs text-oxblood">{error}</p> : null}
+      </div>
+    </form>
   );
 }
 
