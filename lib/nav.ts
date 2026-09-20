@@ -56,7 +56,7 @@ export const nav: NavItem[] = [
   // phase2 (1) — not built yet, see .factory/DECISIONS.md
   { slug: "journal", href: "/journal", label: "Journal", group: "phase2" },
 
-  // portal (8) — "Your Record with the House," never "Dashboard" or "Account"
+  // portal (8) — "My Account"
   { slug: "portal", href: "/portal", label: "Overview", group: "portal" },
   {
     slug: "portal-measurements",

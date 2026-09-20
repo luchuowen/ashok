@@ -25,7 +25,7 @@ const shopSlugs = ["shop", "cart", "checkout"];
 // "auth" is handled separately below (AccountLinks) since it needs to
 // switch between "Sign In" and the signed-in phone/Sign Out state.
 const accountOverrides: { slug: string; label: string }[] = [
-  { slug: "portal", label: "Your Record with the House" },
+  { slug: "portal", label: "My Account" },
   { slug: "booking", label: "Book a Consultation" },
   { slug: "contact", label: "Contact" },
 ];
