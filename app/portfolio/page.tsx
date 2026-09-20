@@ -14,8 +14,8 @@ export default function PortfolioPage() {
       <Section border={false}>
         <TitleBand
           eyebrow="Finished Work"
-          title="Garments and the people who commissioned them."
-          intro="Portfolio and client stories in one place — a finished jacket next to the sentence someone actually said about it."
+          title="Our Work and Our Clients"
+          intro="See the suits and garments we’ve made, along with the stories behind them. Real work, real clients, and what they had to say about their experience."
         />
         <div className="mt-6 flex flex-wrap justify-center gap-2 sm:justify-start">
           {filters.map((filter) => (
