@@ -217,6 +217,37 @@ export async function searchCustomersByPhone(query: string, limit = 20): Promise
   return snap.docs.map((doc) => doc.data() as Customer);
 }
 
+/**
+ * Substring match on customer name, case-insensitive. Firestore has no
+ * native text search, and most customers have no name on file at all (it's
+ * optional -- phone is the only guaranteed identity), so a name index field
+ * would need a backfill migration for every existing record just to make
+ * old customers findable. Given this business's scale (a single atelier's
+ * customer list, not a call-center-sized database), pulling a bounded,
+ * most-recently-active window and filtering in memory is simpler and
+ * strictly more useful -- it matches anywhere in the name, not just a
+ * prefix. Revisit with a real search index if the customer list ever grows
+ * past a few thousand.
+ */
+export async function searchCustomersByName(query: string, limit = 20): Promise<Customer[]> {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return [];
+  const snap = await adminDb()
+    .collection(COLLECTIONS.customers)
+    .orderBy("updatedAt", "desc")
+    .limit(1000)
+    .get();
+  const matches: Customer[] = [];
+  for (const doc of snap.docs) {
+    const customer = doc.data() as Customer;
+    if (customer.name && customer.name.toLowerCase().includes(needle)) {
+      matches.push(customer);
+      if (matches.length >= limit) break;
+    }
+  }
+  return matches;
+}
+
 // ---- Generic per-client collection helpers ---------------------------
 
 async function listForClient<T>(collection: string, clientId: string, sortKey: keyof T): Promise<T[]> {
@@ -335,6 +366,12 @@ export async function listRecentQuotes(limit = 20): Promise<Quote[]> {
 export async function createQuote(data: Omit<Quote, "id">): Promise<string> {
   const ref = await adminDb().collection(COLLECTIONS.quotes).add(data);
   return ref.id;
+}
+
+export async function getQuote(id: string): Promise<Quote | null> {
+  const snap = await adminDb().collection(COLLECTIONS.quotes).doc(id).get();
+  if (!snap.exists) return null;
+  return { id: snap.id, ...(snap.data() as Omit<Quote, "id">) };
 }
 
 export async function updateQuote(id: string, patch: Partial<Quote>): Promise<void> {

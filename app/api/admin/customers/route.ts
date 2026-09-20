@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isStaffAuthed } from "@/lib/require-staff";
-import { getOrCreateCustomer, listCustomers, searchCustomersByPhone } from "@/lib/db";
+import { getOrCreateCustomer, listCustomers, searchCustomersByPhone, searchCustomersByName } from "@/lib/db";
 import { normalizeKenyanMobile } from "@/lib/sms";
 
 export async function GET(request: NextRequest) {
@@ -9,7 +9,21 @@ export async function GET(request: NextRequest) {
   }
   const q = request.nextUrl.searchParams.get("q")?.trim() ?? "";
   try {
-    const customers = q ? await searchCustomersByPhone(q) : await listCustomers(50);
+    let customers;
+    if (q) {
+      // One box, two lookups: a phone-prefix match and a name substring
+      // match run together and get merged, so staff don't have to know or
+      // care which kind of thing they typed in.
+      const [byPhone, byName] = await Promise.all([searchCustomersByPhone(q), searchCustomersByName(q)]);
+      const seen = new Set<string>();
+      customers = [...byPhone, ...byName].filter((customer) => {
+        if (seen.has(customer.phone)) return false;
+        seen.add(customer.phone);
+        return true;
+      });
+    } else {
+      customers = await listCustomers(50);
+    }
     return NextResponse.json({ ok: true, customers });
   } catch (error) {
     console.error("[admin/customers] Firestore read failed:", error instanceof Error ? error.message : error);

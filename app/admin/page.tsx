@@ -206,12 +206,12 @@ function StaffDashboard({ onSignOut }: { onSignOut: () => void }) {
             Find a Customer
           </p>
           <form onSubmit={runSearch} className="flex flex-wrap items-end gap-3">
-          <FormField label="Find a customer by phone" htmlFor="search">
+          <FormField label="Find a customer by phone or name" htmlFor="search">
             <input
               id="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="07XX XXX XXX"
+              placeholder="07XX XXX XXX or a name"
               className={inputClasses}
             />
           </FormField>
