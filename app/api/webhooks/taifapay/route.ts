@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
 
   if (event.eventType === "transaction.completed" || event.data?.status === "complete") {
     await notifyBusiness(event, "Payment received");
-  } else if (event.eventType.startsWith("transaction.") && event.data?.status) {
+  } else if (event.eventType?.startsWith("transaction.") && event.data?.status) {
     await notifyBusiness(event, `Payment update: ${event.data.status}`);
   }
 

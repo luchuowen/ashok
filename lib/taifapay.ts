@@ -257,15 +257,39 @@ export async function createInvoice(params: CreateInvoiceParams): Promise<TaifaP
 
 export interface TaifaPayTransaction {
   transactionId: string;
-  status: "PENDING" | "COMPLETED" | "FAILED" | string;
+  status: "PENDING" | "COMPLETED" | "FAILED";
   amount: number;
   currency: string;
   accountReference?: string;
   [key: string]: unknown;
 }
 
+interface RawTaifaPayTransaction {
+  transactionId: string;
+  // TaifaPay's own API, confirmed live (dashboard DOM, 18 Sept 2026): lowercase,
+  // non-past-tense values ("complete", "failed" — not "COMPLETED"/"FAILED").
+  // getTransaction() below normalizes this before it ever reaches a caller,
+  // the same way app/api/webhooks/taifapay/route.ts already normalizes the
+  // webhook's own copy of this same field — so every consumer in this app
+  // compares against one canonical PENDING/COMPLETED/FAILED, never the raw
+  // provider string.
+  status: string;
+  amount: number;
+  currency: string;
+  accountReference?: string;
+  [key: string]: unknown;
+}
+
+function normalizeTransactionStatus(raw: string): "PENDING" | "COMPLETED" | "FAILED" {
+  const s = (raw || "").toLowerCase();
+  if (s.includes("complete")) return "COMPLETED";
+  if (/fail|cancel|expire/.test(s)) return "FAILED";
+  return "PENDING";
+}
+
 export async function getTransaction(transactionId: string): Promise<TaifaPayTransaction> {
-  return taifaPayFetch<TaifaPayTransaction>(
+  const raw = await taifaPayFetch<RawTaifaPayTransaction>(
     `/transactions/${encodeURIComponent(transactionId)}`,
   );
+  return { ...raw, status: normalizeTransactionStatus(raw.status) };
 }
