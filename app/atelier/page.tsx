@@ -42,11 +42,10 @@ export default function AtelierPage() {
       </Section>
 
       <Section className="text-center sm:text-left">
-        <h2 className="text-3xl">The relocation</h2>
+        <h2 className="text-3xl">A New Home for the Craft</h2>
         <p className="mt-4 max-w-2xl text-base text-muted">
-          The house has moved from its previous location to Ridgeways. If you&apos;ve visited us
-          before, this is the only thing that&apos;s changed — same phone number, same craft, new
-          address.
+          We’re now creating and fitting from our Ridgeways workshop, giving us more room to
+          work, fit and serve you comfortably. Find us at our new home in Nairobi.
         </p>
       </Section>
 
