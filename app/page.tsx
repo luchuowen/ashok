@@ -50,27 +50,27 @@ const processSteps = [
   {
     number: "01",
     title: "Consultation",
-    body: "30–45 min. We talk about the occasion, not the sale.",
+    body: "30–45 min. We discuss the occasion, your style and what you want made.",
   },
   {
     number: "02",
     title: "Measurements",
-    body: "A dedicated session, entered once, kept on your record.",
+    body: "Your measurements are taken carefully and kept on your record.",
   },
   {
     number: "03",
     title: "Cutting",
-    body: "Your own paper pattern, cut and canvassed by hand.",
+    body: "Your personal pattern is cut and prepared by hand in our workshop.",
   },
   {
     number: "04",
     title: "First Fitting",
-    body: "Where we find out if we got it right.",
+    body: "You try on the garment so we can check the fit and make adjustments.",
   },
   {
     number: "05",
     title: "Ready",
-    body: "Final fitting, then yours to collect.",
+    body: "Final fitting, any last adjustments, then your garment is ready to collect.",
   },
 ];
 
