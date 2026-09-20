@@ -1,12 +1,14 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
 
 type AuthTab = "sign-in" | "register";
 type Step = "phone" | "code";
+
+const RESEND_COOLDOWN_SECONDS = 45;
 
 export default function AuthPage() {
   return (
@@ -28,6 +30,20 @@ function AuthForm() {
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resending, setResending] = useState(false);
+
+  // Counts resendCooldown down to 0 once a code has been sent — reset to
+  // RESEND_COOLDOWN_SECONDS whenever a fresh code goes out (handleSendCode,
+  // handleResendCode) so the resend button stays disabled for a beat
+  // instead of being spammable the instant the code step appears.
+  useEffect(() => {
+    if (step !== "code" || resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [step, resendCooldown]);
 
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
@@ -52,10 +68,37 @@ function AuthForm() {
       setMobile(data.mobile);
       setCode("");
       setStep("code");
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
     } catch {
       setError("Could not reach the server. Check your connection and try again.");
     } finally {
       setSending(false);
+    }
+  }
+
+  async function handleResendCode() {
+    if (resendCooldown > 0 || resending || !mobile) return;
+    setError(null);
+    setResending(true);
+    try {
+      const res = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: mobile }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(data.error || "Could not resend the code. Try again.");
+        return;
+      }
+      setToken(data.token);
+      setMobile(data.mobile);
+      setCode("");
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
+    } catch {
+      setError("Could not reach the server. Check your connection and try again.");
+    } finally {
+      setResending(false);
     }
   }
 
@@ -109,6 +152,7 @@ function AuthForm() {
     setToken(null);
     setMobile(null);
     setError(null);
+    setResendCooldown(0);
   }
 
   return (
@@ -182,6 +226,23 @@ function AuthForm() {
             </FormField>
 
             <Button type="submit">{verifying ? "Verifying…" : "Verify Code"}</Button>
+
+            <button
+              type="button"
+              onClick={handleResendCode}
+              disabled={resendCooldown > 0 || resending}
+              className={`border px-6 py-3 text-sm font-medium uppercase tracking-wide transition-colors ${
+                resendCooldown > 0 || resending
+                  ? "cursor-not-allowed border-line text-muted"
+                  : "border-oxblood text-oxblood hover:bg-oxblood hover:text-cream"
+              }`}
+            >
+              {resending
+                ? "Resending…"
+                : resendCooldown > 0
+                  ? `Resend Code · 0:${String(resendCooldown).padStart(2, "0")}`
+                  : "Resend Code"}
+            </button>
 
             {error ? <p className="text-sm text-oxblood">{error}</p> : null}
 
