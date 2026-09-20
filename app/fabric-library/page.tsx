@@ -47,10 +47,10 @@ export default function FabricLibraryPage() {
       </Section>
 
       <Section className="bg-paper text-center sm:text-left">
-        <h2 className="text-3xl">Reserve a swatch</h2>
+        <h2 className="text-3xl">Choose Your Fabric</h2>
         <p className="mt-4 max-w-2xl text-base text-muted">
-          Tap any bolt to hold it against your consultation booking — no separate account needed,
-          it attaches to your slot automatically.
+          Explore our fabric collection and select your preferred option before your consultation.
+          We’ll have it ready for you to review when you arrive.
         </p>
       </Section>
     </main>
