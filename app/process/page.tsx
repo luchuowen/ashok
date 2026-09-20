@@ -4,7 +4,7 @@ import { Photo } from "@/components/ui/Photo";
 import { Tag } from "@/components/ui/Tag";
 
 const introText =
-  'The same process for bespoke and made-to-measure, with fewer stops for made-to-measure. Real timelines, not "please enquire."';
+  "Most orders take about five visits. Made-to-measure usually takes fewer. You’ll know what to expect at every stage.";
 
 const pullQuote =
   "Every measurement, fitting note and fabric choice stays on your record — the next order starts at step three.";
@@ -65,7 +65,7 @@ export default function ProcessPage() {
         <div className="flex flex-col gap-8 border-b border-line pb-14 sm:flex-row sm:items-end sm:justify-between">
           <div className="mx-auto max-w-2xl text-center sm:mx-0 sm:text-left">
             <Eyebrow>How It Works</Eyebrow>
-            <h1 className="mt-3 text-4xl italic md:text-5xl">Five visits, roughly — start to finish.</h1>
+            <h1 className="mt-3 text-4xl italic md:text-5xl">From First Visit to Final Fitting</h1>
             <p className="mx-auto mt-4 max-w-md text-base text-muted sm:mx-0">{introText}</p>
           </div>
           <div className="mx-auto text-center sm:mx-0 sm:flex-shrink-0 sm:text-right">
