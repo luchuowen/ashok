@@ -90,8 +90,8 @@ function BookingForm() {
       <Section border={false} className="bg-white">
         <TitleBand
           eyebrow="Book"
-          title="Book a consultation at Ridgeways."
-          intro="30–45 minutes, in person. Pick a type, then a time — confirmation comes by WhatsApp."
+          title="Book a Consultation"
+          intro="Visit us at Ridgeways for a 30–45 minute consultation. Choose your service, select a convenient time, and receive confirmation on WhatsApp."
         />
       </Section>
 
