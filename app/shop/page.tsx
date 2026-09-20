@@ -22,8 +22,8 @@ export default function ShopPage() {
       <Section border={false}>
         <TitleBand
           eyebrow="Ready to Wear"
-          title="Shoes, cufflinks and ties."
-          intro="Priced plainly, kept in its own corner of the house — not competing with the bespoke story, complementing it."
+          title="Shoes, Cufflinks and Ties"
+          intro="Complete your look with carefully selected shoes, cufflinks and ties, all available in one place."
         />
       </Section>
 
