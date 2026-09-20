@@ -82,16 +82,22 @@ function AuthForm() {
           setMobile(null);
           setCode("");
           setError(data.error || "An account with this number already exists — sign in instead.");
-          return;
+        } else {
+          setError(data.error || "Could not verify that code.");
         }
-        setError(data.error || "Could not verify that code.");
+        setVerifying(false);
         return;
       }
+      // Success — leave the button showing "Verifying…" instead of
+      // resetting to idle here. router.push below is a soft navigation
+      // that can take a beat on a slow connection; resetting the button
+      // first left a window where the page looked like it had gone back
+      // to normal and done nothing, even though sign-in had succeeded
+      // and the redirect was already on its way.
       const next = searchParams.get("next");
       router.push(next && next.startsWith("/") ? next : "/portal");
     } catch {
       setError("Could not reach the server. Check your connection and try again.");
-    } finally {
       setVerifying(false);
     }
   }
