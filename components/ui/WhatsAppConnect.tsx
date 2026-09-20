@@ -16,7 +16,7 @@ const inputClass =
  */
 export function WhatsAppConnect({
   variant = "icon",
-  label = "Message the House",
+  label = "Message Us on WhatsApp",
   defaultMessage = "",
   triggerClassName = "",
   iconClassName = "h-4 w-4",
@@ -153,11 +153,11 @@ export function WhatsAppConnect({
             ) : (
               <>
                 <p className="mt-2 text-sm text-muted">
-                  Sends straight to the house — we&apos;ll reply by phone or email.
+                  Send us a message and our team will get back to you by phone or email.
                 </p>
 
                 <form onSubmit={handleSend} className="mt-5 flex flex-col gap-4">
-                  <FormField label="Name (optional)" htmlFor="msg-name">
+                  <FormField label="Name" htmlFor="msg-name">
                     <input
                       id="msg-name"
                       value={name}
@@ -166,7 +166,7 @@ export function WhatsAppConnect({
                       placeholder="Your name"
                     />
                   </FormField>
-                  <FormField label="Phone or email (optional)" htmlFor="msg-contact">
+                  <FormField label="Phone or email" htmlFor="msg-contact">
                     <input
                       id="msg-contact"
                       value={contact}

@@ -5,7 +5,7 @@ import { WhatsAppConnect } from "@/components/ui/WhatsAppConnect";
  *  an icon button. */
 export function WaCTA({
   message,
-  label = "Message the House",
+  label = "Message Us on WhatsApp",
 }: {
   message?: string;
   label?: string;

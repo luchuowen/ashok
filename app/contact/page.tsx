@@ -40,7 +40,7 @@ export default function ContactPage() {
               ))}
             </div>
             <div className="mt-8">
-              <WaCTA message="Hi, I'd like to ask about..." label="Message the House" />
+              <WaCTA message="Hi, I'd like to ask about..." label="Message Us on WhatsApp" />
             </div>
           </div>
         </div>
