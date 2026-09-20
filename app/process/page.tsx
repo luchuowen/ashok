@@ -60,7 +60,7 @@ const steps = [
 export default function ProcessPage() {
   return (
     <main>
-      <Section border={false}>
+      <Section border={false} className="bg-white">
         {/* Masthead */}
         <div className="flex flex-col gap-8 border-b border-line pb-14 sm:flex-row sm:items-end sm:justify-between">
           <div className="mx-auto max-w-2xl text-center sm:mx-0 sm:text-left">
