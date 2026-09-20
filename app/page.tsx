@@ -98,21 +98,23 @@ export default function Home() {
             subject's light jacket sits right where the headline lands). */}
         <div className="absolute inset-0 z-[1] bg-gradient-to-t from-ink/90 via-ink/45 to-transparent" />
         <div className="absolute inset-0 z-[1] hidden bg-gradient-to-r from-ink/80 via-ink/25 to-transparent md:block" />
-        <div className="relative z-10 flex min-h-[480px] flex-col justify-end p-8 md:min-h-[560px] md:p-16">
-          <h1
-            className="mx-auto max-w-xl text-center text-4xl text-cream [text-shadow:0_2px_16px_rgb(0_0_0_/_65%)] md:mx-0 md:text-left md:text-6xl"
-          >
-            Where every stitch is a work of art.
-          </h1>
-          <p className="mx-auto mt-6 max-w-lg text-center text-base text-cream/95 [text-shadow:0_1px_10px_rgb(0_0_0_/_70%)] md:mx-0 md:text-left">
-            Bespoke and made-to-measure tailoring, Nairobi. Cut from your own pattern, fitted in
-            person, kept on record for the next one.
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-4 md:justify-start">
-            <Button href="/booking" className="!border-cream">Book a Fitting</Button>
-            <Button href="/process" variant="ghost" className="!border-cream !text-cream">
-              Read the Process
-            </Button>
+        <div className="relative z-10 flex min-h-[480px] flex-col justify-end py-8 md:min-h-[560px] md:py-16">
+          <div className="mx-auto w-full max-w-6xl px-6 md:px-12">
+            <h1
+              className="mx-auto max-w-xl text-center text-4xl text-cream [text-shadow:0_2px_16px_rgb(0_0_0_/_65%)] md:mx-0 md:text-left md:text-6xl"
+            >
+              Where every stitch is a work of art.
+            </h1>
+            <p className="mx-auto mt-6 max-w-lg text-center text-base text-cream/95 [text-shadow:0_1px_10px_rgb(0_0_0_/_70%)] md:mx-0 md:text-left">
+              Bespoke and made-to-measure tailoring, Nairobi. Cut from your own pattern, fitted in
+              person, kept on record for the next one.
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-4 md:justify-start">
+              <Button href="/booking" className="!border-cream">Book a Fitting</Button>
+              <Button href="/process" variant="ghost" className="!border-cream !text-cream">
+                Read the Process
+              </Button>
+            </div>
           </div>
         </div>
       </div>
