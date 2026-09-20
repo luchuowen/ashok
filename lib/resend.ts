@@ -37,11 +37,17 @@ function getFromAddress(): string {
   return process.env.EMAIL_FROM || "Ashok Sunny Tailored <onboarding@resend.dev>";
 }
 
+export interface SendEmailAttachment {
+  filename: string;
+  content: Buffer;
+}
+
 export interface SendEmailParams {
   to: string | string[];
   subject: string;
   html: string;
   replyTo?: string;
+  attachments?: SendEmailAttachment[];
 }
 
 export async function sendEmail(params: SendEmailParams): Promise<void> {
@@ -52,6 +58,7 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
     subject: params.subject,
     html: params.html,
     replyTo: params.replyTo,
+    attachments: params.attachments,
   });
 
   if (error) {

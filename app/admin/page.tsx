@@ -507,8 +507,13 @@ function CustomerDetailPanel({
                 <ul className="space-y-2">
                   {detail.quotes.map((q) => (
                     <li key={q.id} className="border border-line p-3 text-sm">
-                      {q.item} — {q.currency} {q.amount.toLocaleString("en-KE")} —{" "}
-                      <Tag variant={q.status === "Approved" ? "stage" : "default"}>{q.status}</Tag>
+                      <p>
+                        {q.item} — {q.currency} {q.amount.toLocaleString("en-KE")} —{" "}
+                        <Tag variant={q.status === "Approved" ? "stage" : "default"}>{q.status}</Tag>
+                      </p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <QuoteActionsControl quote={q} onChanged={onChanged} />
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -913,6 +918,82 @@ function CreateOrderForm({ phone, onSaved }: { phone: string; onSaved: () => voi
         {error ? <p className="text-xs text-oxblood">{error}</p> : null}
       </div>
     </form>
+  );
+}
+
+function QuoteActionsControl({ quote, onChanged }: { quote: Quote; onChanged: () => void }) {
+  const [updating, setUpdating] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendResult, setSendResult] = useState<string | null>(null);
+
+  async function setStatus(status: Quote["status"]) {
+    setUpdating(true);
+    try {
+      await fetch(`/api/admin/quotes/${quote.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      onChanged();
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  async function sendByEmail() {
+    setSending(true);
+    setSendResult(null);
+    try {
+      const res = await fetch(`/api/admin/quotes/${quote.id}/send`, { method: "POST" });
+      const data = await res.json();
+      setSendResult(data.ok ? `Sent to ${data.sentTo}` : data.error || "Could not send.");
+    } catch {
+      setSendResult("Could not reach the server.");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <>
+      {quote.status === "Pending" ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setStatus("Approved")}
+            disabled={updating}
+            className="border border-oxblood px-2 py-1 text-xs uppercase tracking-wide text-oxblood hover:bg-oxblood hover:text-cream"
+          >
+            Approve
+          </button>
+          <button
+            type="button"
+            onClick={() => setStatus("Declined")}
+            disabled={updating}
+            className="border border-line px-2 py-1 text-xs uppercase tracking-wide text-muted hover:border-oxblood hover:text-oxblood"
+          >
+            Decline
+          </button>
+        </>
+      ) : null}
+      <button
+        type="button"
+        onClick={sendByEmail}
+        disabled={sending}
+        className="border border-line px-2 py-1 text-xs uppercase tracking-wide text-muted hover:border-oxblood hover:text-oxblood"
+      >
+        {sending ? "Sending…" : "Send by Email"}
+      </button>
+      <a
+        href={`/api/admin/quotes/${quote.id}/pdf`}
+        target="_blank"
+        rel="noreferrer"
+        className="border border-line px-2 py-1 text-xs uppercase tracking-wide text-muted hover:border-oxblood hover:text-oxblood"
+      >
+        Download PDF
+      </a>
+      {sendResult ? <span className="text-xs text-muted">{sendResult}</span> : null}
+    </>
   );
 }
 
