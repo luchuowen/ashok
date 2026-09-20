@@ -71,10 +71,19 @@ function AuthForm() {
       const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: mobile, code, token }),
+        body: JSON.stringify({ phone: mobile, code, token, intent: tab }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
+        if (data.accountExists) {
+          setTab("sign-in");
+          setStep("phone");
+          setToken(null);
+          setMobile(null);
+          setCode("");
+          setError(data.error || "An account with this number already exists — sign in instead.");
+          return;
+        }
         setError(data.error || "Could not verify that code.");
         return;
       }
