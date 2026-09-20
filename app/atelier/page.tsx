@@ -35,8 +35,8 @@ export default function AtelierPage() {
         <div className="grid grid-cols-1 items-center gap-10 sm:grid-cols-2">
           <Photo src={masterTailorImage} label="IMG-40 · master tailor at the cutting table" aspectRatio="4 / 3" />
           <p className="text-base text-muted">
-            Ashok Sunny built his name over years of work before the move to Ridgeways — the same
-            hands, the same block-free approach to a suit, now with a workshop built for it.
+            Ashok Sunny has built his reputation over many years of tailoring. Today, the same
+            team and attention to detail continue at our Ridgeways workshop.
           </p>
         </div>
       </Section>
