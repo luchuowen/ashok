@@ -19,7 +19,7 @@ function escapeHtml(input: string): string {
 }
 
 const INK = "#14120f";
-const CREAM = "#f4eee3";
+const CREAM = "#f5f4ef";
 const OXBLOOD = "#8a4432";
 const MUTED = "#5b5648";
 const LINE = "#ddd3c1";
@@ -87,9 +87,9 @@ export function bookingReceivedEmail({ name, visitType, slot }: BookingReceivedE
       <td style="padding:0 5px;"><a href="#" style="text-decoration:none;"><img src="${SITE_URL}/email/social-facebook.png" width="16" height="16" alt="Facebook" style="display:block;" /></a></td>
     </tr>
   </table>
-  <div style="border-top:1px solid rgba(244,238,227,0.15); width:80px; margin:0 auto 16px;"></div>
-  <p style="font-family:${BODY_FONT}; font-size:11px; color:rgba(244,238,227,0.5); margin:0 0 4px;">Ridgeways, Nairobi &middot; +254 705 706 433</p>
-  <p style="font-family:${BODY_FONT}; font-size:11px; color:rgba(244,238,227,0.5); margin:0;">Sent because you made a booking request on ashok.navac.co.ke.</p>
+  <div style="border-top:1px solid rgba(245,244,239,0.15); width:80px; margin:0 auto 16px;"></div>
+  <p style="font-family:${BODY_FONT}; font-size:11px; color:rgba(245,244,239,0.5); margin:0 0 4px;">Ridgeways, Nairobi &middot; +254 705 706 433</p>
+  <p style="font-family:${BODY_FONT}; font-size:11px; color:rgba(245,244,239,0.5); margin:0;">Sent because you made a booking request on ashok.navac.co.ke.</p>
 </td></tr>
 
 </table>
