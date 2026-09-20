@@ -16,7 +16,7 @@ const filterTags = [
 export default function FabricLibraryPage() {
   return (
     <main>
-      <Section border={false}>
+      <Section border={false} className="bg-white">
         <TitleBand
           eyebrow="Sourcing"
           title="Every bolt, where it comes from and what it's for."
