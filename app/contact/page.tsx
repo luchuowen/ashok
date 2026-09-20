@@ -17,8 +17,8 @@ export default function ContactPage() {
       <Section border={false}>
         <TitleBand
           eyebrow="Contact"
-          title="Find the house."
-          intro="Now at Ridgeways, Nairobi — if you knew us at our old location, this is the new address."
+          title="Find Us"
+          intro="We’re now at Ridgeways, Nairobi. Come visit us at our new home."
         />
       </Section>
 
