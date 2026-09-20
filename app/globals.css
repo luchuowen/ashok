@@ -51,3 +51,22 @@ h4 {
     @apply border-ink bg-transparent text-ink hover:bg-ink hover:text-cream;
   }
 }
+
+/* Hero carousel: continuous slow zoom on each slide, independent of the
+   opacity cross-fade between slides (components/home/HeroCarousel.tsx).
+   Disabled via prefers-reduced-motion in the component itself. */
+@keyframes hero-kenburns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.08);
+  }
+}
+
+.animate-hero-kenburns {
+  animation-name: hero-kenburns;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}

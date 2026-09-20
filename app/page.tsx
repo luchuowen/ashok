@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
 import { Photo } from "@/components/ui/Photo";
 import { Quote } from "@/components/ui/Quote";
+import { HeroCarousel, type HeroSlide } from "@/components/home/HeroCarousel";
 import { fabrics } from "@/lib/fixtures/fabrics";
 
 const introColumns = [
@@ -44,7 +45,24 @@ const imageStrip = [
   },
 ];
 
-const heroImage = "/photos/home/hero.jpg";
+const heroSlides: HeroSlide[] = [
+  {
+    src: "/photos/home/hero.jpg",
+    alt: "A tailor's hands pinning a jacket during a fitting",
+  },
+  {
+    src: "/photos/home/hero-bespoke-portrait.jpg",
+    alt: "A client in a bespoke burgundy double-breasted suit",
+  },
+  {
+    src: "/photos/home/hero-lifestyle-walk.jpg",
+    alt: "A client in a tailored olive suit on a Ridgeways street",
+  },
+  {
+    src: "/photos/home/hero-shop-detail.jpg",
+    alt: "Oxford shoes and a silk tie styled on a wooden table",
+  },
+];
 
 const processSteps = [
   {
@@ -81,15 +99,7 @@ export default function Home() {
     <main>
       {/* Hero */}
       <div className="relative overflow-hidden border-b border-line">
-        <Photo
-          src={heroImage}
-          label="IMG-01 · fitting, hands & pin"
-          aspectRatio="auto"
-          className="absolute inset-0 h-full w-full"
-          bordered={false}
-          sizes="100vw"
-          priority
-        />
+        <HeroCarousel slides={heroSlides} />
         {/* Two stacked scrims: a bottom-heavy vertical wash for mobile's
             centered text, plus a left-anchored horizontal wash so desktop's
             left-aligned text always sits on a dark ground regardless of
