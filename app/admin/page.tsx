@@ -191,15 +191,21 @@ function StaffDashboard({ onSignOut }: { onSignOut: () => void }) {
 
   return (
     <div className="min-h-screen bg-paper">
-      <div className="flex flex-col items-center justify-between gap-4 border-b border-line px-6 py-8 text-center md:flex-row md:text-left">
-        <h1 className="font-display text-3xl">Staff — Ashok Sunny Tailored</h1>
-        <Button variant="ghost" onClick={handleSignOut}>
-          Sign Out
-        </Button>
-      </div>
+      <Section border={false} className="border-b border-line !py-8">
+        <div className="flex flex-col items-center justify-between gap-4 text-center md:flex-row md:text-left">
+          <h1 className="font-display text-3xl">Staff — Ashok Sunny Tailored</h1>
+          <Button variant="ghost" onClick={handleSignOut}>
+            Sign Out
+          </Button>
+        </div>
+      </Section>
 
       <Section border={false}>
-        <form onSubmit={runSearch} className="flex flex-wrap items-end gap-3">
+        <div className="border border-line p-6 sm:p-8">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.12em] text-oxblood">
+            Find a Customer
+          </p>
+          <form onSubmit={runSearch} className="flex flex-wrap items-end gap-3">
           <FormField label="Find a customer by phone" htmlFor="search">
             <input
               id="search"
@@ -225,19 +231,20 @@ function StaffDashboard({ onSignOut }: { onSignOut: () => void }) {
             </Button>
           ) : null}
         </form>
-        {results.length > 0 ? (
-          <ul className="mt-4 flex flex-wrap gap-2">
-            {results.map((c) => (
-              <li key={c.phone}>
-                <button type="button" onClick={() => selectCustomer(c.phone)}>
-                  <Tag variant={selectedPhone === c.phone ? "stage" : "default"}>
-                    {c.name ? `${c.name} — ${c.phone}` : c.phone}
-                  </Tag>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
+          {results.length > 0 ? (
+            <ul className="mt-4 flex flex-wrap gap-2">
+              {results.map((c) => (
+                <li key={c.phone}>
+                  <button type="button" onClick={() => selectCustomer(c.phone)}>
+                    <Tag variant={selectedPhone === c.phone ? "stage" : "default"}>
+                      {c.name ? `${c.name} — ${c.phone}` : c.phone}
+                    </Tag>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
       </Section>
 
       {selectedPhone ? (
@@ -283,8 +290,11 @@ function ActivityFeed({
 
   return (
     <Section border={false}>
-      <h2 className="text-xl">Recent Activity</h2>
-      <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2">
+      <p className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-oxblood">
+        Recent Activity
+      </p>
+      <h2 className="text-2xl">Recent Activity</h2>
+      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
         <ActivityColumn
           title="Appointments"
           rows={activity.appointments}
@@ -326,14 +336,16 @@ function ActivityColumn<T extends { id: string; clientId: string; clientName: st
   onSelectCustomer: (phone: string) => void;
 }) {
   return (
-    <div>
-      <p className="text-xs uppercase tracking-wide text-muted">{title}</p>
+    <div className="border border-line p-5">
+      <p className="border-b border-line pb-3 text-xs font-semibold uppercase tracking-wide text-muted">
+        {title}
+      </p>
       {rows.length === 0 ? (
-        <p className="mt-3 text-sm text-muted">Nothing yet.</p>
+        <p className="mt-4 text-sm italic text-muted">Nothing yet.</p>
       ) : (
-        <ul className="mt-3 space-y-2">
+        <ul className="mt-4 space-y-3">
           {rows.map((row) => (
-            <li key={row.id} className="border border-line p-3 text-sm">
+            <li key={row.id} className="text-sm">
               <button
                 type="button"
                 className="text-left hover:text-oxblood"
