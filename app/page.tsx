@@ -203,7 +203,7 @@ export default function Home() {
       {/* Quote */}
       <Section className="bg-paper">
         <Quote attribution="A CLIENT, WEDDING SUIT, 2026">
-          &ldquo;He measured me the way he talks — slowly, and like it mattered.&rdquo;
+          &ldquo;The fitting felt personal - he took his time and got every detail right.&rdquo;
         </Quote>
       </Section>
 
