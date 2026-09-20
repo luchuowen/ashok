@@ -26,8 +26,8 @@ export default function AtelierPage() {
       <Section border={false}>
         <TitleBand
           eyebrow="About the House"
-          title="A house that moved, and kept its hands."
-          intro="Ashok Sunny Tailored is now at Ridgeways, Nairobi — a move made for more light on the cutting table, not a change in who's holding the shears."
+          title="Now at Ridgeways"
+          intro="Ashok Sunny Tailored is now at Ridgeways, Nairobi. We’ve moved to a brighter, more spacious location while keeping the same team, craftsmanship and personal service you know."
         />
       </Section>
 
