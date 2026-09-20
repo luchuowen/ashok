@@ -15,7 +15,7 @@ const introColumns = [
   },
   {
     title: "Made-to-Measure",
-    body: "For men and women, from special occasions to everyday wear, fitted carefully to your measurements.",
+    body: "For men and women — special occasions to everyday wear, fitted to your measurements.",
     href: "/made-to-measure",
     linkLabel: "See Made-to-Measure →",
   },
