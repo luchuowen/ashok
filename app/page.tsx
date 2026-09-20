@@ -8,19 +8,19 @@ import { fabrics } from "@/lib/fixtures/fabrics";
 const introColumns = [
   {
     title: "Bespoke Suits",
-    body: "Cut from your own paper pattern, not adjusted from a house block. For the man who's never dressed by accident.",
+    body: "Cut from your own pattern and made through multiple fittings, for a suit that is truly yours.",
     href: "/bespoke",
     linkLabel: "See Bespoke →",
   },
   {
     title: "Made-to-Measure",
-    body: "For men and women — occasionwear and wardrobe pieces fitted to you, with the same attention as a full commission.",
+    body: "For men and women, from special occasions to everyday wear, fitted carefully to your measurements.",
     href: "/made-to-measure",
     linkLabel: "See Made-to-Measure →",
   },
   {
     title: "The Shop",
-    body: "Shoes, cufflinks and ties, made to sit beside a finished suit — not a marketplace grid.",
+    body: "Shoes, cufflinks and ties selected to complete your look and complement your finished suit.",
     href: "/shop",
     linkLabel: "Visit the Shop →",
   },
