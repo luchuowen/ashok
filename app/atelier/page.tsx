@@ -7,16 +7,16 @@ const masterTailorImage = "/photos/atelier/master-tailor-cutting-table.jpg";
 
 const beliefs = [
   {
-    title: "Your own pattern",
-    body: "Not a house block nudged smaller or larger — a pattern cut for you, kept on file for the next order.",
+    title: "Cut for You",
+    body: "Your pattern is created from your measurements and kept for future orders.",
   },
   {
-    title: "The fitting is the order",
-    body: "Nothing is final until you've stood in it — bespoke here means at least two visits, not one.",
+    title: "Fitted Before Finished",
+    body: "We fit the garment as it’s made, making adjustments along the way.",
   },
   {
-    title: "Told straight",
-    body: "Timelines, prices and what a fabric will actually do — said plainly, before you commit to anything.",
+    title: "Clear From the Start",
+    body: "We explain the fabric, price and timeline before any work begins.",
   },
 ];
 
@@ -50,7 +50,7 @@ export default function AtelierPage() {
       </Section>
 
       <Section className="text-center sm:text-left">
-        <h2 className="text-3xl">What we believe about fit</h2>
+        <h2 className="text-3xl">Made to Fit You</h2>
         <CardGrid columns={3} className="mt-8">
           {beliefs.map((belief) => (
             <div key={belief.title} className="bg-paper p-6">
