@@ -211,8 +211,8 @@ export default function Home() {
       <Section>
         <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
           <p className="max-w-md text-base text-muted">
-            The accessories line — shoes, cufflinks, ties — kept in its own corner of the house,
-            priced plainly.
+            Our collection of shoes, cufflinks and ties, with clear prices and everything in
+            one place.
           </p>
           <Button href="/shop" variant="ghost">
             Shop All
