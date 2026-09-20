@@ -181,7 +181,7 @@ function AuthForm() {
         )}
 
         <p className="mt-12 text-center text-xs text-muted">
-          A single, streamlined page for sign in, registration, and password recovery.
+          One simple page for signing in and creating or accessing your account.
         </p>
       </div>
     </main>
