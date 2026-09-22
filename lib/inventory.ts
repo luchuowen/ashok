@@ -257,6 +257,78 @@ export async function updateProduct(id: string, patch: Partial<Product>): Promis
     .set({ ...patch, updatedAt: nowIso() }, { merge: true });
 }
 
+/** Lowercase, hyphenated, alnum-only slug — shared by category and product
+ *  admin routes so "A Name Like This!" always becomes "a-name-like-this". */
+export function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export interface ProductVariantInput {
+  id?: string;
+  label?: string;
+  sku?: string;
+  stockQty?: number;
+  lowStockThreshold?: number;
+  priceOverride?: number;
+}
+
+/**
+ * Turns admin-form variant rows into real ProductVariant records. Keeps an
+ * existing variant's id stable across an edit (stock movements, cart lines,
+ * and past orders' items[] all reference variantId), and only mints a fresh
+ * slug-derived id for a genuinely new row — de-duped against both the ids
+ * already in use on this product and any sibling row in the same submit.
+ */
+export function buildProductVariants(
+  input: ProductVariantInput[],
+  existingVariants: ProductVariant[] = [],
+): ProductVariant[] {
+  const existingById = new Map(existingVariants.map((v) => [v.id, v]));
+  const used = new Set<string>();
+  return input
+    .filter((v) => v.label?.trim())
+    .map((v) => {
+      const label = v.label!.trim();
+      const base = slugify(label) || "variant";
+      const matched = v.id?.trim() ? existingById.get(v.id.trim()) : undefined;
+      let id = matched ? matched.id : base;
+      let suffix = 2;
+      while (used.has(id)) {
+        id = `${base}-${suffix++}`;
+      }
+      used.add(id);
+      // A matched (already-existing) variant keeps its stockQty no matter
+      // what the caller sends -- stock only ever moves through
+      // deductStockForOrder/restockForOrder/adjustStock, each of which logs
+      // a stock_movements entry. Editing a product here must never be a
+      // back door around that ledger. A genuinely new row (no match) has no
+      // history yet, so its starting quantity is whatever was entered.
+      const stockQty = matched
+        ? matched.stockQty
+        : Number.isFinite(Number(v.stockQty))
+          ? Math.max(0, Math.trunc(Number(v.stockQty)))
+          : 0;
+      const lowStockThreshold = Number.isFinite(Number(v.lowStockThreshold))
+        ? Math.max(0, Math.trunc(Number(v.lowStockThreshold)))
+        : 0;
+      const variant: ProductVariant = {
+        id,
+        label,
+        sku: v.sku?.trim() || id.toUpperCase(),
+        stockQty,
+        lowStockThreshold,
+      };
+      if (Number.isFinite(Number(v.priceOverride)) && Number(v.priceOverride) > 0) {
+        variant.priceOverride = Number(v.priceOverride);
+      }
+      return variant;
+    });
+}
+
 /** Effective selling price for a variant, discount applied, rounded to the shilling. */
 export function effectivePrice(product: Pick<Product, "price" | "discountPercent">, variant?: Pick<ProductVariant, "priceOverride">): number {
   const base = variant?.priceOverride ?? product.price;
