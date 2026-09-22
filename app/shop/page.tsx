@@ -1,21 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Section } from "@/components/ui/Section";
 import { TitleBand } from "@/components/ui/TitleBand";
 import { QuizBand } from "@/components/ui/QuizBand";
 import { CardGrid } from "@/components/ui/CardGrid";
 import { Tag } from "@/components/ui/Tag";
 import { ProductCard } from "@/components/commerce/ProductCard";
-import { products } from "@/lib/fixtures/products";
-
-const filters = ["All", "Shoes", "Ties", "Cufflinks"] as const;
-type Filter = (typeof filters)[number];
+import type { Category, Product } from "@/lib/inventory";
 
 export default function ShopPage() {
-  const [activeFilter, setActiveFilter] = useState<Filter>("All");
+  const [products, setProducts] = useState<Product[] | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [activeCategoryId, setActiveCategoryId] = useState<string>("all");
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/shop/products")
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        if (!data.ok) {
+          setError(data.error || "Could not load the shop.");
+          return;
+        }
+        setProducts(data.products);
+        setCategories(data.categories);
+      })
+      .catch(() => {
+        if (!cancelled) setError("Could not reach the server.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const visibleProducts =
-    activeFilter === "All" ? products : products.filter((product) => product.category === activeFilter);
+    !products
+      ? []
+      : activeCategoryId === "all"
+        ? products
+        : products.filter((product) => product.categoryId === activeCategoryId);
 
   return (
     <main>
@@ -33,13 +59,20 @@ export default function ShopPage() {
 
       <Section>
         <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
-          {filters.map((filter) => (
-            <button key={filter} type="button" onClick={() => setActiveFilter(filter)}>
-              <Tag variant={filter === activeFilter ? "stage" : "default"}>{filter}</Tag>
+          <button type="button" onClick={() => setActiveCategoryId("all")}>
+            <Tag variant={activeCategoryId === "all" ? "stage" : "default"}>All</Tag>
+          </button>
+          {categories.map((category) => (
+            <button key={category.id} type="button" onClick={() => setActiveCategoryId(category.id)}>
+              <Tag variant={activeCategoryId === category.id ? "stage" : "default"}>{category.name}</Tag>
             </button>
           ))}
         </div>
-        {visibleProducts.length === 0 ? (
+        {error ? (
+          <p className="mt-8 text-center text-sm text-oxblood sm:text-left">{error}</p>
+        ) : !products ? (
+          <p className="mt-8 text-center text-sm text-muted sm:text-left">Loading…</p>
+        ) : visibleProducts.length === 0 ? (
           <p className="mt-8 text-center text-sm text-muted sm:text-left">
             Nothing in this category yet.
           </p>

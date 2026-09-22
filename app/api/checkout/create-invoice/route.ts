@@ -2,11 +2,12 @@ import { randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { normalizeKenyanMobile } from "@/lib/sms";
 import { createInvoice, TaifaPayError } from "@/lib/taifapay";
-import { products } from "@/lib/fixtures/products";
-import { createOrder, createPayment, getOrCreateCustomer } from "@/lib/db";
+import { deductStockForOrder, effectivePrice, getProduct, restockForOrder, InsufficientStockError } from "@/lib/inventory";
+import { createOrder, createPayment, getOrCreateCustomer, updateOrder, type OrderItem } from "@/lib/db";
 
 interface CartItemInput {
   productId?: string;
+  variantId?: string;
   qty?: number;
 }
 
@@ -44,16 +45,33 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Recompute the amount server-side from the product catalogue — the
-  // Phase 1 cart is plain client-side React state (see app/cart-context.tsx),
-  // so it is not a source of truth we can trust for what the customer pays.
+  // Recompute price and confirm each line against the live Firestore
+  // catalogue (never the client's cart state — see app/cart-context.tsx,
+  // still plain localStorage) for both the amount charged and whether the
+  // product/variant still exists and is still published. Stock itself is
+  // NOT checked here — deductStockForOrder below does that check and the
+  // deduction as one atomic transaction per line, which is the only way to
+  // avoid a race between two customers both being told "in stock" a moment
+  // before one of them actually reserves the last unit.
   let amount = 0;
   const lines: string[] = [];
+  const stockLines: { productId: string; variantId: string; qty: number }[] = [];
+  const orderItems: OrderItem[] = [];
   for (const raw of rawItems) {
-    const product = products.find((p) => p.id === raw.productId);
-    if (!product) {
+    if (!raw.productId || !raw.variantId) {
+      return NextResponse.json({ ok: false, error: "Invalid item in your cart." }, { status: 400 });
+    }
+    const product = await getProduct(raw.productId);
+    if (!product || !product.active) {
       return NextResponse.json(
         { ok: false, error: "One of the items in your cart is no longer available." },
+        { status: 400 },
+      );
+    }
+    const variant = product.variants.find((v) => v.id === raw.variantId);
+    if (!variant) {
+      return NextResponse.json(
+        { ok: false, error: `That size of ${product.name} is no longer available.` },
         { status: 400 },
       );
     }
@@ -64,8 +82,18 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
-    amount += product.price * qty;
-    lines.push(`${qty}x ${product.name}`);
+    const unitPrice = effectivePrice(product, variant);
+    amount += unitPrice * qty;
+    lines.push(`${qty}x ${product.name} (${variant.label})`);
+    stockLines.push({ productId: product.id, variantId: variant.id, qty });
+    orderItems.push({
+      productId: product.id,
+      productName: product.name,
+      variantId: variant.id,
+      variantLabel: variant.label,
+      qty,
+      unitPrice,
+    });
   }
 
   if (amount <= 0) {
@@ -75,6 +103,55 @@ export async function POST(request: NextRequest) {
   const reference = `ASHOK-${Date.now().toString(36)}${randomBytes(3).toString("hex")}`.toUpperCase();
   const description = lines.join(", ").slice(0, 200);
   const siteUrl = getSiteUrl(request);
+
+  const customer = await getOrCreateCustomer(mobile, { name: body.customerName });
+  const startedAt = new Date().toISOString().slice(0, 10);
+
+  // The order is created before stock is touched or TaifaPay is called (not
+  // best-effort, unlike the payment record below) for two reasons: stock
+  // deduction needs a real order id to correlate its ledger entries against,
+  // and — unlike a Firestore hiccup on the payment record, which is
+  // recoverable from the order/webhook alone — a checkout with stock
+  // reserved or money moving and genuinely no order record at all is a real
+  // "where did this sale go" gap. If nothing past this point succeeds, the
+  // order is left/marked Cancelled rather than silently vanishing.
+  let orderId: string;
+  try {
+    orderId = await createOrder({
+      clientId: mobile,
+      clientName: customer.name || mobile,
+      item: description,
+      stage: "Payment Pending",
+      statusNote: "Awaiting payment confirmation",
+      startedAt,
+      estimatedCompletion: "",
+      price: amount,
+      currency: "KES",
+      balanceDue: amount,
+      source: "shop",
+      items: orderItems,
+    });
+  } catch (error) {
+    console.error(
+      "[checkout/create-invoice] could not create the order record:",
+      error instanceof Error ? error.message : error,
+    );
+    return NextResponse.json(
+      { ok: false, error: "We couldn't start your order just now — please try again in a moment." },
+      { status: 502 },
+    );
+  }
+
+  try {
+    await deductStockForOrder(stockLines, orderId);
+  } catch (error) {
+    const message =
+      error instanceof InsufficientStockError
+        ? error.message
+        : "We couldn't reserve stock for your order just now — please try again in a moment.";
+    await updateOrder(orderId, { stage: "Cancelled", statusNote: message }).catch(() => undefined);
+    return NextResponse.json({ ok: false, error: message }, { status: 409 });
+  }
 
   try {
     const invoice = await createInvoice({
@@ -88,33 +165,18 @@ export async function POST(request: NextRequest) {
       expiresInMinutes: 30,
     });
 
-    // Record a pending order + payment so this purchase shows up for staff
-    // on /admin immediately, and on the customer's portal once the TaifaPay
-    // webhook confirms the money actually moved (see
-    // app/api/webhooks/taifapay/route.ts). Best-effort: the invoice above
-    // already succeeded, so a Firestore hiccup here must never stop the
-    // customer from reaching the TaifaPay checkout page.
+    await updateOrder(orderId, { transactionId: invoice.transactionId });
+
+    // Best-effort: the order and its stock reservation above already
+    // succeeded, so a Firestore hiccup on the payment record alone must
+    // never stop the customer from reaching the TaifaPay checkout page —
+    // the webhook (app/api/webhooks/taifapay/route.ts) reconciles by
+    // transactionId regardless of whether this row exists yet.
     try {
-      const customer = await getOrCreateCustomer(mobile, { name: body.customerName });
-      const startedAt = new Date().toISOString().slice(0, 10);
-      await createOrder({
-        clientId: mobile,
-        clientName: customer.name || mobile,
-        item: description,
-        stage: "Payment Pending",
-        statusNote: "Awaiting payment confirmation",
-        startedAt,
-        estimatedCompletion: "",
-        price: amount,
-        currency: "KES",
-        balanceDue: amount,
-        source: "shop",
-        transactionId: invoice.transactionId,
-      });
       await createPayment({
         clientId: mobile,
         clientName: customer.name || mobile,
-        orderId: reference,
+        orderId,
         amount,
         currency: "KES",
         method: "M-Pesa",
@@ -124,7 +186,7 @@ export async function POST(request: NextRequest) {
       });
     } catch (dbError) {
       console.error(
-        "[checkout/create-invoice] Firestore write failed (invoice still created):",
+        "[checkout/create-invoice] Firestore payment write failed (invoice still created):",
         dbError instanceof Error ? dbError.message : dbError,
       );
     }
@@ -143,6 +205,16 @@ export async function POST(request: NextRequest) {
       "[checkout/create-invoice] createInvoice failed:",
       error instanceof Error ? `${error.name}: ${error.message}` : error,
     );
+    await restockForOrder(stockLines, orderId, "cancellation-restock").catch((restockError) => {
+      console.error(
+        "[checkout/create-invoice] Failed to restock after a failed invoice — manual correction needed:",
+        restockError instanceof Error ? restockError.message : restockError,
+      );
+    });
+    await updateOrder(orderId, {
+      stage: "Cancelled",
+      statusNote: "Payment could not be started",
+    }).catch(() => undefined);
     // Only ever show the customer a message that came from TaifaPay's own
     // API as a real business rejection (see TaifaPayError.customerSafe) —
     // anything else here is an infra/integration detail (auth plumbing, an

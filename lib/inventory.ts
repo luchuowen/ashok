@@ -357,20 +357,38 @@ export async function deductStockForOrder(
   lines: { productId: string; variantId: string; qty: number }[],
   orderId: string,
 ): Promise<void> {
-  // Sequential, not Promise.all: each line is its own transaction (different
-  // products), and running them one at a time means a failure partway
-  // through (e.g. line 2 of 3 is out of stock) leaves a clear, deterministic
-  // set of already-deducted lines for the caller to roll back — see
-  // restockForOrder, called from the checkout route's catch block.
-  for (const line of lines) {
-    await applyStockChange({
-      productId: line.productId,
-      variantId: line.variantId,
-      qtyChange: -line.qty,
-      type: "sale",
-      relatedOrderId: orderId,
-      actor: "system",
-    });
+  // Sequential, not Promise.all: each line is its own transaction (a
+  // different product document per line), so a failure partway through
+  // (e.g. line 2 of 3 is out of stock) leaves a clear, deterministic set of
+  // already-deducted lines. Self-heals on that failure — restocks every
+  // line that DID succeed before re-throwing — so a caller (the checkout
+  // route) never has to reconstruct "which lines actually went through" to
+  // avoid stock getting stuck permanently held for an order that never
+  // actually got its invoice created.
+  const succeeded: { productId: string; variantId: string; qty: number }[] = [];
+  try {
+    for (const line of lines) {
+      await applyStockChange({
+        productId: line.productId,
+        variantId: line.variantId,
+        qtyChange: -line.qty,
+        type: "sale",
+        relatedOrderId: orderId,
+        actor: "system",
+      });
+      succeeded.push(line);
+    }
+  } catch (error) {
+    if (succeeded.length > 0) {
+      await restockForOrder(succeeded, orderId, "cancellation-restock").catch((restockError) => {
+        console.error(
+          `[inventory] Failed to roll back a partial stock deduction for order ${orderId} — ` +
+            `manual correction needed:`,
+          restockError instanceof Error ? restockError.message : restockError,
+        );
+      });
+    }
+    throw error;
   }
 }
 
@@ -626,4 +644,103 @@ export async function createReturn(
 
 export async function updateReturn(id: string, patch: Partial<ReturnRequest>): Promise<void> {
   await adminDb().collection(COLLECTIONS.returns).doc(id).set(patch, { merge: true });
+}
+
+// ---- One-time bootstrap ---------------------------------------------
+
+/**
+ * The Shop shipped with its 4 products hardcoded in lib/fixtures/products.ts
+ * (that file's own comment: "Field names mirror the eventual `products`
+ * Firestore collection"). This is that migration, run lazily and once: the
+ * first request that needs the product list (GET /api/shop/products) calls
+ * this first, and it's a no-op after the very first call ever finds the
+ * `products` collection non-empty. No manual admin step, no separate script
+ * needing production credentials this environment doesn't have.
+ */
+export async function ensureShopSeeded(): Promise<void> {
+  const existing = await adminDb().collection(COLLECTIONS.products).limit(1).get();
+  if (!existing.empty) return;
+
+  const iso = nowIso();
+  const categoryByName = new Map<string, string>();
+  const categoryDefs = [
+    { name: "Shoes", slug: "shoes", sortOrder: 0 },
+    { name: "Ties", slug: "ties", sortOrder: 1 },
+    { name: "Cufflinks", slug: "cufflinks", sortOrder: 2 },
+  ];
+  for (const def of categoryDefs) {
+    const id = await createCategory(def);
+    categoryByName.set(def.name, id);
+  }
+
+  const shoeSizes = ["40", "41", "42", "43", "44", "45"];
+  const shoeVariants = (skuPrefix: string): ProductVariant[] =>
+    shoeSizes.map((size) => ({
+      id: size,
+      label: size,
+      sku: `${skuPrefix}-${size}`,
+      stockQty: 3,
+      lowStockThreshold: 2,
+    }));
+  const oneSizeVariant = (sku: string, stockQty: number): ProductVariant[] => [
+    { id: "one-size", label: "One Size", sku, stockQty, lowStockThreshold: 5 },
+  ];
+
+  const seedProducts: Omit<Product, "id" | "createdAt" | "updatedAt">[] = [
+    {
+      slug: "derby-shoes",
+      name: "Derby Shoes",
+      categoryId: categoryByName.get("Shoes")!,
+      description: "Black calf leather derby, hand-welted, sits well under a full suit.",
+      price: 24500,
+      currency: "KES",
+      images: ["/photos/products/derby-shoes.jpg"],
+      imageLabel: "IMG-11 · derby shoes, black calf",
+      active: true,
+      variants: shoeVariants("ASHOK-DERBY"),
+    },
+    {
+      slug: "silk-tie-oxblood",
+      name: "Silk Tie — Oxblood",
+      categoryId: categoryByName.get("Ties")!,
+      description: "Woven silk in oxblood, cut narrow to sit close under a two-button jacket.",
+      price: 5800,
+      currency: "KES",
+      images: ["/photos/products/silk-tie-oxblood.jpg"],
+      imageLabel: "IMG-12 · silk tie, oxblood",
+      active: true,
+      variants: oneSizeVariant("ASHOK-TIE-OXBLOOD", 25),
+    },
+    {
+      slug: "cufflinks-brass",
+      name: "Cufflinks — Brass",
+      categoryId: categoryByName.get("Cufflinks")!,
+      description: "Solid brass, weighted, a plain face that doesn't compete with a cuff.",
+      price: 3200,
+      currency: "KES",
+      images: ["/photos/products/cufflinks-brass.jpg"],
+      imageLabel: "IMG-13 · cufflinks, brass",
+      active: true,
+      variants: oneSizeVariant("ASHOK-CUFFLINKS-BRASS", 25),
+    },
+    {
+      slug: "oxford-shoes-black-calf",
+      name: "Oxford Shoes — Black Calf",
+      categoryId: categoryByName.get("Shoes")!,
+      description: "Closed-lacing oxford in black calf, built for the formal end of the wardrobe.",
+      price: 27500,
+      currency: "KES",
+      images: ["/photos/products/oxford-shoes-black-calf.jpg"],
+      imageLabel: "IMG-14 · oxford shoes, black calf",
+      active: true,
+      variants: shoeVariants("ASHOK-OXFORD"),
+    },
+  ];
+
+  const batch = adminDb().batch();
+  for (const product of seedProducts) {
+    const ref = adminDb().collection(COLLECTIONS.products).doc();
+    batch.set(ref, { ...product, createdAt: iso, updatedAt: iso });
+  }
+  await batch.commit();
 }

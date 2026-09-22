@@ -49,9 +49,9 @@ export default function CartPage() {
                 </thead>
                 <tbody>
                   {items.map((item) => (
-                    <tr key={`${item.productId}-${item.size ?? "one-size"}`}>
+                    <tr key={`${item.productId}-${item.variantId}`}>
                       <td className="border-b border-line px-4 py-3">{item.name}</td>
-                      <td className="border-b border-line px-4 py-3">{item.size ?? "One Size"}</td>
+                      <td className="border-b border-line px-4 py-3">{item.variantLabel}</td>
                       <td className="border-b border-line px-4 py-3">{item.qty}</td>
                       <td className="border-b border-line px-4 py-3">
                         {item.currency} {(item.price * item.qty).toLocaleString("en-KE")}
@@ -59,7 +59,7 @@ export default function CartPage() {
                       <td className="border-b border-line px-4 py-3 text-right">
                         <button
                           type="button"
-                          onClick={() => removeItem(item.productId, item.size)}
+                          onClick={() => removeItem(item.productId, item.variantId)}
                           className="text-xs uppercase tracking-wide text-muted hover:text-oxblood"
                         >
                           Remove

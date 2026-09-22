@@ -45,7 +45,11 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: items.map((item) => ({ productId: item.productId, qty: item.qty })),
+          items: items.map((item) => ({
+            productId: item.productId,
+            variantId: item.variantId,
+            qty: item.qty,
+          })),
           customerName: name,
           customerPhone: phone,
         }),
@@ -132,7 +136,7 @@ export default function CheckoutPage() {
                 <li className="text-sm text-muted">No items in cart.</li>
               ) : (
                 items.map((item) => (
-                  <li key={item.productId} className="flex items-center justify-between text-sm">
+                  <li key={`${item.productId}-${item.variantId}`} className="flex items-center justify-between text-sm">
                     <span>
                       {item.name} × {item.qty}
                     </span>

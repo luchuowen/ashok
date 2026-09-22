@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { bookingNotifyAddress, sendEmail } from "@/lib/resend";
 import { getOrderByTransactionId, updateOrderByTransactionId, updatePaymentByTransactionId } from "@/lib/db";
+import { restockForOrder } from "@/lib/inventory";
 
 /**
  * TaifaPay server-to-server webhook (docs: /docs/guides/webhooks).
@@ -108,6 +109,29 @@ export async function POST(request: NextRequest) {
             stage: "Cancelled",
             statusNote: "Payment did not go through — order cancelled",
           });
+          // The shop checkout route deducts stock the moment it creates the
+          // invoice, before the customer has actually paid (see
+          // app/api/checkout/create-invoice/route.ts) — reserving it against
+          // being sold twice while their M-Pesa prompt is outstanding. If
+          // they never complete it, that reservation has to come back.
+          // Bespoke orders have no `items` (nothing stock-tracked), so this
+          // is a no-op for them.
+          if (order.items && order.items.length > 0) {
+            await restockForOrder(
+              order.items.map((item) => ({
+                productId: item.productId,
+                variantId: item.variantId,
+                qty: item.qty,
+              })),
+              order.id,
+              "cancellation-restock",
+            ).catch((restockError) => {
+              console.error(
+                `[taifapay-webhook] Failed to restock cancelled order ${order.id} — manual correction needed:`,
+                restockError instanceof Error ? restockError.message : restockError,
+              );
+            });
+          }
         }
       }
     } catch (dbError) {

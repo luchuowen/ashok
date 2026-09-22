@@ -14,27 +14,27 @@ const CART_STORAGE_KEY = "ashok-cart";
 
 export interface CartItem {
   productId: string;
+  variantId: string;
+  variantLabel: string;
   slug: string;
   name: string;
   price: number;
   currency: string;
   qty: number;
-  /** Sized products (shoes) carry a size; one-size items (ties, cufflinks) omit it. */
-  size?: string;
 }
 
 interface CartContextValue {
   items: CartItem[];
   addItem: (item: Omit<CartItem, "qty">, qty?: number) => void;
-  removeItem: (productId: string, size?: string) => void;
+  removeItem: (productId: string, variantId: string) => void;
   clear: () => void;
   subtotal: number;
 }
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
 
-function sameLine(a: { productId: string; size?: string }, b: { productId: string; size?: string }): boolean {
-  return a.productId === b.productId && (a.size ?? "") === (b.size ?? "");
+function sameLine(a: { productId: string; variantId: string }, b: { productId: string; variantId: string }): boolean {
+  return a.productId === b.productId && a.variantId === b.variantId;
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
@@ -81,8 +81,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const removeItem = (productId: string, size?: string) => {
-    setItems((prev) => prev.filter((i) => !sameLine(i, { productId, size })));
+  const removeItem = (productId: string, variantId: string) => {
+    setItems((prev) => prev.filter((i) => !sameLine(i, { productId, variantId })));
   };
 
   const clear = () => {
