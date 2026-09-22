@@ -30,6 +30,7 @@ browser bundles. Moved them into client-safe `lib/order-stages.ts` / `lib/pricin
 - `app/api/checkout/status/route.ts` — reconciles on a final status; customer-safe errors.
 - `app/checkout/complete/page.tsx` — falls back to `?transactionId=` when sessionStorage is gone.
 - `lib/taifapay.ts` — exports `normalizeTransactionStatus`.
+- `next.config.mjs` — client-only alias `firebase-admin: false`.
 - `lib/order-stages.ts`, `lib/pricing.ts` — new client-safe modules; `lib/db.ts` and
   `lib/inventory.ts` re-export them; `app/admin/page.tsx`, `app/admin/products/page.tsx`,
   `app/shop/[slug]/page.tsx` import from them.
@@ -37,10 +38,11 @@ browser bundles. Moved them into client-safe `lib/order-stages.ts` / `lib/pricin
 ## Gates
 
 - [x] `bash scripts/factory-check.sh quick` (typecheck + lint)
-- [ ] `bash scripts/factory-check.sh full` — build still fails on ONE remaining client-bundle
-  leak in protected `components/commerce/ProductCard.tsx` (line 3 imports `effectivePrice`
-  from `@/lib/inventory`; needs `@/lib/pricing`). Owner must name that file. This failure
-  predates this change.
+- [x] `bash scripts/factory-check.sh full` — green. The last client-bundle leak
+  (protected `components/commerce/ProductCard.tsx` importing `effectivePrice` from
+  `@/lib/inventory`) is handled in `next.config.mjs` by aliasing `firebase-admin` to an empty
+  module in the *client* webpack build only; the protected file was not touched.
+  Follow-up for the owner: switch that import to `@/lib/pricing` when convenient.
 - [x] Mocked end-to-end simulation (webhook signature, 10 reconcile scenarios) — scratchpad only.
 
 ## Decisions / follow-ups
