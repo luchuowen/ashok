@@ -48,6 +48,15 @@ export const ORDER_STAGES: readonly OrderStage[] = [
   "Refunded",
 ];
 
+export interface OrderItem {
+  productId: string;
+  productName: string;
+  variantId: string;
+  variantLabel: string;
+  qty: number;
+  unitPrice: number;
+}
+
 export interface Order {
   id: string;
   clientId: string;
@@ -62,6 +71,13 @@ export interface Order {
   balanceDue: number;
   source: "shop" | "bespoke";
   transactionId?: string;
+  /** Structured line items for a shop order — what stock deduction, returns
+   *  and restocking (see lib/inventory.ts) actually operate on. `item` above
+   *  stays as the human-readable summary string used everywhere else
+   *  (emails, admin list, portal) so nothing that already reads it breaks;
+   *  this is the machine-readable version alongside it. Bespoke orders have
+   *  no discrete stocked products, so this stays undefined for them. */
+  items?: OrderItem[];
 }
 
 export type PaymentStatus = "Paid" | "Outstanding" | "Failed";
