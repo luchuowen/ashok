@@ -36,6 +36,7 @@ function BookingForm() {
   const { phone: sessionPhone } = useAuthSession();
   const [selectedType, setSelectedType] = useState<string | null>(preselectedType(typeParam));
   const [selectedSlot, setSelectedSlot] = useState<BookingSlot | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [slots, setSlots] = useState<BookingSlot[] | null>(null);
   const [slotsError, setSlotsError] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
@@ -109,6 +110,13 @@ function BookingForm() {
       setSubmitting(false);
     }
   }
+
+  // Grouped by day for the calendar strip; effectiveDate falls back to the
+  // first day with openings until the visitor picks one, so the times
+  // panel below is never empty on first load.
+  const groupedDays = slots ? groupSlotsByDay(slots) : [];
+  const effectiveDate = selectedDate ?? groupedDays[0]?.date ?? null;
+  const selectedDay = groupedDays.find((day) => day.date === effectiveDate) ?? null;
 
   return (
     <main>
@@ -209,12 +217,37 @@ function BookingForm() {
                   No open times in the next few days — book via WhatsApp below.
                 </p>
               ) : (
-                <div className="mt-4 flex max-h-96 flex-col gap-4 overflow-y-auto pr-1">
-                  {groupSlotsByDay(slots).map((day) => (
-                    <div key={day.date}>
-                      <p className="text-xs uppercase tracking-wide text-muted">{day.dayLabel}</p>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {day.slots.map((slot) => {
+                <>
+                  <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+                    {groupedDays.map((day) => {
+                      const dow = day.dayLabel.split(" ")[0];
+                      const dom = Number(day.date.slice(8, 10));
+                      const active = day.date === effectiveDate;
+                      return (
+                        <button
+                          key={day.date}
+                          type="button"
+                          onClick={() => {
+                            setSelectedDate(day.date);
+                            if (selectedSlot && selectedSlot.date !== day.date) setSelectedSlot(null);
+                          }}
+                          className={`flex-none border px-3 py-2 text-center transition-colors ${
+                            active ? "border-ink bg-ink text-cream" : "border-line text-ink hover:border-ink"
+                          }`}
+                        >
+                          <span className="block text-[9px] uppercase tracking-wide opacity-70">{dow}</span>
+                          <span className="block font-display text-lg tabular-nums">{dom}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {selectedDay ? (
+                    <>
+                      <p className="mt-5 text-xs uppercase tracking-wide text-muted">
+                        {selectedDay.dayLabel} &middot; Times
+                      </p>
+                      <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                        {selectedDay.slots.map((slot) => {
                           const active =
                             selectedSlot?.date === slot.date && selectedSlot?.time === slot.time;
                           return (
@@ -224,9 +257,9 @@ function BookingForm() {
                           );
                         })}
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    </>
+                  ) : null}
+                </>
               )}
               {selectedSlot ? (
                 <p className="mt-4 text-center text-sm">Selected: {selectedSlot.label} (EAT)</p>
