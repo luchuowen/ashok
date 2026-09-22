@@ -21,7 +21,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/api/shop/products/${encodeURIComponent(params.slug)}`)
+    fetch(`/api/shop/products/${encodeURIComponent(params.slug)}`, { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return;
@@ -43,7 +43,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
   useEffect(() => {
     if (!product) return;
     let cancelled = false;
-    fetch("/api/shop/products")
+    fetch("/api/shop/products", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         if (cancelled || !data.ok) return;

@@ -27,6 +27,14 @@ let firestore: Firestore | undefined;
 export function adminDb(): Firestore {
   if (!firestore) {
     firestore = getFirestore(getAdminApp());
+    // Firestore rejects a document containing any `undefined` value
+    // ("Cannot use 'undefined' as a Firestore value"). Several writers spread
+    // optional fields straight into a document — the stock-movement ledger
+    // (`reason`, `relatedPurchaseOrderId`, ...) being the one that broke
+    // checkout: every sale's deduction transaction threw and the customer
+    // saw "couldn't reserve stock". Dropping undefined keys at the SDK level
+    // is the documented fix and matches how these records are typed.
+    firestore.settings({ ignoreUndefinedProperties: true });
   }
   return firestore;
 }

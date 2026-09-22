@@ -10,10 +10,9 @@ import { FormField } from "@/components/ui/FormField";
 import { Tag } from "@/components/ui/Tag";
 import { Button } from "@/components/ui/Button";
 import { WaCTA } from "@/components/ui/WaCTA";
+import { groupSlotsByDay, type BookingSlot } from "@/lib/booking-slots";
 
 const VISIT_TYPES = ["Bespoke", "Made-to-Measure", "Alterations", "Wedding Party"];
-
-const SLOTS = ["Tue 10:00", "Tue 14:30", "Wed 11:00", "Thu 09:30", "Fri 15:00", "Sat 10:00"];
 
 // Maps an incoming ?type= query param to a visit-type Tag to preselect.
 // "wedding" and "corporate" both point at the Wedding Party consultation
@@ -36,7 +35,9 @@ function BookingForm() {
   const typeParam = searchParams.get("type");
   const { phone: sessionPhone } = useAuthSession();
   const [selectedType, setSelectedType] = useState<string | null>(preselectedType(typeParam));
-  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<BookingSlot | null>(null);
+  const [slots, setSlots] = useState<BookingSlot[] | null>(null);
+  const [slotsError, setSlotsError] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -48,6 +49,25 @@ function BookingForm() {
   useEffect(() => {
     if (sessionPhone) setPhone((prev) => prev || sessionPhone);
   }, [sessionPhone]);
+
+  // Real dated slots in Nairobi time, minus hours already booked — see
+  // lib/booking-slots.ts and app/api/booking/slots. Re-run after a 409 so
+  // a slot taken a moment ago disappears from the grid.
+  async function loadSlots() {
+    setSlotsError(null);
+    try {
+      const res = await fetch("/api/booking/slots", { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error();
+      setSlots(data.slots as BookingSlot[]);
+    } catch {
+      setSlots([]);
+      setSlotsError("Couldn't load available times. Refresh, or book via WhatsApp below.");
+    }
+  }
+  useEffect(() => {
+    loadSlots();
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -65,7 +85,8 @@ function BookingForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           visitType: selectedType,
-          slot: selectedSlot,
+          date: selectedSlot.date,
+          time: selectedSlot.time,
           name: data.get("name"),
           phone: data.get("phone"),
           email: data.get("email"),
@@ -76,6 +97,10 @@ function BookingForm() {
       if (!res.ok || !result.ok) {
         setFormError(result.error || "Could not submit your booking. Try again.");
         setSubmitting(false);
+        if (res.status === 409) {
+          setSelectedSlot(null);
+          loadSlots();
+        }
         return;
       }
       setConfirmed(true);
@@ -91,7 +116,7 @@ function BookingForm() {
         <TitleBand
           eyebrow="Book"
           title="Book a Consultation"
-          intro="Visit us at Ridgeways for a 30–45 minute consultation. Choose your service, select a convenient time, and receive confirmation on WhatsApp."
+          intro="Visit us at Ridgeways for a 30–45 minute consultation. Choose your service, select a convenient time, and receive confirmation by SMS."
         />
       </Section>
 
@@ -99,7 +124,8 @@ function BookingForm() {
         {confirmed ? (
           <div className="max-w-xl border border-line p-6">
             <p className="text-base">
-              Booking confirmed — we&rsquo;ll follow up on WhatsApp to lock in the details.
+              Booking confirmed{selectedSlot ? ` for ${selectedSlot.label} (EAT)` : ""} at Ridgeways,
+              Nairobi. We&rsquo;ve sent an SMS confirmation to your phone.
             </p>
           </div>
         ) : (
@@ -172,18 +198,42 @@ function BookingForm() {
 
             <div className="border border-line p-6">
               <p className="text-center text-xs uppercase tracking-wide text-muted">
-                Available slots this week
+                Available times · Nairobi (EAT)
               </p>
-              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {SLOTS.map((slot) => (
-                  <button key={slot} type="button" onClick={() => setSelectedSlot(slot)}>
-                    <Tag variant={selectedSlot === slot ? "stage" : "default"}>{slot}</Tag>
-                  </button>
-                ))}
-              </div>
+              {slots === null ? (
+                <p className="mt-4 text-center text-sm text-muted">Loading times…</p>
+              ) : slotsError ? (
+                <p className="mt-4 text-center text-sm text-oxblood">{slotsError}</p>
+              ) : slots.length === 0 ? (
+                <p className="mt-4 text-center text-sm text-muted">
+                  No open times in the next few days — book via WhatsApp below.
+                </p>
+              ) : (
+                <div className="mt-4 flex max-h-96 flex-col gap-4 overflow-y-auto pr-1">
+                  {groupSlotsByDay(slots).map((day) => (
+                    <div key={day.date}>
+                      <p className="text-xs uppercase tracking-wide text-muted">{day.dayLabel}</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {day.slots.map((slot) => {
+                          const active =
+                            selectedSlot?.date === slot.date && selectedSlot?.time === slot.time;
+                          return (
+                            <button key={`${slot.date}-${slot.time}`} type="button" onClick={() => setSelectedSlot(slot)}>
+                              <Tag variant={active ? "stage" : "default"}>{slot.time}</Tag>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {selectedSlot ? (
+                <p className="mt-4 text-center text-sm">Selected: {selectedSlot.label} (EAT)</p>
+              ) : null}
               <p className="mt-6 text-center text-sm text-muted">
-                Ridgeways, Nairobi. You&rsquo;ll get a WhatsApp confirmation with a map link and
-                reminder the day before.
+                Ridgeways, Nairobi. You&rsquo;ll get an SMS confirmation straight away, and we
+                follow up on WhatsApp if anything needs adjusting.
               </p>
               <p className="mt-6 text-center text-xs uppercase tracking-wide text-muted">
                 Prefer not to use the form?
@@ -191,7 +241,7 @@ function BookingForm() {
               <div className="mt-2 flex justify-center">
                 <WaCTA
                   label="Book via WhatsApp Instead"
-                  message={`Hi, I'd like to book a ${selectedType ?? "consultation"} for ${selectedSlot ?? "a time this week"} at Ridgeways.`}
+                  message={`Hi, I'd like to book a ${selectedType ?? "consultation"} for ${selectedSlot ? `${selectedSlot.label} (EAT)` : "a time this week"} at Ridgeways.`}
                 />
               </div>
             </div>

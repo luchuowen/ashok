@@ -338,7 +338,10 @@ async function appendStockMovement(
   data: Omit<StockMovement, "id" | "createdAt">,
 ): Promise<void> {
   const ref = adminDb().collection(COLLECTIONS.stockMovements).doc();
-  tx.set(ref, { ...data, createdAt: nowIso() });
+  // Belt and braces with firebase-admin.ts's ignoreUndefinedProperties:
+  // never hand Firestore an undefined field from the optional related-* ids.
+  const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
+  tx.set(ref, { ...clean, createdAt: nowIso() });
 }
 
 // A where("productId", ...) combined with orderBy("createdAt", ...) needs a

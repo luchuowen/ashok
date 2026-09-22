@@ -362,6 +362,22 @@ export async function listRecentAppointments(limit = 20): Promise<Appointment[]>
   return listRecent<Appointment>(COLLECTIONS.appointments, "date", limit);
 }
 
+/** Scheduled appointments in a date range (inclusive, ISO dates) — the
+ *  booking slots API subtracts these from the generated schedule so two
+ *  customers can't both take the same hour. Cancelled/Completed rows are
+ *  excluded here (in memory — Firestore would want a composite index for
+ *  a second filter, and this range is at most a couple of weeks). */
+export async function listScheduledAppointmentsBetween(fromDate: string, toDate: string): Promise<Appointment[]> {
+  const snap = await adminDb()
+    .collection(COLLECTIONS.appointments)
+    .where("date", ">=", fromDate)
+    .where("date", "<=", toDate)
+    .get();
+  return snap.docs
+    .map((doc) => ({ id: doc.id, ...(doc.data() as Omit<Appointment, "id">) }))
+    .filter((a) => a.status === "Scheduled");
+}
+
 export async function createAppointment(data: Omit<Appointment, "id">): Promise<string> {
   const ref = await adminDb().collection(COLLECTIONS.appointments).add(data);
   return ref.id;

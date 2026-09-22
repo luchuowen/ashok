@@ -52,3 +52,17 @@ browser bundles. Moved them into client-safe `lib/order-stages.ts` / `lib/pricin
   Paid via both the return page and the webhook log line `reconcile <tx>: paid|noop`.
 - `/api/checkout/status` is unauthenticated and returns amount/status for any transaction id;
   ids are unguessable but consider rate-limiting.
+
+## Addendum (same session)
+
+- **Checkout "couldn't reserve stock"**: Firestore rejects `undefined` values; the stock-movement
+  ledger spread optional related-* ids as undefined, so every sale's deduction transaction threw.
+  `lib/firebase-admin.ts` now sets `ignoreUndefinedProperties: true`; `appendStockMovement` also
+  strips undefined keys; checkout logs the underlying error.
+- **Stale shop prices**: `/api/shop/products` read no request input so Next prerendered it at
+  build time. Now `force-dynamic`; shop fetches use `cache: "no-store"`.
+- **Booking live**: `lib/booking-slots.ts` generates dated hourly slots in Nairobi time
+  (Mon–Fri 09–17, Sat 09–14, Sun closed, 2h lead, 10-day window); `GET /api/booking/slots`
+  removes already-Scheduled hours; `POST /api/booking` validates the slot server-side, rejects
+  clashes (409), saves the appointment first, then sends SMS + emails best-effort. Copy no longer
+  promises a WhatsApp confirmation nothing sent.

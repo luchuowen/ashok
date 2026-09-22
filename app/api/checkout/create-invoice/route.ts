@@ -167,6 +167,12 @@ export async function POST(request: NextRequest) {
   try {
     await deductStockForOrder(stockLines, orderId);
   } catch (error) {
+    if (!(error instanceof InsufficientStockError)) {
+      console.error(
+        "[checkout/create-invoice] stock deduction failed:",
+        error instanceof Error ? `${error.name}: ${error.message}` : error,
+      );
+    }
     const message =
       error instanceof InsufficientStockError
         ? error.message
