@@ -87,6 +87,26 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     if (variants.length === 0) {
       return NextResponse.json({ ok: false, error: "Keep at least one variant." }, { status: 400 });
     }
+    // A variant already on the product is never allowed to disappear from
+    // an edit, even though buildProductVariants() would happily build a
+    // shorter array — dropping one here would orphan any purchase-order
+    // line, stock movement, past order item, or open return that still
+    // references its variantId (receivePurchaseOrder, in particular, would
+    // throw trying to apply a receipt against a variant id that's no
+    // longer on the product). Retiring a size is "set its stock to 0 and
+    // relabel it", not delete — the same archive-don't-delete rule this
+    // codebase already applies to whole products via `active`.
+    const nextIds = new Set(variants.map((v) => v.id));
+    const dropped = existing.variants.filter((v) => !nextIds.has(v.id));
+    if (dropped.length > 0) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: `Can't remove existing size(s) (${dropped.map((v) => v.label).join(", ")}) — set stock to 0 and relabel instead.`,
+        },
+        { status: 400 },
+      );
+    }
     patch.variants = variants;
   }
 

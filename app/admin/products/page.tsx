@@ -398,7 +398,8 @@ function ProductForm({
                 <button
                   type="button"
                   onClick={() => removeVariant(i)}
-                  disabled={variants.length === 1}
+                  disabled={variants.length === 1 || Boolean(v.id)}
+                  title={v.id ? "Existing sizes can't be removed — set stock to 0 and relabel instead." : undefined}
                   className="text-xs text-muted hover:text-oxblood disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Remove
@@ -417,7 +418,9 @@ function ProductForm({
         {isEdit ? (
           <p className="mt-2 text-xs text-muted">
             Stock quantity for an existing size is locked here — change it from Stock Adjustments
-            so the correction is logged. A newly added row here starts at the quantity you enter.
+            so the correction is logged. Existing sizes also can&apos;t be removed, since past
+            orders and purchase orders may still reference them — set stock to 0 and relabel a
+            discontinued one instead. A newly added row here starts at the quantity you enter.
           </p>
         ) : null}
       </div>

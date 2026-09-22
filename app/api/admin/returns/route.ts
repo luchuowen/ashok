@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isStaffAuthed } from "@/lib/require-staff";
-import { getOrder } from "@/lib/db";
+import { getOrder, type OrderStage } from "@/lib/db";
 import { listReturns, listReturnsForOrder, createReturn, type ReturnLine } from "@/lib/inventory";
+
+// Same set the customer self-service route uses (app/api/portal/orders/[id]/return) —
+// a return only makes sense once the order was actually paid for and handed
+// over, and an order that is Cancelled/Returned/Refunded already had any
+// stock reservation reversed, so approving a return against it here would
+// double-restock units that were never really sold. Kept in sync with
+// RETURNABLE_STAGES there.
+const RETURNABLE_STAGES: OrderStage[] = ["Paid", "Ready for Collection", "Collected"];
 
 export async function GET() {
   if (!isStaffAuthed()) {
@@ -59,6 +67,12 @@ export async function POST(request: NextRequest) {
     }
     if (order.source !== "shop" || !order.items || order.items.length === 0) {
       return NextResponse.json({ ok: false, error: "This order has no shop items to return." }, { status: 400 });
+    }
+    if (!RETURNABLE_STAGES.includes(order.stage)) {
+      return NextResponse.json(
+        { ok: false, error: `This order is ${order.stage} — it isn't in a state that can be returned.` },
+        { status: 400 },
+      );
     }
 
     // Each requested line has to be something actually on the order, and the
