@@ -26,98 +26,7 @@ interface CustomerDetail {
   quotes: Quote[];
 }
 
-export default function AdminPage() {
-  const [checking, setChecking] = useState(true);
-  const [signedIn, setSignedIn] = useState(false);
-
-  useEffect(() => {
-    fetch("/api/admin/me")
-      .then((res) => res.json())
-      .then((data) => setSignedIn(Boolean(data.signedIn)))
-      .catch(() => setSignedIn(false))
-      .finally(() => setChecking(false));
-  }, []);
-
-  if (checking) {
-    return (
-      <main>
-        <Section border={false}>
-          <p className="py-20 text-center text-sm text-muted">Checking staff session…</p>
-        </Section>
-      </main>
-    );
-  }
-
-  if (!signedIn) {
-    return (
-      <main>
-        <StaffLogin onSignedIn={() => setSignedIn(true)} />
-      </main>
-    );
-  }
-
-  return (
-    <main>
-      <StaffDashboard onSignOut={() => setSignedIn(false)} />
-    </main>
-  );
-}
-
-function StaffLogin({ onSignedIn }: { onSignedIn: () => void }) {
-  const [password, setPassword] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmitting(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        setError(data.error || "Could not sign in.");
-        return;
-      }
-      onSignedIn();
-    } catch {
-      setError("Could not reach the server. Check your connection and try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <Section border={false}>
-      <div className="mx-auto max-w-sm py-20">
-        <h1 className="font-display text-2xl">Staff Sign In</h1>
-        <p className="mt-2 text-sm text-muted">Ashok Sunny Tailored — internal use only.</p>
-        <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-6">
-          <FormField label="Staff Password" htmlFor="password">
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={inputClasses}
-            />
-          </FormField>
-          <Button type="submit" disabled={submitting}>
-            {submitting ? "Signing in…" : "Sign In"}
-          </Button>
-          {error ? <p className="text-sm text-oxblood">{error}</p> : null}
-        </form>
-      </div>
-    </Section>
-  );
-}
-
-function StaffDashboard({ onSignOut }: { onSignOut: () => void }) {
+export default function StaffDashboard() {
   const [activity, setActivity] = useState<ActivityData | null>(null);
   const [activityError, setActivityError] = useState<string | null>(null);
 
@@ -180,26 +89,12 @@ function StaffDashboard({ onSignOut }: { onSignOut: () => void }) {
     }
   }
 
-  async function handleSignOut() {
-    await fetch("/api/admin/logout", { method: "POST" }).catch(() => undefined);
-    onSignOut();
-  }
-
   function selectCustomer(phone: string) {
     setSelectedPhone(phone);
   }
 
   return (
-    <div className="min-h-screen bg-paper">
-      <Section border={false} className="border-b border-line !py-8">
-        <div className="flex flex-col items-center justify-between gap-4 text-center md:flex-row md:text-left">
-          <h1 className="font-display text-3xl">Staff — Ashok Sunny Tailored</h1>
-          <Button variant="ghost" onClick={handleSignOut}>
-            Sign Out
-          </Button>
-        </div>
-      </Section>
-
+    <>
       <Section border={false}>
         <div className="border border-line p-6 sm:p-8">
           <p className="mb-4 text-xs font-semibold uppercase tracking-[0.12em] text-oxblood">
@@ -260,7 +155,7 @@ function StaffDashboard({ onSignOut }: { onSignOut: () => void }) {
       ) : (
         <ActivityFeed activity={activity} error={activityError} onSelectCustomer={selectCustomer} />
       )}
-    </div>
+    </>
   );
 }
 

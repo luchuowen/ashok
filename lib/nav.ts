@@ -4,7 +4,7 @@
  * edit this file except to add a route that doesn't exist yet.
  */
 
-export type NavGroup = "core" | "commerce" | "phase2" | "portal";
+export type NavGroup = "core" | "commerce" | "phase2" | "portal" | "admin";
 
 export interface NavItem {
   slug: string;
@@ -90,9 +90,31 @@ export const nav: NavItem[] = [
     label: "Settings",
     group: "portal",
   },
+
+  // admin (9) — staff dashboard
+  { slug: "admin-customers", href: "/admin", label: "Customers", group: "admin" },
+  { slug: "admin-products", href: "/admin/products", label: "Products", group: "admin" },
+  { slug: "admin-categories", href: "/admin/categories", label: "Categories", group: "admin" },
+  { slug: "admin-stock", href: "/admin/stock", label: "Stock", group: "admin" },
+  {
+    slug: "admin-stock-takes",
+    href: "/admin/stock-takes",
+    label: "Stock Takes",
+    group: "admin",
+  },
+  { slug: "admin-suppliers", href: "/admin/suppliers", label: "Suppliers", group: "admin" },
+  {
+    slug: "admin-purchase-orders",
+    href: "/admin/purchase-orders",
+    label: "Purchase Orders",
+    group: "admin",
+  },
+  { slug: "admin-returns", href: "/admin/returns", label: "Returns", group: "admin" },
+  { slug: "admin-reports", href: "/admin/reports", label: "Reports", group: "admin" },
 ];
 
 export const navByGroup = (group: NavGroup): NavItem[] =>
   nav.filter((item) => item.group === group);
 
 export const portalTabs: NavItem[] = navByGroup("portal");
+export const adminTabs: NavItem[] = navByGroup("admin");
