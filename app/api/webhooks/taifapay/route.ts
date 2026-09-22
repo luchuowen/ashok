@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { bookingNotifyAddress, sendEmail } from "@/lib/resend";
-import { updateOrderByTransactionId, updatePaymentByTransactionId } from "@/lib/db";
+import { getOrderByTransactionId, updateOrderByTransactionId, updatePaymentByTransactionId } from "@/lib/db";
 
 /**
  * TaifaPay server-to-server webhook (docs: /docs/guides/webhooks).
@@ -93,6 +93,22 @@ export async function POST(request: NextRequest) {
         });
       } else if (isFailed) {
         await updatePaymentByTransactionId(transactionId, { status: "Failed" });
+        // Only auto-cancel an order still sitting in its initial
+        // "awaiting first payment" state (every shop checkout starts
+        // there — see app/api/checkout/create-invoice/route.ts). A
+        // bespoke order can reach "Payment Pending" again later for a
+        // balance/deposit link generated well after work has already
+        // started (app/api/admin/orders/[id]/invoice/route.ts) — a
+        // customer's expired or declined M-Pesa prompt on THAT link
+        // must never silently cancel a tailoring order that's already
+        // mid-production; staff just generates another payment link.
+        const order = await getOrderByTransactionId(transactionId);
+        if (order && order.stage === "Payment Pending") {
+          await updateOrderByTransactionId(transactionId, {
+            stage: "Cancelled",
+            statusNote: "Payment did not go through — order cancelled",
+          });
+        }
       }
     } catch (dbError) {
       console.error(

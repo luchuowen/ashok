@@ -25,7 +25,28 @@ export type OrderStage =
   | "Ready for Collection"
   | "Collected"
   | "Payment Pending"
-  | "Paid";
+  | "Paid"
+  | "Cancelled"
+  | "Returned"
+  | "Refunded";
+
+/** Single source of truth for every valid stage — the admin stage dropdown
+ *  and the PATCH /api/admin/orders/:id validation both read this instead of
+ *  each keeping their own copy of the list. */
+export const ORDER_STAGES: readonly OrderStage[] = [
+  "Consultation",
+  "Measurements Taken",
+  "Cutting",
+  "First Fitting",
+  "Final Fitting",
+  "Ready for Collection",
+  "Collected",
+  "Payment Pending",
+  "Paid",
+  "Cancelled",
+  "Returned",
+  "Refunded",
+];
 
 export interface Order {
   id: string;
@@ -288,6 +309,17 @@ export async function getOrder(id: string): Promise<Order | null> {
 
 export async function updateOrder(id: string, patch: Partial<Order>): Promise<void> {
   await adminDb().collection(COLLECTIONS.orders).doc(id).set(patch, { merge: true });
+}
+
+export async function getOrderByTransactionId(transactionId: string): Promise<Order | null> {
+  const snap = await adminDb()
+    .collection(COLLECTIONS.orders)
+    .where("transactionId", "==", transactionId)
+    .limit(1)
+    .get();
+  if (snap.empty) return null;
+  const doc = snap.docs[0]!;
+  return { id: doc.id, ...(doc.data() as Omit<Order, "id">) };
 }
 
 export async function updateOrderByTransactionId(

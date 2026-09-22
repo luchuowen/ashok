@@ -5,7 +5,7 @@ import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
 import { Tag } from "@/components/ui/Tag";
-import type { Customer, Order, Payment, Appointment, ClientMeasurements, Quote, OrderStage } from "@/lib/db";
+import { ORDER_STAGES, type Customer, type Order, type Payment, type Appointment, type ClientMeasurements, type Quote, type OrderStage } from "@/lib/db";
 
 const inputClasses =
   "border border-line bg-paper px-3 py-2 text-sm text-ink focus:border-oxblood focus:outline-none";
@@ -361,18 +361,6 @@ function ActivityColumn<T extends { id: string; clientId: string; clientName: st
     </div>
   );
 }
-
-const ORDER_STAGES: OrderStage[] = [
-  "Consultation",
-  "Measurements Taken",
-  "Cutting",
-  "First Fitting",
-  "Final Fitting",
-  "Ready for Collection",
-  "Collected",
-  "Payment Pending",
-  "Paid",
-];
 
 function CustomerDetailPanel({
   phone,

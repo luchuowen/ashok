@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isStaffAuthed } from "@/lib/require-staff";
-import { updateOrder, type Order } from "@/lib/db";
+import { ORDER_STAGES, updateOrder, type Order } from "@/lib/db";
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   if (!isStaffAuthed()) {
@@ -13,7 +13,12 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     return NextResponse.json({ ok: false, error: "Invalid request." }, { status: 400 });
   }
   const patch: Partial<Order> = {};
-  if (typeof body.stage === "string") patch.stage = body.stage;
+  if (typeof body.stage === "string") {
+    if (!ORDER_STAGES.includes(body.stage as Order["stage"])) {
+      return NextResponse.json({ ok: false, error: "Not a valid order stage." }, { status: 400 });
+    }
+    patch.stage = body.stage;
+  }
   if (typeof body.statusNote === "string") patch.statusNote = body.statusNote;
   if (typeof body.balanceDue === "number" && Number.isFinite(body.balanceDue)) {
     patch.balanceDue = body.balanceDue;
