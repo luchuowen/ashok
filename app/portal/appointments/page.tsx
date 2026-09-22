@@ -5,30 +5,27 @@ import { Button } from "@/components/ui/Button";
 import { WaCTA } from "@/components/ui/WaCTA";
 import { usePortalData } from "@/app/portal/portal-context";
 import { buildGoogleCalendarUrl } from "@/lib/ics";
+import { isUpcomingInNairobi } from "@/lib/dates";
 
 export default function AppointmentsPage() {
   const { appointments } = usePortalData();
 
-  // The portal used to just take appointments[0] — the most recently
-  // *dated* row — and show it as "upcoming" with Reschedule/Add to
-  // Calendar actions, regardless of its status. Once staff marked a
-  // consultation Completed (or Cancelled) in /admin, that same appointment
-  // kept showing here as if it still needed to happen, and there was no
-  // way to ever see past visits (the section below was static copy that
-  // never rendered anything). Split on status instead: only a Scheduled
-  // appointment is "upcoming"; everything else is history.
-  const scheduled = appointments.filter((a) => a.status === "Scheduled");
-  const upcoming = scheduled.reduce<typeof scheduled[number] | undefined>(
-    (soonest, a) => (!soonest || a.date < soonest.date ? a : soonest),
-    undefined,
-  );
+  // Only a Scheduled appointment that hasn't happened yet is "upcoming"
+  // (soonest first, by date then time, on Nairobi time). Everything else —
+  // Completed/Cancelled by staff in /admin, or a Scheduled one whose date
+  // has passed — is history.
+  const isUpcoming = (a: (typeof appointments)[number]) =>
+    a.status === "Scheduled" && isUpcomingInNairobi(a.date, a.time);
+  const upcoming = appointments
+    .filter(isUpcoming)
+    .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`))[0];
   const past = appointments
-    .filter((a) => a.status !== "Scheduled")
-    .sort((a, b) => b.date.localeCompare(a.date));
+    .filter((a) => !isUpcoming(a))
+    .sort((a, b) => `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`));
 
   const calendarHref = upcoming
     ? buildGoogleCalendarUrl({
-        title: `${upcoming.type} — Ashok Sunny Tailored`,
+        title: `${upcoming.visitType ? `${upcoming.visitType} ${upcoming.type}` : upcoming.type} — Ashok Sunny Tailored`,
         location: upcoming.location,
         date: upcoming.date,
         time: upcoming.time,
@@ -43,7 +40,9 @@ export default function AppointmentsPage() {
       {upcoming ? (
         <div className="mt-8 flex flex-col items-center gap-6 border border-oxblood p-6 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="font-display text-xl">{upcoming.type}</p>
+            <p className="font-display text-xl">
+              {upcoming.visitType ? `${upcoming.visitType} ${upcoming.type}` : upcoming.type}
+            </p>
             <p className="mt-1 text-sm text-muted">
               {upcoming.date} · {upcoming.time} · {upcoming.location}
             </p>
@@ -95,7 +94,9 @@ export default function AppointmentsPage() {
                       {visit.date} · {visit.time} · {visit.location}
                     </p>
                   </div>
-                  <span className="text-xs uppercase tracking-wide text-muted">{visit.status}</span>
+                  <span className="text-xs uppercase tracking-wide text-muted">
+                    {visit.status === "Scheduled" ? "Past" : visit.status}
+                  </span>
                 </div>
               ))}
             </div>

@@ -11,6 +11,8 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
  */
 
 const CART_STORAGE_KEY = "ashok-cart";
+/** Mirrors MAX_QTY_PER_ITEM in app/api/checkout/create-invoice/route.ts. */
+export const MAX_QTY_PER_LINE = 20;
 
 export interface CartItem {
   productId: string;
@@ -27,6 +29,7 @@ interface CartContextValue {
   items: CartItem[];
   addItem: (item: Omit<CartItem, "qty">, qty?: number) => void;
   removeItem: (productId: string, variantId: string) => void;
+  setQty: (productId: string, variantId: string, qty: number) => void;
   clear: () => void;
   subtotal: number;
 }
@@ -50,7 +53,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const raw = window.localStorage.getItem(CART_STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) setItems(parsed);
+        // Drop malformed lines from an older/corrupt save rather than
+        // letting them crash the cart page or fail checkout.
+        if (Array.isArray(parsed)) {
+          setItems(
+            parsed.filter(
+              (i): i is CartItem =>
+                i &&
+                typeof i.productId === "string" &&
+                typeof i.variantId === "string" &&
+                typeof i.price === "number" &&
+                Number.isFinite(i.qty) &&
+                i.qty >= 1,
+            ),
+          );
+        }
       }
     } catch {
       // Corrupt or inaccessible storage — start with an empty cart.
@@ -75,7 +92,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((prev) => {
       const existing = prev.find((i) => sameLine(i, item));
       if (existing) {
-        return prev.map((i) => (sameLine(i, item) ? { ...i, qty: i.qty + qty } : i));
+        return prev.map((i) =>
+          sameLine(i, item) ? { ...i, qty: Math.min(MAX_QTY_PER_LINE, i.qty + qty) } : i,
+        );
       }
       return [...prev, { ...item, qty }];
     });
@@ -83,6 +102,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const removeItem = (productId: string, variantId: string) => {
     setItems((prev) => prev.filter((i) => !sameLine(i, { productId, variantId })));
+  };
+
+  // Clamped to 1..MAX_QTY_PER_LINE (the checkout API's own per-line cap);
+  // removing a line is removeItem's job.
+  const setQty = (productId: string, variantId: string, qty: number) => {
+    const next = Math.min(MAX_QTY_PER_LINE, Math.max(1, Math.floor(qty)));
+    setItems((prev) => prev.map((i) => (sameLine(i, { productId, variantId }) ? { ...i, qty: next } : i)));
   };
 
   const clear = () => {
@@ -100,7 +126,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo<CartContextValue>(
-    () => ({ items, addItem, removeItem, clear, subtotal }),
+    () => ({ items, addItem, removeItem, setQty, clear, subtotal }),
     [items, subtotal],
   );
 

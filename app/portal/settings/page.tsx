@@ -137,8 +137,8 @@ export default function SettingsPage() {
       </div>
 
       <p className="mt-12 text-xs text-muted">
-        Sign-in is phone + one-time code — no password to reset here. Your phone number is your
-        account and can&apos;t be changed here — message us on WhatsApp if it changed.
+        Sign-in is phone + one-time code — no password to reset here. Your phone number identifies
+        your record and can&apos;t be changed here — message us on WhatsApp if it changed.
       </p>
     </Section>
   );

@@ -82,6 +82,10 @@ export interface Appointment {
   time: string; // e.g. "14:30"
   location: string;
   status: AppointmentStatus;
+  /** What the customer picked on /booking (Bespoke, Alterations, …) — the
+   *  `type` above is the house's appointment kind, which doesn't carry it. */
+  visitType?: string;
+  note?: string;
 }
 
 export interface ClientMeasurements {

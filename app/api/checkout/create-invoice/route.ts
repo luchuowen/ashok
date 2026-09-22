@@ -6,6 +6,7 @@ import { deductStockForOrder, effectivePrice, getProduct, restockForOrder, Insuf
 import { createOrder, createPayment, getOrCreateCustomer, updateOrder, type OrderItem } from "@/lib/db";
 import { bookingNotifyAddress, sendEmail } from "@/lib/resend";
 import { lowStockAlertEmail } from "@/lib/email-templates";
+import { nairobiToday } from "@/lib/dates";
 
 interface CartItemInput {
   productId?: string;
@@ -34,7 +35,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "Invalid request." }, { status: 400 });
   }
 
-  const rawItems = Array.isArray(body.items) ? body.items : [];
+  // Merge duplicate product/variant lines first — otherwise two lines of
+  // the same size each pass the per-line MAX_QTY_PER_ITEM cap separately.
+  const rawItems: CartItemInput[] = [];
+  for (const raw of Array.isArray(body.items) ? body.items : []) {
+    if (!raw || typeof raw !== "object") continue;
+    const existing = rawItems.find(
+      (r) => r.productId === raw.productId && r.variantId === raw.variantId,
+    );
+    if (existing) existing.qty = Number(existing.qty) + Number(raw.qty);
+    else rawItems.push({ ...raw });
+  }
   if (rawItems.length === 0) {
     return NextResponse.json({ ok: false, error: "Your cart is empty." }, { status: 400 });
   }
@@ -126,8 +137,22 @@ export async function POST(request: NextRequest) {
   const description = lines.join(", ").slice(0, 200);
   const siteUrl = getSiteUrl(request);
 
-  const customer = await getOrCreateCustomer(mobile, { name: body.customerName });
-  const startedAt = new Date().toISOString().slice(0, 10);
+  // Wrapped like the order write below — an uncaught Firestore error here
+  // used to surface as a bare 500 with no message for the customer.
+  let customer: Awaited<ReturnType<typeof getOrCreateCustomer>>;
+  try {
+    customer = await getOrCreateCustomer(mobile, { name: body.customerName });
+  } catch (error) {
+    console.error(
+      "[checkout/create-invoice] could not load the customer record:",
+      error instanceof Error ? error.message : error,
+    );
+    return NextResponse.json(
+      { ok: false, error: "We couldn't start your order just now — please try again in a moment." },
+      { status: 502 },
+    );
+  }
+  const startedAt = nairobiToday();
 
   // The order is created before stock is touched or TaifaPay is called (not
   // best-effort, unlike the payment record below) for two reasons: stock

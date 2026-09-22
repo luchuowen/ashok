@@ -59,7 +59,11 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
   const [state, setState] = useState<PortalState>(EMPTY_STATE);
 
   const load = useCallback(async () => {
-    setState((prev) => ({ ...prev, loading: true }));
+    // Only the first load blanks the portal. A refresh() after a save used
+    // to flip `loading` back on, which made PortalGate unmount the current
+    // page — wiping its local state, so "Saved." / "Return requested"
+    // confirmations vanished the instant they appeared.
+    setState((prev) => ({ ...prev, loading: !prev.signedIn }));
     try {
       const res = await fetch("/api/portal/me");
       const data = await res.json();

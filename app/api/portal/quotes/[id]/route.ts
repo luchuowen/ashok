@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { verifySessionToken } from "@/lib/otp";
 import { adminDb } from "@/lib/firebase-admin";
 import { updateQuote, type QuoteStatus } from "@/lib/db";
+import { nairobiToday } from "@/lib/dates";
 
 const VALID_DECISIONS: QuoteStatus[] = ["Approved", "Declined"];
 
@@ -30,6 +31,22 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const snap = await adminDb().collection("quotes").doc(params.id).get();
     if (!snap.exists || snap.data()?.clientId !== session.phone) {
       return NextResponse.json({ ok: false, error: "Quote not found." }, { status: 404 });
+    }
+    // Only an open quote can be decided — otherwise a customer could flip
+    // an already-Approved quote to Declined (or accept an Expired one)
+    // after staff had acted on it.
+    const quote = snap.data() as { status?: QuoteStatus; expiresAt?: string };
+    if (quote.status !== "Pending") {
+      return NextResponse.json(
+        { ok: false, error: `This quote is already ${(quote.status ?? "closed").toLowerCase()}.` },
+        { status: 409 },
+      );
+    }
+    if (quote.expiresAt && quote.expiresAt < nairobiToday()) {
+      return NextResponse.json(
+        { ok: false, error: "This quote has expired — message us on WhatsApp for a fresh one." },
+        { status: 409 },
+      );
     }
     await updateQuote(params.id, { status: body.status });
     return NextResponse.json({ ok: true });

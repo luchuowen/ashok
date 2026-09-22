@@ -1,13 +1,13 @@
 "use client";
 
-import { useCart } from "@/app/cart-context";
+import { MAX_QTY_PER_LINE, useCart } from "@/app/cart-context";
 import { Section } from "@/components/ui/Section";
 import { TitleBand } from "@/components/ui/TitleBand";
 import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
 
 export default function CartPage() {
-  const { items, removeItem, subtotal } = useCart();
+  const { items, removeItem, setQty, subtotal } = useCart();
   const currency = items[0]?.currency ?? "KES";
 
   return (
@@ -52,7 +52,29 @@ export default function CartPage() {
                     <tr key={`${item.productId}-${item.variantId}`}>
                       <td className="border-b border-line px-4 py-3">{item.name}</td>
                       <td className="border-b border-line px-4 py-3">{item.variantLabel}</td>
-                      <td className="border-b border-line px-4 py-3">{item.qty}</td>
+                      <td className="border-b border-line px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            aria-label={`Decrease ${item.name} quantity`}
+                            disabled={item.qty <= 1}
+                            onClick={() => setQty(item.productId, item.variantId, item.qty - 1)}
+                            className="h-7 w-7 border border-line text-muted hover:text-oxblood disabled:opacity-40"
+                          >
+                            −
+                          </button>
+                          <span className="min-w-[1.5rem] text-center">{item.qty}</span>
+                          <button
+                            type="button"
+                            aria-label={`Increase ${item.name} quantity`}
+                            disabled={item.qty >= MAX_QTY_PER_LINE}
+                            onClick={() => setQty(item.productId, item.variantId, item.qty + 1)}
+                            className="h-7 w-7 border border-line text-muted hover:text-oxblood disabled:opacity-40"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </td>
                       <td className="border-b border-line px-4 py-3">
                         {item.currency} {(item.price * item.qty).toLocaleString("en-KE")}
                       </td>

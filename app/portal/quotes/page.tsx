@@ -5,6 +5,7 @@ import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { Tag } from "@/components/ui/Tag";
 import { usePortalData } from "@/app/portal/portal-context";
+import { nairobiToday } from "@/lib/dates";
 
 export default function QuotesPage() {
   const { quotes, refresh } = usePortalData();
@@ -33,8 +34,15 @@ export default function QuotesPage() {
     }
   }
 
-  const openQuotes = quotes.filter((q) => q.status === "Pending");
-  const decidedQuotes = quotes.filter((q) => q.status !== "Pending");
+  // A Pending quote past its expiry date can no longer be accepted (the
+  // API rejects it too) — show it with the decided ones, marked Expired.
+  const today = nairobiToday();
+  const isOpen = (q: (typeof quotes)[number]) =>
+    q.status === "Pending" && (!q.expiresAt || q.expiresAt >= today);
+  const openQuotes = quotes.filter(isOpen);
+  const decidedQuotes = quotes
+    .filter((q) => !isOpen(q))
+    .map((q) => (q.status === "Pending" ? { ...q, status: "Expired" as const } : q));
 
   return (
     <Section className="text-center sm:text-left">

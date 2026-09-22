@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifySessionToken } from "@/lib/otp";
-import { upsertPreferences } from "@/lib/db";
+import { getCustomer, upsertPreferences } from "@/lib/db";
+
+const FIT_OPTIONS = ["Slim", "Classic", "Relaxed"] as const;
+const LAPEL_OPTIONS = ["Notch", "Peak", "Shawl"] as const;
+const CHANNEL_OPTIONS = ["WhatsApp", "Email", "Phone"] as const;
 
 export async function POST(request: NextRequest) {
   const token = cookies().get("ashok_session")?.value;
@@ -23,13 +27,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "Invalid request." }, { status: 400 });
   }
 
+  // Validate the enum fields instead of casting whatever the client sent
+  // straight into Firestore.
+  const fit = FIT_OPTIONS.find((o) => o === body.fitPreference);
+  const lapel = LAPEL_OPTIONS.find((o) => o === body.lapelStyle);
+  const channel = CHANNEL_OPTIONS.find((o) => o === body.communicationChannel);
+  if (!fit || !lapel || !channel) {
+    return NextResponse.json({ ok: false, error: "Invalid preference." }, { status: 400 });
+  }
+
   try {
+    // clientName used to be written as the phone number, clobbering the
+    // customer's real name on this record.
+    const customer = await getCustomer(session.phone);
     await upsertPreferences(session.phone, {
-      clientName: session.phone,
-      fitPreference: (body.fitPreference as "Slim" | "Classic" | "Relaxed") ?? "Classic",
+      clientName: customer?.name || session.phone,
+      fitPreference: fit,
       preferredFabricWeight: body.preferredFabricWeight?.trim() ?? "",
-      lapelStyle: (body.lapelStyle as "Notch" | "Peak" | "Shawl") ?? "Notch",
-      communicationChannel: (body.communicationChannel as "WhatsApp" | "Email" | "Phone") ?? "WhatsApp",
+      lapelStyle: lapel,
+      communicationChannel: channel,
       notes: body.notes?.trim() ?? "",
     });
     return NextResponse.json({ ok: true });

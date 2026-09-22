@@ -12,12 +12,14 @@ import { useCart } from "@/app/cart-context";
 import { useEffect, useState } from "react";
 
 export default function ProductPage({ params }: { params: { slug: string } }) {
-  const { addItem } = useCart();
+  const { addItem, items: cartItems } = useCart();
   const [product, setProduct] = useState<Product | null | undefined>(undefined);
   const [related, setRelated] = useState<Product[]>([]);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [justAdded, setJustAdded] = useState(false);
   const [sizeError, setSizeError] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [stockError, setStockError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -26,14 +28,21 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
       .then((data) => {
         if (cancelled) return;
         if (!data.ok) {
-          setProduct(null);
+          // Only a real 404 is "not found" — a transient 502 used to
+          // send the visitor to the 404 page too.
+          if (data.error === "Not found.") setProduct(null);
+          else setLoadError(true);
           return;
         }
         setProduct(data.product);
-        setSelectedVariant(data.product.variants[0] ?? null);
+        // Default to the first size actually in stock — defaulting to
+        // variants[0] disabled "Add to Cart" whenever just that size had
+        // sold out, even with other sizes available.
+        const variants = data.product.variants as ProductVariant[];
+        setSelectedVariant(variants.find((v) => v.stockQty > 0) ?? variants[0] ?? null);
       })
       .catch(() => {
-        if (!cancelled) setProduct(null);
+        if (!cancelled) setLoadError(true);
       });
     return () => {
       cancelled = true;
@@ -65,6 +74,17 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
 
   if (product === null) {
     notFound();
+  }
+  if (product === undefined && loadError) {
+    return (
+      <main>
+        <Section border={false}>
+          <p className="py-20 text-center text-sm text-oxblood">
+            Could not load this product just now. Refresh to try again.
+          </p>
+        </Section>
+      </main>
+    );
   }
   if (product === undefined) {
     return (
@@ -121,6 +141,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
                       onClick={() => {
                         setSelectedVariant(variant);
                         setSizeError(false);
+                        setStockError(null);
                       }}
                       className={variant.stockQty <= 0 ? "opacity-40" : ""}
                     >
@@ -149,6 +170,19 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
                       setSizeError(true);
                       return;
                     }
+                    // Don't let the cart hold more of a size than is in
+                    // stock — checkout would only reject it later.
+                    const inCart =
+                      cartItems.find(
+                        (i) => i.productId === product.id && i.variantId === selectedVariant.id,
+                      )?.qty ?? 0;
+                    if (inCart + 1 > selectedVariant.stockQty) {
+                      setStockError(
+                        `Your cart already has all ${selectedVariant.stockQty} in ${selectedVariant.label}.`,
+                      );
+                      return;
+                    }
+                    setStockError(null);
                     addItem({
                       productId: product.id,
                       variantId: selectedVariant.id,
@@ -163,6 +197,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
                 >
                   {justAdded ? "Added ✓" : "Add to Cart"}
                 </Button>
+                {stockError ? <p className="mt-3 text-sm text-oxblood">{stockError}</p> : null}
                 {justAdded ? (
                   <p className="mt-3 text-sm text-oxblood">
                     Added to cart —{" "}

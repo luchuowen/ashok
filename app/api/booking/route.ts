@@ -87,6 +87,8 @@ export async function POST(request: NextRequest) {
       time,
       location: siteConfig.address,
       status: "Scheduled",
+      visitType,
+      ...(note ? { note } : {}),
     });
   } catch (error) {
     console.error("[booking] could not save the appointment:", error instanceof Error ? error.message : error);

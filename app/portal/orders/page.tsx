@@ -26,7 +26,7 @@ export default function OrdersPage() {
             {
               key: "stage",
               header: "Stage",
-              render: (row) => <Tag variant="stage">{row.statusNote}</Tag>,
+              render: (row) => <Tag variant="stage">{row.statusNote || row.stage}</Tag>,
             },
             { key: "startedAt", header: "Placed" },
             {

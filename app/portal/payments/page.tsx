@@ -9,14 +9,19 @@ import type { Payment } from "@/lib/db";
 
 export default function PaymentsPage() {
   const { orders, payments } = usePortalData();
-  const outstanding = orders.find((order) => order.balanceDue > 0);
+  // Total owed across every open order — not just the first one with a
+  // balance, which under-reported when more than one order was unpaid.
+  // Cancelled/refunded orders carry a stale balanceDue that isn't owed.
+  const outstanding = orders
+    .filter((order) => !["Cancelled", "Returned", "Refunded"].includes(order.stage))
+    .reduce((sum, order) => sum + Math.max(0, order.balanceDue || 0), 0);
 
   return (
     <Section>
       <h2 className="text-2xl">Payments</h2>
-      {outstanding ? (
+      {outstanding > 0 ? (
         <div className="mt-8">
-          <Balance amount={outstanding.balanceDue} />
+          <Balance amount={outstanding} />
         </div>
       ) : null}
       <div className="mt-8">

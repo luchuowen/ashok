@@ -37,7 +37,9 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   if (!reason) {
     return NextResponse.json({ ok: false, error: "Tell us why you're returning this." }, { status: 400 });
   }
-  const rawLines = (body.lines ?? []).filter((l) => l.productId && l.variantId && Number(l.qty) > 0);
+  const rawLines = (Array.isArray(body.lines) ? body.lines : []).filter(
+    (l) => l.productId && l.variantId && Math.trunc(Number(l.qty)) >= 1,
+  );
   if (rawLines.length === 0) {
     return NextResponse.json({ ok: false, error: "Select at least one item to return." }, { status: 400 });
   }
