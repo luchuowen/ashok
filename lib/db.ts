@@ -127,10 +127,16 @@ export interface ClientPreferences {
   notes: string;
 }
 
+export const NOTIFY_CHANNELS = ["WhatsApp", "SMS", "Email"] as const;
+export type NotifyChannel = (typeof NOTIFY_CHANNELS)[number];
+
 export interface Customer {
   phone: string;
   name: string;
   email: string;
+  /** How the customer wants updates (portal Settings). Unset on older
+   *  records — treat that as WhatsApp only, the portal's default. */
+  notifyChannels?: NotifyChannel[];
   createdAt: string;
   updatedAt: string;
 }

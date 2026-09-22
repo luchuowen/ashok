@@ -35,6 +35,12 @@ export default function SettingsPage() {
     if (customer) {
       setName(customer.name ?? "");
       setEmail(customer.email ?? "");
+      const saved = customer.notifyChannels ?? ["WhatsApp"];
+      setChannels({
+        WhatsApp: saved.includes("WhatsApp"),
+        SMS: saved.includes("SMS"),
+        Email: saved.includes("Email"),
+      });
     }
   }, [customer]);
 
@@ -44,13 +50,25 @@ export default function SettingsPage() {
   };
 
   async function handleSave() {
+    if (!Object.values(channels).some(Boolean)) {
+      setError("Pick at least one way for us to reach you.");
+      return;
+    }
+    if (channels.Email && !email.trim()) {
+      setError("Add an email address to get updates by email.");
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
       const res = await fetch("/api/portal/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email }),
+        body: JSON.stringify({
+          name,
+          email,
+          notifyChannels: Object.keys(channels).filter((c) => channels[c]),
+        }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
