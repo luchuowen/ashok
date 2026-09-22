@@ -5,6 +5,22 @@ import { restockForOrder } from "@/lib/inventory";
 
 const TERMINAL_STAGES: OrderStage[] = ["Cancelled", "Returned", "Refunded"];
 
+export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+  if (!isStaffAuthed()) {
+    return NextResponse.json({ ok: false, error: "Not signed in." }, { status: 401 });
+  }
+  try {
+    const order = await getOrder(params.id);
+    if (!order) {
+      return NextResponse.json({ ok: false, error: "Order not found." }, { status: 404 });
+    }
+    return NextResponse.json({ ok: true, order });
+  } catch (error) {
+    console.error("[admin/orders/:id] get failed:", error instanceof Error ? error.message : error);
+    return NextResponse.json({ ok: false, error: "Could not load that order." }, { status: 502 });
+  }
+}
+
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   if (!isStaffAuthed()) {
     return NextResponse.json({ ok: false, error: "Not signed in." }, { status: 401 });
