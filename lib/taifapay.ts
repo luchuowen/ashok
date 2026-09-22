@@ -280,7 +280,7 @@ interface RawTaifaPayTransaction {
   [key: string]: unknown;
 }
 
-function normalizeTransactionStatus(raw: string): "PENDING" | "COMPLETED" | "FAILED" {
+export function normalizeTransactionStatus(raw: string): "PENDING" | "COMPLETED" | "FAILED" {
   const s = (raw || "").toLowerCase();
   if (s.includes("complete")) return "COMPLETED";
   if (/fail|cancel|expire/.test(s)) return "FAILED";

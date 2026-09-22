@@ -1,9 +1,8 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { bookingNotifyAddress, sendEmail } from "@/lib/resend";
-import { orderConfirmationEmail } from "@/lib/email-templates";
-import { getOrderByTransactionId, getOrCreateCustomer, updateOrderByTransactionId, updatePaymentByTransactionId, type Order } from "@/lib/db";
-import { restockForOrder } from "@/lib/inventory";
+import { reconcileTransaction } from "@/lib/payment-reconcile";
+import { normalizeTransactionStatus } from "@/lib/taifapay";
 
 /**
  * TaifaPay server-to-server webhook (docs: /docs/guides/webhooks).
@@ -82,72 +81,21 @@ export async function POST(request: NextRequest) {
   // swallows its own errors, so this never turns an email failure into a
   // failed webhook ack — we're comfortably inside TaifaPay's 30s timeout.
   const transactionId = event.data?.transactionId;
+  // eventType is the authoritative signal when present ("transaction.completed"
+  // / "transaction.failed"); data.status is the fallback, run through the
+  // same normalizer lib/taifapay.ts applies to the polled transaction so
+  // "complete", "completed" and "COMPLETED" all land on one canonical value
+  // — previously this file compared against the literal "complete" only.
+  const status =
+    event.eventType === "transaction.completed"
+      ? "COMPLETED"
+      : event.eventType === "transaction.failed"
+        ? "FAILED"
+        : normalizeTransactionStatus(event.data?.status ?? "");
   if (transactionId) {
     try {
-      const isCompleted = event.eventType === "transaction.completed" || event.data?.status === "complete";
-      const isFailed = /fail|cancel|expire/i.test(event.data?.status ?? "");
-      // Fetched once, before either branch's own writes, so both read the
-      // same pre-webhook snapshot — the isFailed branch's "still Payment
-      // Pending?" guard needs that, and the isCompleted branch needs the
-      // order's items/clientId for the confirmation email below.
-      const order = await getOrderByTransactionId(transactionId);
-
-      if (isCompleted) {
-        await updatePaymentByTransactionId(transactionId, { status: "Paid" });
-        await updateOrderByTransactionId(transactionId, {
-          stage: "Paid",
-          statusNote: "Payment received — preparing for collection",
-          balanceDue: 0,
-        });
-        if (order && order.source === "shop" && order.items && order.items.length > 0) {
-          await notifyCustomerOrderConfirmed(order).catch((emailError) => {
-            console.error(
-              "[taifapay-webhook] order-confirmation email failed:",
-              emailError instanceof Error ? `${emailError.name}: ${emailError.message}` : emailError,
-            );
-          });
-        }
-      } else if (isFailed) {
-        await updatePaymentByTransactionId(transactionId, { status: "Failed" });
-        // Only auto-cancel an order still sitting in its initial
-        // "awaiting first payment" state (every shop checkout starts
-        // there — see app/api/checkout/create-invoice/route.ts). A
-        // bespoke order can reach "Payment Pending" again later for a
-        // balance/deposit link generated well after work has already
-        // started (app/api/admin/orders/[id]/invoice/route.ts) — a
-        // customer's expired or declined M-Pesa prompt on THAT link
-        // must never silently cancel a tailoring order that's already
-        // mid-production; staff just generates another payment link.
-        if (order && order.stage === "Payment Pending") {
-          await updateOrderByTransactionId(transactionId, {
-            stage: "Cancelled",
-            statusNote: "Payment did not go through — order cancelled",
-          });
-          // The shop checkout route deducts stock the moment it creates the
-          // invoice, before the customer has actually paid (see
-          // app/api/checkout/create-invoice/route.ts) — reserving it against
-          // being sold twice while their M-Pesa prompt is outstanding. If
-          // they never complete it, that reservation has to come back.
-          // Bespoke orders have no `items` (nothing stock-tracked), so this
-          // is a no-op for them.
-          if (order.items && order.items.length > 0) {
-            await restockForOrder(
-              order.items.map((item) => ({
-                productId: item.productId,
-                variantId: item.variantId,
-                qty: item.qty,
-              })),
-              order.id,
-              "cancellation-restock",
-            ).catch((restockError) => {
-              console.error(
-                `[taifapay-webhook] Failed to restock cancelled order ${order.id} — manual correction needed:`,
-                restockError instanceof Error ? restockError.message : restockError,
-              );
-            });
-          }
-        }
-      }
+      const result = await reconcileTransaction(transactionId, status);
+      console.log(`[taifapay-webhook] reconcile ${transactionId}: ${result.action}`);
     } catch (dbError) {
       console.error(
         "[taifapay-webhook] Firestore update failed:",
@@ -156,40 +104,13 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  if (event.eventType === "transaction.completed" || event.data?.status === "complete") {
+  if (status === "COMPLETED") {
     await notifyBusiness(event, "Payment received");
   } else if (event.eventType?.startsWith("transaction.") && event.data?.status) {
     await notifyBusiness(event, `Payment update: ${event.data.status}`);
   }
 
   return NextResponse.json({ ok: true });
-}
-
-/** A receipt for the customer, separate from notifyBusiness above (which
- *  tells staff a payment came in) — skipped silently if this customer has
- *  no email on file, since checkout only ever requires a phone number.
- *  Errors are the caller's to catch (see the .catch() at the call site) —
- *  matches how the rest of this file lets a failure propagate rather than
- *  swallowing it locally, e.g. the restockForOrder call below. */
-async function notifyCustomerOrderConfirmed(order: Order): Promise<void> {
-  if (!order.items || order.items.length === 0) return;
-  const customer = await getOrCreateCustomer(order.clientId);
-  if (!customer.email) return;
-  await sendEmail({
-    to: customer.email,
-    subject: `Order confirmed — ${order.id.slice(-8).toUpperCase()}`,
-    html: orderConfirmationEmail({
-      name: customer.name || "there",
-      orderReference: order.id.slice(-8).toUpperCase(),
-      items: order.items.map((item) => ({
-        name: item.productName,
-        variantLabel: item.variantLabel,
-        qty: item.qty,
-        unitPrice: item.unitPrice,
-      })),
-      total: `KES ${order.price.toLocaleString("en-KE")}`,
-    }),
-  });
 }
 
 async function notifyBusiness(event: TaifaPayWebhookEvent, subjectPrefix: string): Promise<void> {

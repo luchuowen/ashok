@@ -329,13 +329,7 @@ export function buildProductVariants(
     });
 }
 
-/** Effective selling price for a variant, discount applied, rounded to the shilling. */
-export function effectivePrice(product: Pick<Product, "price" | "discountPercent">, variant?: Pick<ProductVariant, "priceOverride">): number {
-  const base = variant?.priceOverride ?? product.price;
-  const pct = product.discountPercent ?? 0;
-  if (!pct) return base;
-  return Math.round(base * (1 - pct / 100));
-}
+export { effectivePrice } from "@/lib/pricing";
 
 // ---- Stock movements (ledger) -------------------------------------------
 

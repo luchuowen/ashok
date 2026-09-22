@@ -6,7 +6,8 @@ import { Section } from "@/components/ui/Section";
 import { Photo } from "@/components/ui/Photo";
 import { Tag } from "@/components/ui/Tag";
 import { Button } from "@/components/ui/Button";
-import { effectivePrice, type Product, type ProductVariant } from "@/lib/inventory";
+import type { Product, ProductVariant } from "@/lib/inventory";
+import { effectivePrice } from "@/lib/pricing";
 import { useCart } from "@/app/cart-context";
 import { useEffect, useState } from "react";
 

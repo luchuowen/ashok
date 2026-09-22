@@ -5,7 +5,8 @@ import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
 import { Tag } from "@/components/ui/Tag";
-import { effectivePrice, type Category, type Product } from "@/lib/inventory";
+import type { Category, Product } from "@/lib/inventory";
+import { effectivePrice } from "@/lib/pricing";
 
 const inputClasses =
   "border border-line bg-paper px-3 py-2 text-sm text-ink focus:border-oxblood focus:outline-none";

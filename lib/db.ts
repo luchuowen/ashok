@@ -16,37 +16,8 @@ import { adminDb } from "@/lib/firebase-admin";
  * failure break the email/payment flow that already works without it.
  */
 
-export type OrderStage =
-  | "Consultation"
-  | "Measurements Taken"
-  | "Cutting"
-  | "First Fitting"
-  | "Final Fitting"
-  | "Ready for Collection"
-  | "Collected"
-  | "Payment Pending"
-  | "Paid"
-  | "Cancelled"
-  | "Returned"
-  | "Refunded";
-
-/** Single source of truth for every valid stage — the admin stage dropdown
- *  and the PATCH /api/admin/orders/:id validation both read this instead of
- *  each keeping their own copy of the list. */
-export const ORDER_STAGES: readonly OrderStage[] = [
-  "Consultation",
-  "Measurements Taken",
-  "Cutting",
-  "First Fitting",
-  "Final Fitting",
-  "Ready for Collection",
-  "Collected",
-  "Payment Pending",
-  "Paid",
-  "Cancelled",
-  "Returned",
-  "Refunded",
-];
+export { ORDER_STAGES, type OrderStage } from "@/lib/order-stages";
+import type { OrderStage } from "@/lib/order-stages";
 
 export interface OrderItem {
   productId: string;

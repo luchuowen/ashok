@@ -5,7 +5,8 @@ import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
 import { Tag } from "@/components/ui/Tag";
-import { ORDER_STAGES, type Customer, type Order, type Payment, type Appointment, type ClientMeasurements, type Quote, type OrderStage } from "@/lib/db";
+import type { Customer, Order, Payment, Appointment, ClientMeasurements, Quote } from "@/lib/db";
+import { ORDER_STAGES, type OrderStage } from "@/lib/order-stages";
 
 const inputClasses =
   "border border-line bg-paper px-3 py-2 text-sm text-ink focus:border-oxblood focus:outline-none";

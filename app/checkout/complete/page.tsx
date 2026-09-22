@@ -42,6 +42,18 @@ export default function CheckoutCompletePage() {
       stored = null;
     }
 
+    // Fallback when sessionStorage is gone (private tab, a different browser
+    // opened by the M-Pesa/TaifaPay app, storage cleared): TaifaPay may
+    // append the transaction id to the returnUrl, and our own links can
+    // too. We still poll and reconcile — only the item summary is lost.
+    if (!stored) {
+      const params = new URLSearchParams(window.location.search);
+      const fromUrl = params.get("transactionId") ?? params.get("transaction_id");
+      if (fromUrl) {
+        stored = { transactionId: fromUrl, amount: 0, currency: "KES", description: "", createdAt: Date.now() };
+      }
+    }
+
     if (!stored) {
       setOutcome("unknown");
       return;
@@ -112,7 +124,7 @@ export default function CheckoutCompletePage() {
               <p className="mt-4 text-sm text-muted">
                 This usually takes a few seconds. Don&rsquo;t close this page.
               </p>
-              {order ? (
+              {order && order.description ? (
                 <p className="mt-6 text-sm text-muted">
                   {order.description} — {order.currency}{" "}
                   {order.amount.toLocaleString("en-KE")}
@@ -128,7 +140,7 @@ export default function CheckoutCompletePage() {
                 Thank you — your order is confirmed. You&rsquo;ll get an SMS or M-Pesa receipt
                 for your records.
               </p>
-              {order ? (
+              {order && order.description ? (
                 <p className="mt-6 border border-line p-4 text-sm">
                   {order.description}
                   <br />
