@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
 
@@ -19,7 +19,6 @@ export default function AuthPage() {
 }
 
 function AuthForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<AuthTab>("sign-in");
   const [step, setStep] = useState<Step>("phone");
@@ -132,13 +131,23 @@ function AuthForm() {
         return;
       }
       // Success — leave the button showing "Verifying…" instead of
-      // resetting to idle here. router.push below is a soft navigation
-      // that can take a beat on a slow connection; resetting the button
-      // first left a window where the page looked like it had gone back
-      // to normal and done nothing, even though sign-in had succeeded
-      // and the redirect was already on its way.
+      // resetting to idle here; we're about to navigate away.
+      //
+      // This deliberately uses a hard navigation (window.location), not
+      // router.push. /portal is middleware-gated (see middleware.ts) and
+      // the visitor almost always lands on this page BECAUSE that
+      // middleware just redirected them from /portal to here — so
+      // Next's client-side router cache already holds a cached "redirect
+      // to /auth" entry for /portal from before this request's Set-Cookie
+      // existed. A soft router.push("/portal") right after can silently
+      // resolve out of that stale cache to the exact URL already on
+      // screen (/auth?next=/portal) instead of hitting the server again
+      // — no error, no navigation, this button stuck on "Verifying…"
+      // forever. A full navigation always re-requests /portal from the
+      // server, which re-runs middleware with the cookie this response
+      // just set and can never return a stale cached redirect.
       const next = searchParams.get("next");
-      router.push(next && next.startsWith("/") ? next : "/portal");
+      window.location.href = next && next.startsWith("/") ? next : "/portal";
     } catch {
       setError("Could not reach the server. Check your connection and try again.");
       setVerifying(false);
