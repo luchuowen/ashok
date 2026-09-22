@@ -71,8 +71,11 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       "[admin/orders/:id/invoice] createInvoice failed:",
       error instanceof Error ? `${error.name}: ${error.message}` : error,
     );
+    // Staff-only endpoint: show TaifaPay's own message whenever there is one
+    // (including account-configuration errors), since staff are the ones who
+    // can act on it — only fall back to the generic line for infra failures.
     const message =
-      error instanceof TaifaPayError && error.customerSafe
+      error instanceof TaifaPayError && error.status && error.status < 500
         ? error.message
         : "Could not generate a payment link just now -- try again in a moment.";
     return NextResponse.json({ ok: false, error: message }, { status: 502 });

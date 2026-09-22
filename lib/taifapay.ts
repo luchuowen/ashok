@@ -193,8 +193,15 @@ async function taifaPayFetch<T>(path: string, init: RequestInit = {}): Promise<T
         message = body.message;
         // A parsed JSON error body from TaifaPay's own invoice/transaction
         // API is a genuine business rejection (bad reference, expired
-        // invoice, etc.) — safe to show the customer as-is.
-        customerSafe = true;
+        // invoice, etc.) — safe to show the customer as-is. The exception
+        // is a *merchant account* misconfiguration ("Your company has no
+        // identifierLetters configured…"): that's for staff to fix in the
+        // TaifaPay dashboard, meaningless to a customer, so it stays
+        // internal and gets a pointer in the log.
+        customerSafe = !/identifierLetters|your company/i.test(message);
+        if (!customerSafe) {
+          message += " [Fix in TaifaPay merchant dashboard: Company settings → set the invoice identifier letters (e.g. ASH), then retry.]";
+        }
       }
     } catch {
       // Non-JSON error body — likely an infra page, not a real API error.
