@@ -1,7 +1,8 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { bookingNotifyAddress, sendEmail } from "@/lib/resend";
-import { getOrderByTransactionId, updateOrderByTransactionId, updatePaymentByTransactionId } from "@/lib/db";
+import { orderConfirmationEmail } from "@/lib/email-templates";
+import { getOrderByTransactionId, getOrCreateCustomer, updateOrderByTransactionId, updatePaymentByTransactionId, type Order } from "@/lib/db";
 import { restockForOrder } from "@/lib/inventory";
 
 /**
@@ -85,6 +86,12 @@ export async function POST(request: NextRequest) {
     try {
       const isCompleted = event.eventType === "transaction.completed" || event.data?.status === "complete";
       const isFailed = /fail|cancel|expire/i.test(event.data?.status ?? "");
+      // Fetched once, before either branch's own writes, so both read the
+      // same pre-webhook snapshot — the isFailed branch's "still Payment
+      // Pending?" guard needs that, and the isCompleted branch needs the
+      // order's items/clientId for the confirmation email below.
+      const order = await getOrderByTransactionId(transactionId);
+
       if (isCompleted) {
         await updatePaymentByTransactionId(transactionId, { status: "Paid" });
         await updateOrderByTransactionId(transactionId, {
@@ -92,6 +99,14 @@ export async function POST(request: NextRequest) {
           statusNote: "Payment received — preparing for collection",
           balanceDue: 0,
         });
+        if (order && order.source === "shop" && order.items && order.items.length > 0) {
+          await notifyCustomerOrderConfirmed(order).catch((emailError) => {
+            console.error(
+              "[taifapay-webhook] order-confirmation email failed:",
+              emailError instanceof Error ? `${emailError.name}: ${emailError.message}` : emailError,
+            );
+          });
+        }
       } else if (isFailed) {
         await updatePaymentByTransactionId(transactionId, { status: "Failed" });
         // Only auto-cancel an order still sitting in its initial
@@ -103,7 +118,6 @@ export async function POST(request: NextRequest) {
         // customer's expired or declined M-Pesa prompt on THAT link
         // must never silently cancel a tailoring order that's already
         // mid-production; staff just generates another payment link.
-        const order = await getOrderByTransactionId(transactionId);
         if (order && order.stage === "Payment Pending") {
           await updateOrderByTransactionId(transactionId, {
             stage: "Cancelled",
@@ -149,6 +163,33 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ ok: true });
+}
+
+/** A receipt for the customer, separate from notifyBusiness above (which
+ *  tells staff a payment came in) — skipped silently if this customer has
+ *  no email on file, since checkout only ever requires a phone number.
+ *  Errors are the caller's to catch (see the .catch() at the call site) —
+ *  matches how the rest of this file lets a failure propagate rather than
+ *  swallowing it locally, e.g. the restockForOrder call below. */
+async function notifyCustomerOrderConfirmed(order: Order): Promise<void> {
+  if (!order.items || order.items.length === 0) return;
+  const customer = await getOrCreateCustomer(order.clientId);
+  if (!customer.email) return;
+  await sendEmail({
+    to: customer.email,
+    subject: `Order confirmed — ${order.id.slice(-8).toUpperCase()}`,
+    html: orderConfirmationEmail({
+      name: customer.name || "there",
+      orderReference: order.id.slice(-8).toUpperCase(),
+      items: order.items.map((item) => ({
+        name: item.productName,
+        variantLabel: item.variantLabel,
+        qty: item.qty,
+        unitPrice: item.unitPrice,
+      })),
+      total: `KES ${order.price.toLocaleString("en-KE")}`,
+    }),
+  });
 }
 
 async function notifyBusiness(event: TaifaPayWebhookEvent, subjectPrefix: string): Promise<void> {

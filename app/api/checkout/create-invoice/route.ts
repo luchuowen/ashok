@@ -4,6 +4,8 @@ import { normalizeKenyanMobile } from "@/lib/sms";
 import { createInvoice, TaifaPayError } from "@/lib/taifapay";
 import { deductStockForOrder, effectivePrice, getProduct, restockForOrder, InsufficientStockError } from "@/lib/inventory";
 import { createOrder, createPayment, getOrCreateCustomer, updateOrder, type OrderItem } from "@/lib/db";
+import { bookingNotifyAddress, sendEmail } from "@/lib/resend";
+import { lowStockAlertEmail } from "@/lib/email-templates";
 
 interface CartItemInput {
   productId?: string;
@@ -57,6 +59,18 @@ export async function POST(request: NextRequest) {
   const lines: string[] = [];
   const stockLines: { productId: string; variantId: string; qty: number }[] = [];
   const orderItems: OrderItem[] = [];
+  // Stock level *before* this sale's deduction, per line — compared against
+  // the post-deduction level below to alert staff only on the moment a
+  // variant actually crosses into low/out-of-stock, not on every sale while
+  // it stays there.
+  const preSaleLevels: {
+    productId: string;
+    variantId: string;
+    productName: string;
+    variantLabel: string;
+    stockQtyBefore: number;
+    lowStockThreshold: number;
+  }[] = [];
   for (const raw of rawItems) {
     if (!raw.productId || !raw.variantId) {
       return NextResponse.json({ ok: false, error: "Invalid item in your cart." }, { status: 400 });
@@ -93,6 +107,14 @@ export async function POST(request: NextRequest) {
       variantLabel: variant.label,
       qty,
       unitPrice,
+    });
+    preSaleLevels.push({
+      productId: product.id,
+      variantId: variant.id,
+      productName: product.name,
+      variantLabel: variant.label,
+      stockQtyBefore: variant.stockQty,
+      lowStockThreshold: variant.lowStockThreshold,
     });
   }
 
@@ -152,6 +174,20 @@ export async function POST(request: NextRequest) {
     await updateOrder(orderId, { stage: "Cancelled", statusNote: message }).catch(() => undefined);
     return NextResponse.json({ ok: false, error: message }, { status: 409 });
   }
+
+  // Best-effort, never blocks the customer, but still awaited rather than
+  // fire-and-forget — same reasoning as the webhook's notifyBusiness call:
+  // the request handler returning is not a guarantee this runtime keeps
+  // executing JS after that, so a detached promise here could get cut off
+  // before the email actually goes out. Re-reads each sold product and
+  // alerts staff about any variant that just crossed at-or-below its
+  // low-stock threshold because of this sale.
+  await notifyLowStockIfCrossed(preSaleLevels).catch((notifyError) => {
+    console.error(
+      "[checkout/create-invoice] low-stock notification failed:",
+      notifyError instanceof Error ? notifyError.message : notifyError,
+    );
+  });
 
   try {
     const invoice = await createInvoice({
@@ -227,4 +263,49 @@ export async function POST(request: NextRequest) {
         : "We couldn't start your payment just now — please try again in a moment, or contact us if it keeps happening.";
     return NextResponse.json({ ok: false, error: message }, { status: 502 });
   }
+}
+
+/** Re-reads each distinct product just sold and emails staff about any
+ *  variant whose stock just crossed from above its lowStockThreshold to at
+ *  or below it (or to zero) because of this sale — a real transition, not
+ *  a "still low" repeat on every subsequent order while it stays there. */
+async function notifyLowStockIfCrossed(
+  preSaleLevels: {
+    productId: string;
+    variantId: string;
+    productName: string;
+    variantLabel: string;
+    stockQtyBefore: number;
+    lowStockThreshold: number;
+  }[],
+): Promise<void> {
+  const productIds = Array.from(new Set(preSaleLevels.map((l) => l.productId)));
+  const products = await Promise.all(productIds.map((id) => getProduct(id)));
+  const productById = new Map(products.filter((p): p is NonNullable<typeof p> => p !== null).map((p) => [p.id, p]));
+
+  const crossed = preSaleLevels.filter((level) => {
+    if (level.stockQtyBefore <= level.lowStockThreshold) return false; // already low before this sale
+    const product = productById.get(level.productId);
+    const variant = product?.variants.find((v) => v.id === level.variantId);
+    if (!variant) return false;
+    return variant.stockQty <= level.lowStockThreshold;
+  });
+
+  if (crossed.length === 0) return;
+
+  await sendEmail({
+    to: bookingNotifyAddress(),
+    subject: `Low stock alert — ${crossed.length} size${crossed.length > 1 ? "s" : ""} just crossed threshold`,
+    html: lowStockAlertEmail({
+      items: crossed.map((level) => {
+        const variant = productById.get(level.productId)?.variants.find((v) => v.id === level.variantId);
+        return {
+          productName: level.productName,
+          variantLabel: level.variantLabel,
+          stockQty: variant?.stockQty ?? 0,
+          lowStockThreshold: level.lowStockThreshold,
+        };
+      }),
+    }),
+  });
 }

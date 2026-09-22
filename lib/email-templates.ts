@@ -170,3 +170,104 @@ export function bookingReceivedEmail({ name, visitType, slot }: BookingReceivedE
 </body>
 </html>`;
 }
+
+export interface OrderConfirmationEmailParams {
+  name: string;
+  orderReference: string;
+  items: { name: string; variantLabel: string; qty: number; unitPrice: number }[];
+  total: string;
+}
+
+/** Sent once TaifaPay confirms payment for a shop order (see the
+ * "transaction.completed" branch of app/api/webhooks/taifapay/route.ts) —
+ * a receipt, not an invitation to pay again, so it never links to checkout. */
+export function orderConfirmationEmail({ name, orderReference, items, total }: OrderConfirmationEmailParams): string {
+  const safeName = escapeHtml(name);
+  const safeRef = escapeHtml(orderReference);
+  const safeTotal = escapeHtml(total);
+  const rows = items
+    .map(
+      (item, i) => `
+    <tr><td style="padding:16px 24px; ${i < items.length - 1 ? `border-bottom:1px solid ${LINE};` : ""} font-family:${BODY_FONT}; font-size:14px; color:${MUTED};">${escapeHtml(item.qty + "x " + item.name + " (" + item.variantLabel + ")")}</td>
+        <td align="right" style="padding:16px 24px; ${i < items.length - 1 ? `border-bottom:1px solid ${LINE};` : ""} font-family:${BODY_FONT}; font-size:14px; color:${INK}; font-weight:500;">KES ${(item.unitPrice * item.qty).toLocaleString("en-KE")}</td></tr>`,
+    )
+    .join("");
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Order confirmed — Ashok Sunny Tailored</title>
+</head>
+<body style="margin:0; padding:0; background:${CREAM}; font-family:${BODY_FONT};">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${CREAM};">
+<tr><td align="center" style="padding:32px 16px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px; max-width:100%; background:${CREAM};">
+
+<tr><td style="background:${INK}; padding:40px 32px; text-align:center;">
+  <img src="${SITE_URL}/email/logo-badge.png" width="56" height="56" alt="Ashok Sunny Tailored" style="display:inline-block; border-radius:12px;" />
+  <p style="font-family:${DISPLAY_FONT}; font-style:italic; color:${CREAM}; font-size:15px; letter-spacing:0.03em; margin:14px 0 0;">Ashok Sunny Tailored</p>
+</td></tr>
+
+<tr><td style="padding:44px 40px 20px; text-align:center;">
+  <p style="font-family:${BODY_FONT}; font-size:11px; text-transform:uppercase; letter-spacing:0.15em; color:${OXBLOOD}; margin:0 0 14px;">Order ${safeRef}</p>
+  <p style="font-family:${DISPLAY_FONT}; font-size:26px; line-height:1.3; margin:0 0 16px; color:${INK};">Thank you, ${safeName} — payment received.</p>
+  <p style="font-family:${BODY_FONT}; font-size:14px; color:${MUTED}; line-height:1.7; margin:0 auto 8px; max-width:420px;">We're preparing your order for collection. We'll be in touch on WhatsApp with an update.</p>
+</td></tr>
+
+<tr><td style="padding:8px 40px 0;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${PAPER}; border:1px solid ${LINE};">
+    ${rows}
+    <tr><td style="padding:16px 24px; background:${CREAM}; font-family:${BODY_FONT}; font-size:14px; color:${INK}; font-weight:600;">Total</td>
+        <td align="right" style="padding:16px 24px; background:${CREAM}; font-family:${BODY_FONT}; font-size:14px; color:${INK}; font-weight:600;">${safeTotal}</td></tr>
+  </table>
+</td></tr>
+
+<tr><td style="padding:32px 40px 44px; text-align:center;">
+  <a href="${SITE_URL}/portal/orders" style="display:inline-block; padding:13px 28px; font-family:${BODY_FONT}; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; background:${OXBLOOD}; color:${CREAM}; text-decoration:none;">View in Your Record</a>
+</td></tr>
+
+<tr><td style="background:${INK}; padding:32px 40px; text-align:center;">
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 16px;">
+    <tr>
+      <td style="padding:0 5px;"><a href="#" style="text-decoration:none;"><img src="${SITE_URL}/email/social-instagram.png" width="16" height="16" alt="Instagram" style="display:block;" /></a></td>
+      <td style="padding:0 5px;"><a href="#" style="text-decoration:none;"><img src="${SITE_URL}/email/social-facebook.png" width="16" height="16" alt="Facebook" style="display:block;" /></a></td>
+    </tr>
+  </table>
+  <div style="border-top:1px solid rgba(245,244,239,0.15); width:80px; margin:0 auto 16px;"></div>
+  <p style="font-family:${BODY_FONT}; font-size:11px; color:rgba(245,244,239,0.5); margin:0 0 4px;">Ridgeways, Nairobi &middot; +254 705 706 433</p>
+  <p style="font-family:${BODY_FONT}; font-size:11px; color:rgba(245,244,239,0.5); margin:0;">Sent because you placed an order on ashok.navac.co.ke.</p>
+</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+}
+
+export interface LowStockAlertEmailParams {
+  items: { productName: string; variantLabel: string; stockQty: number; lowStockThreshold: number }[];
+}
+
+/** Internal — sent to staff (bookingNotifyAddress()), not a customer, so it
+ * skips the full branded chrome above and just states the facts plainly. */
+export function lowStockAlertEmail({ items }: LowStockAlertEmailParams): string {
+  const rows = items
+    .map(
+      (item) => `
+      <tr>
+        <td style="padding:6px 12px 6px 0; color:${INK};">${escapeHtml(item.productName)} — ${escapeHtml(item.variantLabel)}</td>
+        <td style="padding:6px 12px; color:${item.stockQty <= 0 ? OXBLOOD : INK}; font-weight:500;">${item.stockQty} left</td>
+        <td style="padding:6px 0; color:${MUTED};">threshold ${item.lowStockThreshold}</td>
+      </tr>`,
+    )
+    .join("");
+
+  return `<div style="font-family:${BODY_FONT}; font-size:14px; color:${INK};">
+    <p>The following ${items.length > 1 ? "sizes are" : "size is"} at or below their low-stock threshold after a sale:</p>
+    <table style="font-size:14px; border-collapse:collapse;">${rows}</table>
+    <p style="margin-top:16px;"><a href="${SITE_URL}/admin/stock" style="color:${OXBLOOD};">Open Stock Levels</a> to reorder or adjust.</p>
+  </div>`;
+}
