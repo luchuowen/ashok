@@ -3,7 +3,7 @@ import { PortalTabs } from "@/components/portal/PortalTabs";
 import { PortalDataProvider } from "@/app/portal/portal-context";
 import { PortalGate } from "@/app/portal/portal-gate";
 
-// Shared chrome for all 8 portal routes ("My Account"). middleware.ts redirects a visitor
+// Shared chrome for all 8 portal routes ("Your Record with the House"). middleware.ts redirects a visitor
 // with no session cookie away before this ever renders; PortalDataProvider +
 // PortalGate below do the real, server-verified check and supply every
 // portal page's data from one fetch.

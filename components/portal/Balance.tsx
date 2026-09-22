@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/Button";
+import { WaCTA } from "@/components/ui/WaCTA";
 
 export function Balance({
   amount,
@@ -15,7 +15,13 @@ export function Balance({
           {currency} {amount.toLocaleString("en-KE")}
         </p>
       </div>
-      <Button href="/portal/payments">Pay Now</Button>
+      {/* Balances are settled via a payment link staff generate per order —
+          there's no self-serve pay flow in the portal, so "Pay Now" used to
+          link back to this same page. Ask the house for the link instead. */}
+      <WaCTA
+        label="Request a Payment Link"
+        message={`Hi, I'd like a payment link for my outstanding balance of ${currency} ${amount.toLocaleString("en-KE")}.`}
+      />
     </div>
   );
 }
