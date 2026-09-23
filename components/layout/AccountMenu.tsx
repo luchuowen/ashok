@@ -9,7 +9,10 @@ import { useAuthSession } from "@/app/auth-context";
  * rows). Before this, the only way to see "am I signed in" or reach Sign
  * Out was to scroll all the way to the footer — this puts it one click
  * away everywhere, matching the account name + Sign Out (signed in) /
- * account-creation pitch (signed out) that a tester asked for.
+ * account-creation pitch (signed out) that a tester asked for. Visual
+ * language ("Refined Card" — Owen's pick from three mockups): a hairline
+ * card with an oxblood top accent, a small icon badge, and a full-width
+ * primary action, echoing MobileNav's own oxblood-accent card treatment.
  */
 export function AccountMenu({ className = "" }: { className?: string }) {
   const { loading, signedIn, phone, name, signOut } = useAuthSession();
@@ -46,7 +49,9 @@ export function AccountMenu({ className = "" }: { className?: string }) {
         aria-haspopup="true"
         aria-expanded={open}
         aria-label={signedIn ? `Account — ${name || phone}` : "Sign in or create an account"}
-        className="flex h-10 w-10 items-center justify-center text-ink transition-colors hover:text-oxblood"
+        className={`flex h-10 w-10 items-center justify-center transition-colors hover:text-oxblood ${
+          open ? "text-oxblood" : "text-ink"
+        }`}
       >
         <svg
           viewBox="0 0 24 24"
@@ -64,7 +69,7 @@ export function AccountMenu({ className = "" }: { className?: string }) {
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-full z-40 mt-2 w-72 border border-line bg-cream p-5 text-left shadow-lg">
+        <div className="absolute right-0 top-full z-40 mt-2 w-[300px] border border-t-[3px] border-line border-t-oxblood bg-cream p-7 text-left shadow-xl">
           {signedIn ? (
             <>
               <p className="text-xs uppercase tracking-wide text-muted">Signed in as</p>
@@ -91,27 +96,42 @@ export function AccountMenu({ className = "" }: { className?: string }) {
             </>
           ) : (
             <>
-              <p className="font-display text-lg text-ink">Create Your Free Ashok Sunny Account</p>
-              <p className="mt-2 text-sm text-muted">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full border border-oxblood">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-4 w-4 text-oxblood"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="8" r="3.4" />
+                  <path d="M4.8 20c1.5-3.9 4.4-5.8 7.2-5.8s5.7 1.9 7.2 5.8" />
+                </svg>
+              </div>
+              <p className="mt-4 font-display text-xl font-medium leading-snug text-ink">
+                Create Your Free Ashok Sunny Account
+              </p>
+              <p className="mt-2.5 text-sm leading-relaxed text-muted">
                 Create an account to easily manage your appointments, orders, payments, and personal
                 details in one place.
               </p>
-              <div className="mt-4 flex items-center gap-5">
-                <Link
-                  href="/auth"
-                  onClick={() => setOpen(false)}
-                  className="cta !px-4 !py-2 !text-xs"
-                >
-                  Create Account
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="text-sm text-muted underline hover:text-ink"
-                >
-                  Maybe Later
-                </button>
-              </div>
+              <Link
+                href="/auth"
+                onClick={() => setOpen(false)}
+                className="cta mt-6 block !px-4 !py-3.5 !text-xs text-center"
+              >
+                Create Account
+              </Link>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="mt-3.5 block w-full text-center text-xs text-muted underline hover:text-ink"
+              >
+                Maybe Later
+              </button>
             </>
           )}
         </div>
