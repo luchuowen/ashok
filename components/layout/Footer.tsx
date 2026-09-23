@@ -66,7 +66,7 @@ function FooterLinkList({ links }: { links: FooterLink[] }) {
  * (signed in), rendered before the rest of the Account links. Reads the
  * real session via useAuthSession — see app/auth-context.tsx. */
 function AccountAuthItem({ className = "" }: { className?: string }) {
-  const { loading, signedIn, phone, signOut } = useAuthSession();
+  const { loading, signedIn, phone, name, signOut } = useAuthSession();
 
   if (loading) {
     // Reserve the line's height so the column doesn't jump once the
@@ -86,7 +86,7 @@ function AccountAuthItem({ className = "" }: { className?: string }) {
 
   return (
     <li className={className}>
-      <p className="text-sm text-cream/70">{phone}</p>
+      <p className="text-sm text-cream/70">{name || phone}</p>
       <button
         type="button"
         onClick={() => void signOut()}

@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     fitPreference?: string;
     preferredFabricWeight?: string;
     lapelStyle?: string;
-    communicationChannel?: string;
+    communicationChannels?: unknown;
     notes?: string;
   };
   try {
@@ -31,9 +31,14 @@ export async function POST(request: NextRequest) {
   // straight into Firestore.
   const fit = FIT_OPTIONS.find((o) => o === body.fitPreference);
   const lapel = LAPEL_OPTIONS.find((o) => o === body.lapelStyle);
-  const channel = CHANNEL_OPTIONS.find((o) => o === body.communicationChannel);
-  if (!fit || !lapel || !channel) {
+  const channels = Array.isArray(body.communicationChannels)
+    ? CHANNEL_OPTIONS.filter((o) => (body.communicationChannels as unknown[]).includes(o))
+    : [];
+  if (!fit || !lapel) {
     return NextResponse.json({ ok: false, error: "Invalid preference." }, { status: 400 });
+  }
+  if (channels.length === 0) {
+    return NextResponse.json({ ok: false, error: "Pick at least one communication channel." }, { status: 400 });
   }
 
   try {
@@ -45,7 +50,7 @@ export async function POST(request: NextRequest) {
       fitPreference: fit,
       preferredFabricWeight: body.preferredFabricWeight?.trim() ?? "",
       lapelStyle: lapel,
-      communicationChannel: channel,
+      communicationChannels: channels,
       notes: body.notes?.trim() ?? "",
     });
     return NextResponse.json({ ok: true });

@@ -16,7 +16,7 @@ import { adminDb } from "@/lib/firebase-admin";
  * failure break the email/payment flow that already works without it.
  */
 
-export { ORDER_STAGES, type OrderStage } from "@/lib/order-stages";
+export { ORDER_STAGES, BESPOKE_ONLY_STAGES, stagesFor, isPartiallyPaid, type OrderStage } from "@/lib/order-stages";
 import type { OrderStage } from "@/lib/order-stages";
 
 export interface OrderItem {
@@ -117,13 +117,33 @@ export interface Quote {
   expiresAt: string; // ISO date
 }
 
+/**
+ * Every "Message Us on WhatsApp" / "Request a Payment Link" submission
+ * (see components/ui/WhatsAppConnect.tsx — it's actually an on-site form
+ * emailing the house, not real WhatsApp) — also logged here so it shows up
+ * in the staff Recent Activity feed instead of only landing in an inbox.
+ */
+export interface HouseMessage {
+  id: string;
+  clientId: string; // phone/email the sender gave, or "" if none
+  clientName: string; // name the sender gave, or "" if none
+  context: string; // the CTA's label, e.g. "Request a Payment Link"
+  message: string;
+  createdAt: string; // ISO
+}
+
 export interface ClientPreferences {
   clientId: string;
   clientName: string;
   fitPreference: "Slim" | "Classic" | "Relaxed";
   preferredFabricWeight: string;
   lapelStyle: "Notch" | "Peak" | "Shawl";
-  communicationChannel: "WhatsApp" | "Email" | "Phone";
+  /** Multi-select — a client can want to hear from the house on more than
+   *  one channel. Records saved before this was multi-select have a single
+   *  communicationChannel string instead; getPreferences below upgrades
+   *  those to a one-item array on read so every caller can rely on the
+   *  array shape. */
+  communicationChannels: Array<"WhatsApp" | "Email" | "Phone">;
   notes: string;
 }
 
@@ -149,6 +169,7 @@ const COLLECTIONS = {
   measurements: "measurements",
   quotes: "quotes",
   preferences: "preferences",
+  messages: "messages",
 } as const;
 
 function nowIso(): string {
@@ -429,6 +450,17 @@ export async function getQuote(id: string): Promise<Quote | null> {
   return { id: snap.id, ...(snap.data() as Omit<Quote, "id">) };
 }
 
+// ---- House messages (WhatsApp-button / payment-link-request form) -------
+
+export async function createMessage(data: Omit<HouseMessage, "id">): Promise<string> {
+  const ref = await adminDb().collection(COLLECTIONS.messages).add(data);
+  return ref.id;
+}
+
+export async function listRecentMessages(limit = 20): Promise<HouseMessage[]> {
+  return listRecent<HouseMessage>(COLLECTIONS.messages, "createdAt", limit);
+}
+
 export async function updateQuote(id: string, patch: Partial<Quote>): Promise<void> {
   await adminDb().collection(COLLECTIONS.quotes).doc(id).set(patch, { merge: true });
 }
@@ -438,7 +470,13 @@ export async function updateQuote(id: string, patch: Partial<Quote>): Promise<vo
 export async function getPreferences(clientId: string): Promise<ClientPreferences | null> {
   const snap = await adminDb().collection(COLLECTIONS.preferences).doc(clientId).get();
   if (!snap.exists) return null;
-  return snap.data() as ClientPreferences;
+  const data = snap.data() as ClientPreferences & { communicationChannel?: string };
+  if (!Array.isArray(data.communicationChannels)) {
+    data.communicationChannels = data.communicationChannel
+      ? [data.communicationChannel as "WhatsApp" | "Email" | "Phone"]
+      : ["WhatsApp"];
+  }
+  return data;
 }
 
 export async function upsertPreferences(

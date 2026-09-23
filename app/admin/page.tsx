@@ -5,8 +5,8 @@ import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
 import { Tag } from "@/components/ui/Tag";
-import type { Customer, Order, Payment, Appointment, ClientMeasurements, Quote } from "@/lib/db";
-import { ORDER_STAGES, type OrderStage } from "@/lib/order-stages";
+import type { Customer, Order, Payment, Appointment, ClientMeasurements, Quote, HouseMessage } from "@/lib/db";
+import { stagesFor, isPartiallyPaid, type OrderStage } from "@/lib/order-stages";
 
 const inputClasses =
   "border border-line bg-paper px-3 py-2 text-sm text-ink focus:border-oxblood focus:outline-none";
@@ -16,6 +16,7 @@ interface ActivityData {
   appointments: Appointment[];
   payments: Payment[];
   quotes: Quote[];
+  messages: HouseMessage[];
 }
 
 interface CustomerDetail {
@@ -53,6 +54,7 @@ export default function StaffDashboard() {
         appointments: data.appointments,
         payments: data.payments,
         quotes: data.quotes,
+        messages: data.messages,
       });
     } catch {
       setActivityError("Could not reach the server.");
@@ -215,6 +217,17 @@ function ActivityFeed({
           onSelectCustomer={onSelectCustomer}
           renderRow={(q: Quote) => `${q.item} — ${q.currency} ${q.amount.toLocaleString("en-KE")} (${q.status})`}
         />
+        {/* Every "Message Us on WhatsApp" / "Request a Payment Link"
+            submission — that CTA is actually an on-site form that emails
+            the house (see components/ui/WhatsAppConnect.tsx), so without
+            this column a request like this only ever landed in an inbox,
+            invisible from here. */}
+        <ActivityColumn
+          title="Messages"
+          rows={activity.messages}
+          onSelectCustomer={onSelectCustomer}
+          renderRow={(m: HouseMessage) => `${m.context}: ${m.message}`}
+        />
       </div>
     </Section>
   );
@@ -360,8 +373,11 @@ function CustomerDetailPanel({
                         {o.item} — {o.currency} {o.price.toLocaleString("en-KE")}
                       </p>
                       {o.balanceDue > 0 ? (
-                        <p className="mt-1 text-xs text-muted">
-                          Balance due: {o.currency} {o.balanceDue.toLocaleString("en-KE")}
+                        <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
+                          <span>
+                            Balance due: {o.currency} {o.balanceDue.toLocaleString("en-KE")}
+                          </span>
+                          {isPartiallyPaid(o) ? <Tag variant="stage">Partially Paid</Tag> : null}
                         </p>
                       ) : null}
                       <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -487,6 +503,10 @@ function OrderStageControl({ order, onChanged }: { order: Order; onChanged: () =
     }
   }
 
+  // Off-the-shelf (shop) orders never go through fitting/cutting — only
+  // offer the stages that actually apply to this order's source.
+  const availableStages = stagesFor(order.source);
+
   return (
     <select
       value={order.stage}
@@ -494,7 +514,7 @@ function OrderStageControl({ order, onChanged }: { order: Order; onChanged: () =
       onChange={(e) => setStage(e.target.value as OrderStage)}
       className="mt-1 border border-line bg-paper px-2 py-1 text-xs"
     >
-      {ORDER_STAGES.map((stage) => (
+      {availableStages.map((stage) => (
         <option key={stage} value={stage}>
           {stage}
         </option>
@@ -529,14 +549,7 @@ function GeneratePaymentLinkControl({ order }: { order: Order }) {
   }
 
   if (checkoutUrl) {
-    return (
-      <input
-        readOnly
-        value={checkoutUrl}
-        onFocus={(e) => e.currentTarget.select()}
-        className="min-w-0 flex-1 border border-line bg-paper px-2 py-1 text-xs text-ink"
-      />
-    );
+    return <SendPaymentLinkControl order={order} checkoutUrl={checkoutUrl} />;
   }
 
   return (
@@ -549,6 +562,71 @@ function GeneratePaymentLinkControl({ order }: { order: Order }) {
       >
         {loading ? "Generating…" : "Get Payment Link"}
       </button>
+      {error ? <span className="text-xs text-oxblood">{error}</span> : null}
+    </div>
+  );
+}
+
+/** Shown once a payment link has been generated — the read-only link field
+ *  plus a Send action so staff don't have to copy/paste it into a separate
+ *  SMS or email themselves. No WhatsApp option: the site's WhatsApp CTAs
+ *  are an on-site form that emails the house, not a real WhatsApp
+ *  integration, so there's nothing this could actually hand the link to. */
+function SendPaymentLinkControl({ order, checkoutUrl }: { order: Order; checkoutUrl: string }) {
+  const [sending, setSending] = useState<"sms" | "email" | null>(null);
+  const [sentVia, setSentVia] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function send(channel: "sms" | "email") {
+    setSending(channel);
+    setError(null);
+    setSentVia(null);
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}/invoice/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ checkoutUrl, channel }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(data.error || "Could not send that link.");
+        return;
+      }
+      setSentVia(data.sentTo || channel);
+    } catch {
+      setError("Could not reach the server.");
+    } finally {
+      setSending(null);
+    }
+  }
+
+  return (
+    <div className="flex min-w-0 flex-1 flex-col gap-1">
+      <div className="flex min-w-0 items-center gap-2">
+        <input
+          readOnly
+          value={checkoutUrl}
+          onFocus={(e) => e.currentTarget.select()}
+          className="min-w-0 flex-1 border border-line bg-paper px-2 py-1 text-xs text-ink"
+        />
+        <button
+          type="button"
+          onClick={() => send("sms")}
+          disabled={sending !== null}
+          className="border border-oxblood px-2 py-1 text-xs uppercase tracking-wide text-oxblood hover:bg-oxblood hover:text-cream"
+        >
+          {sending === "sms" ? "Sending…" : "Send SMS"}
+        </button>
+        <button
+          type="button"
+          onClick={() => send("email")}
+          disabled={sending !== null}
+          className="border border-oxblood px-2 py-1 text-xs uppercase tracking-wide text-oxblood hover:bg-oxblood hover:text-cream"
+        >
+          {sending === "email" ? "Sending…" : "Send Email"}
+        </button>
+      </div>
+      {sentVia ? <span className="text-xs text-muted">Sent to {sentVia}.</span> : null}
       {error ? <span className="text-xs text-oxblood">{error}</span> : null}
     </div>
   );

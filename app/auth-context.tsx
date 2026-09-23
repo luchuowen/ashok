@@ -13,6 +13,7 @@ interface AuthContextValue {
   loading: boolean;
   signedIn: boolean;
   phone: string | null;
+  name: string | null;
   signOut: () => Promise<void>;
 }
 
@@ -22,20 +23,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [signedIn, setSignedIn] = useState(false);
   const [phone, setPhone] = useState<string | null>(null);
+  const [name, setName] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     fetch("/api/auth/session")
       .then((res) => res.json())
-      .then((data: { signedIn: boolean; phone?: string }) => {
+      .then((data: { signedIn: boolean; phone?: string; name?: string | null }) => {
         if (cancelled) return;
         setSignedIn(Boolean(data.signedIn));
         setPhone(data.phone ?? null);
+        setName(data.name ?? null);
       })
       .catch(() => {
         if (!cancelled) {
           setSignedIn(false);
           setPhone(null);
+          setName(null);
         }
       })
       .finally(() => {
@@ -50,12 +54,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await fetch("/api/auth/sign-out", { method: "POST" }).catch(() => {});
     setSignedIn(false);
     setPhone(null);
+    setName(null);
     window.location.href = "/";
   };
 
   const value = useMemo<AuthContextValue>(
-    () => ({ loading, signedIn, phone, signOut }),
-    [loading, signedIn, phone],
+    () => ({ loading, signedIn, phone, name, signOut }),
+    [loading, signedIn, phone, name],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

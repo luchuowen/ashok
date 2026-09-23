@@ -7,6 +7,7 @@ import { siteConfig } from "@/lib/content/site";
 import { Button } from "@/components/ui/Button";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { useCart } from "@/app/cart-context";
+import { AccountMenu } from "@/components/layout/AccountMenu";
 
 // Approved Home page nav is a curated subset of "core" (Atelier, Fabric Library,
 // Process, Portfolio) plus the Shop entry point from "commerce" — not the full
@@ -81,6 +82,7 @@ export function Header() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
+          <AccountMenu />
           <CartLink count={cartCount} />
           <Button href="/booking" className="!px-4 !py-2 !text-xs">
             Book a Consultation
@@ -88,6 +90,7 @@ export function Header() {
         </div>
 
         <div className="ml-auto flex items-center gap-1 md:hidden">
+          <AccountMenu />
           <CartLink count={cartCount} />
           <MobileNav links={headerLinks} />
         </div>

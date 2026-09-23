@@ -7,6 +7,7 @@ import { LedgerTable } from "@/components/portal/LedgerTable";
 import { Tag } from "@/components/ui/Tag";
 import { usePortalData } from "@/app/portal/portal-context";
 import type { Order, OrderStage } from "@/lib/db";
+import { isPartiallyPaid } from "@/lib/order-stages";
 
 const inputClasses =
   "border border-line bg-paper px-3 py-2 text-sm text-ink focus:border-oxblood focus:outline-none";
@@ -26,7 +27,16 @@ export default function OrdersPage() {
             {
               key: "stage",
               header: "Stage",
-              render: (row) => <Tag variant="stage">{row.statusNote || row.stage}</Tag>,
+              render: (row) => (
+                <div className="flex flex-wrap items-center gap-2">
+                  <Tag variant="stage">{row.statusNote || row.stage}</Tag>
+                  {isPartiallyPaid(row) ? (
+                    <Tag variant="default">
+                      Partially Paid — Balance {row.currency} {row.balanceDue.toLocaleString("en-KE")}
+                    </Tag>
+                  ) : null}
+                </div>
+              ),
             },
             { key: "startedAt", header: "Placed" },
             {

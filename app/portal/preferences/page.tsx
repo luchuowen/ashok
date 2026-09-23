@@ -22,7 +22,7 @@ export default function PreferencesPage() {
   const [fit, setFit] = useState<(typeof FIT_OPTIONS)[number]>("Classic");
   const [fabricWeight, setFabricWeight] = useState("");
   const [lapel, setLapel] = useState<(typeof LAPEL_OPTIONS)[number]>("Notch");
-  const [channel, setChannel] = useState<(typeof CHANNEL_OPTIONS)[number]>("WhatsApp");
+  const [channels, setChannels] = useState<(typeof CHANNEL_OPTIONS)[number][]>(["WhatsApp"]);
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -33,11 +33,15 @@ export default function PreferencesPage() {
     setFit(preferences.fitPreference);
     setFabricWeight(preferences.preferredFabricWeight);
     setLapel(preferences.lapelStyle);
-    setChannel(preferences.communicationChannel);
+    setChannels(preferences.communicationChannels?.length ? preferences.communicationChannels : ["WhatsApp"]);
     setNotes(preferences.notes);
   }, [preferences]);
 
   async function handleSave() {
+    if (channels.length === 0) {
+      setError("Pick at least one communication channel.");
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -48,7 +52,7 @@ export default function PreferencesPage() {
           fitPreference: fit,
           preferredFabricWeight: fabricWeight,
           lapelStyle: lapel,
-          communicationChannel: channel,
+          communicationChannels: channels,
           notes,
         }),
       });
@@ -124,19 +128,24 @@ export default function PreferencesPage() {
 
           <FormField label="Communication Channel" htmlFor="channel">
             <div id="channel" className="flex flex-wrap gap-2 pt-1">
-              {CHANNEL_OPTIONS.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => {
-                    setChannel(option);
-                    setSaved(false);
-                  }}
-                  aria-pressed={channel === option}
-                >
-                  <Tag variant={channel === option ? "stage" : "default"}>{option}</Tag>
-                </button>
-              ))}
+              {CHANNEL_OPTIONS.map((option) => {
+                const active = channels.includes(option);
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => {
+                      setChannels((prev) =>
+                        prev.includes(option) ? prev.filter((c) => c !== option) : [...prev, option],
+                      );
+                      setSaved(false);
+                    }}
+                    aria-pressed={active}
+                  >
+                    <Tag variant={active ? "stage" : "default"}>{option}</Tag>
+                  </button>
+                );
+              })}
             </div>
           </FormField>
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isStaffAuthed } from "@/lib/require-staff";
-import { ORDER_STAGES, getOrder, updateOrder, type Order, type OrderStage } from "@/lib/db";
+import { ORDER_STAGES, BESPOKE_ONLY_STAGES, getOrder, updateOrder, type Order, type OrderStage } from "@/lib/db";
 import { restockForOrder } from "@/lib/inventory";
 
 const TERMINAL_STAGES: OrderStage[] = ["Cancelled", "Returned", "Refunded"];
@@ -32,9 +32,25 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     return NextResponse.json({ ok: false, error: "Invalid request." }, { status: 400 });
   }
   const patch: Partial<Order> = {};
+  // Fetched once here when the stage patch needs it (a bespoke-only stage,
+  // below) and reused by the Cancelled-restock check further down instead
+  // of fetching the order twice.
+  let existingForValidation: Order | null = null;
   if (typeof body.stage === "string") {
     if (!ORDER_STAGES.includes(body.stage as Order["stage"])) {
       return NextResponse.json({ ok: false, error: "Not a valid order stage." }, { status: 400 });
+    }
+    if (BESPOKE_ONLY_STAGES.includes(body.stage as OrderStage)) {
+      existingForValidation = await getOrder(params.id).catch(() => null);
+      if (existingForValidation?.source === "shop") {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: `"${body.stage}" only applies to bespoke orders — this is an off-the-shelf order.`,
+          },
+          { status: 400 },
+        );
+      }
     }
     patch.stage = body.stage;
   }
@@ -57,7 +73,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     // that wasn't already in a terminal stage — never on a no-op re-save or
     // a stage bounce that isn't actually a fresh cancellation.
     if (patch.stage === "Cancelled") {
-      const existing = await getOrder(params.id);
+      const existing = existingForValidation ?? (await getOrder(params.id));
       if (existing && existing.source === "shop" && !TERMINAL_STAGES.includes(existing.stage) && existing.items?.length) {
         await restockForOrder(
           existing.items.map((item) => ({ productId: item.productId, variantId: item.variantId, qty: item.qty })),

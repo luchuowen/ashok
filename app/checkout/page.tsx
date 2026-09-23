@@ -11,7 +11,7 @@ const PENDING_ORDER_KEY = "ashok-pending-order";
 
 export default function CheckoutPage() {
   const { items, subtotal } = useCart();
-  const { phone: sessionPhone } = useAuthSession();
+  const { phone: sessionPhone, name: sessionName } = useAuthSession();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -26,6 +26,14 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (sessionPhone) setPhone((prev) => prev || sessionPhone);
   }, [sessionPhone]);
+
+  // Same idea for the name — a signed-in customer already told us who they
+  // are (Settings), so don't make them retype it. Only fills the field if
+  // it's still empty, so an edit they make isn't clobbered by a slower
+  // session response.
+  useEffect(() => {
+    if (sessionName) setName((prev) => prev || sessionName);
+  }, [sessionName]);
 
   async function handlePay(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

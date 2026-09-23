@@ -109,6 +109,72 @@ export function quoteEmail({ name, reference, item, amount, expiresAt }: QuoteEm
 </html>`;
 }
 
+export interface PaymentLinkEmailParams {
+  name: string;
+  item: string;
+  amount: string;
+  checkoutUrl: string;
+}
+
+/** Sent when staff use the "Send" action next to a generated payment link
+ *  (admin order panel) — same visual language as quoteEmail, a single CTA
+ *  button through to the TaifaPay-hosted checkout page. */
+export function paymentLinkEmail({ name, item, amount, checkoutUrl }: PaymentLinkEmailParams): string {
+  const safeName = escapeHtml(name);
+  const safeItem = escapeHtml(item);
+  const safeAmount = escapeHtml(amount);
+  const safeUrl = escapeHtml(checkoutUrl);
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Your payment link — Ashok Sunny Tailored</title>
+</head>
+<body style="margin:0; padding:0; background:${CREAM}; font-family:${BODY_FONT};">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${CREAM};">
+<tr><td align="center" style="padding:32px 16px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px; max-width:100%; background:${CREAM};">
+
+<tr><td style="background:${INK}; padding:40px 32px; text-align:center;">
+  <img src="${SITE_URL}/email/logo-badge.png" width="56" height="56" alt="Ashok Sunny Tailored" style="display:inline-block; border-radius:12px;" />
+  <p style="font-family:${DISPLAY_FONT}; font-style:italic; color:${CREAM}; font-size:15px; letter-spacing:0.03em; margin:14px 0 0;">Ashok Sunny Tailored</p>
+</td></tr>
+
+<tr><td style="padding:44px 40px 20px; text-align:center;">
+  <p style="font-family:${BODY_FONT}; font-size:11px; text-transform:uppercase; letter-spacing:0.15em; color:${OXBLOOD}; margin:0 0 14px;">Payment Link</p>
+  <p style="font-family:${DISPLAY_FONT}; font-size:26px; line-height:1.3; margin:0 0 16px; color:${INK};">Hi ${safeName}, here's your payment link.</p>
+  <p style="font-family:${BODY_FONT}; font-size:14px; color:${MUTED}; line-height:1.7; margin:0 auto 8px; max-width:420px;">Tap the button below to pay securely by M-Pesa, card or bank transfer.</p>
+</td></tr>
+
+<tr><td style="padding:8px 40px 0;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${PAPER}; border:1px solid ${LINE};">
+    <tr><td style="padding:16px 24px; border-bottom:1px solid ${LINE}; font-family:${BODY_FONT}; font-size:14px; color:${MUTED};">Item</td>
+        <td align="right" style="padding:16px 24px; border-bottom:1px solid ${LINE}; font-family:${BODY_FONT}; font-size:14px; color:${INK}; font-weight:500;">${safeItem}</td></tr>
+    <tr><td style="padding:16px 24px; font-family:${BODY_FONT}; font-size:14px; color:${MUTED};">Amount Due</td>
+        <td align="right" style="padding:16px 24px; font-family:${BODY_FONT}; font-size:14px; color:${INK}; font-weight:500;">${safeAmount}</td></tr>
+  </table>
+</td></tr>
+
+<tr><td style="padding:32px 40px 44px; text-align:center;">
+  <a href="${safeUrl}" style="display:inline-block; background:${OXBLOOD}; color:${CREAM}; font-family:${BODY_FONT}; font-size:13px; text-transform:uppercase; letter-spacing:0.08em; text-decoration:none; padding:14px 32px;">Pay Now</a>
+  <p style="font-family:${BODY_FONT}; font-size:11px; color:${MUTED}; margin:16px 0 0;">Or paste this link into your browser: ${safeUrl}</p>
+</td></tr>
+
+<tr><td style="background:${INK}; padding:32px 40px; text-align:center;">
+  <div style="border-top:1px solid rgba(245,244,239,0.15); width:80px; margin:0 auto 16px;"></div>
+  <p style="font-family:${BODY_FONT}; font-size:11px; color:rgba(245,244,239,0.5); margin:0 0 4px;">Ridgeways, Nairobi &middot; +254 705 706 433</p>
+  <p style="font-family:${BODY_FONT}; font-size:11px; color:rgba(245,244,239,0.5); margin:0;">Sent because a payment link was generated for your order at Ashok Sunny Tailored.</p>
+</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+}
+
 export function bookingReceivedEmail({ name, visitType, slot }: BookingReceivedEmailParams): string {
   const safeName = escapeHtml(name);
   const safeType = escapeHtml(visitType);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { EmailSendError, bookingNotifyAddress, sendEmail } from "@/lib/resend";
 import { siteConfig } from "@/lib/content/site";
+import { createMessage } from "@/lib/db";
 
 interface MessageBody {
   name?: string;
@@ -58,6 +59,19 @@ export async function POST(request: NextRequest) {
         `<tr><td style="padding:4px 12px 4px 0;color:#6b6b6b;vertical-align:top;">${escapeHtml(label)}</td><td style="padding:4px 0;white-space:pre-wrap;">${escapeHtml(value)}</td></tr>`,
     )
     .join("");
+
+  // Best-effort record so this shows up in the staff Recent Activity feed
+  // too, not only as an email — see lib/db.ts's own note on writes here
+  // never being allowed to break the flow that already works without them.
+  await createMessage({
+    clientId: contact,
+    clientName: name,
+    context: context || "Message",
+    message,
+    createdAt: new Date().toISOString(),
+  }).catch((err) => {
+    console.error("[api/message] activity log failed (email still sent):", err instanceof Error ? err.message : err);
+  });
 
   try {
     await sendEmail({
