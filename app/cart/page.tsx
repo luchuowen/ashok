@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { SuitPreview } from "@/components/suit/SuitPreview";
 import { SpecList } from "@/components/suit/SpecList";
 import { CurrencyToggle } from "@/components/suit/CurrencyToggle";
+import { PromoField, type PromoPreview } from "@/components/suit/PromoField";
 import { useDisplayCurrency, useFitProfile } from "@/components/suit/stores";
 import { buildSpec } from "@/lib/suit/spec";
 import { hasBlockingIssues, METHOD_LABELS } from "@/lib/suit/measurements";
@@ -36,6 +37,9 @@ function Cart() {
   const hasSuits = suitLines.length > 0;
   const fitReady = !hasSuits || (fit !== null && !hasBlockingIssues(fit));
   const lineIssue = suitLines.some((l) => l.suit.issue);
+  const suitsSubtotal = suitLines.reduce((n, l) => n + l.price * l.qty, 0);
+  const [promo, setPromo] = useState<PromoPreview | null>(null);
+  const discount = promo?.discount ?? 0;
   const count = items.reduce((n, i) => n + i.qty, 0);
 
   if (!hydrated) {
@@ -124,17 +128,26 @@ function Cart() {
                   <span className="text-muted">Subtotal</span>
                   <span>{formatMoney(subtotal, currency)}</span>
                 </div>
+                {discount ? (
+                  <div className="mt-2 flex justify-between text-sm text-oxblood">
+                    <span>Discount</span>
+                    <span>−{formatMoney(discount, currency)}</span>
+                  </div>
+                ) : null}
                 <div className="mt-2 flex justify-between text-sm">
                   <span className="text-muted">Delivery</span>
                   <span className="text-muted">{hasSuits ? "Free collection · or from KES 600" : "Collect in store"}</span>
                 </div>
+                <div className="mt-3">
+                  <PromoField subtotal={subtotal} suitsSubtotal={suitsSubtotal} onChange={setPromo} />
+                </div>
                 <div className="mt-4 flex justify-between border-t-2 border-ink pt-3 font-medium">
                   <span>Total</span>
-                  <span>{formatMoney(subtotal, currency)}</span>
+                  <span>{formatMoney(subtotal - discount, currency)}</span>
                 </div>
                 {currency === "USD" ? (
                   <p className="mt-2 text-[11px] text-muted">
-                    Approximate at KES {KES_PER_USD}/USD. You&rsquo;ll be charged {formatKes(subtotal)}.
+                    Approximate at KES {KES_PER_USD}/USD. You&rsquo;ll be charged {formatKes(subtotal - discount)}.
                   </p>
                 ) : null}
                 {hasSuits ? <p className="mt-2 text-[11px] text-muted">Pay in full, or a 50% deposit with the balance at your fitting.</p> : null}

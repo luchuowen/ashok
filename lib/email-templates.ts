@@ -380,7 +380,7 @@ export function customOrderConfirmationEmail({ name, orderReference, order, paid
     .map((i) => `<tr><td style="padding:8px 24px; font-family:${BODY_FONT}; font-size:13px; color:${MUTED};">${escapeHtml(`${i.qty}x ${i.productName} (${i.variantLabel})`)}</td><td align="right" style="padding:8px 24px; font-family:${BODY_FONT}; font-size:13px;">${kes(i.unitPrice * i.qty)}</td></tr>`)
     .join("");
   const deliveryLine = order.delivery
-    ? `${escapeHtml(order.delivery.label)}${order.delivery.address ? ` — ${escapeHtml(order.delivery.address)}, ${escapeHtml(order.delivery.town ?? "")}` : ""}`
+    ? `${escapeHtml(order.delivery.label)}${order.delivery.address ? ` — ${escapeHtml(order.delivery.address)}, ${escapeHtml(order.delivery.town ?? "")}${order.delivery.country ? `, ${escapeHtml(order.delivery.country)}` : ""}` : ""}`
     : "Collect at the atelier";
   const next = atelier
     ? "Book your measuring appointment at our Ridgeways atelier — we don't cut until we've measured you."
@@ -421,4 +421,28 @@ export function customOrderConfirmationEmail({ name, orderReference, order, paid
 </td></tr>
 </table></td></tr></table>
 </body></html>`;
+}
+
+/** "Email me this design" — a saved-design reminder with a link straight back into the designer. */
+export function savedDesignEmail({ title, summary, price, link, rows }: { title: string; summary: string; price: string; link: string; rows: { label: string; value: string }[] }): string {
+  const list = rows
+    .map((r) => `<tr><td style="padding:3px 24px; font-family:${BODY_FONT}; font-size:13px; color:${MUTED}; width:40%;">${escapeHtml(r.label)}</td><td style="padding:3px 24px 3px 0; font-family:${BODY_FONT}; font-size:13px; color:${INK};">${escapeHtml(r.value)}</td></tr>`)
+    .join("");
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Your saved suit design</title></head>
+<body style="margin:0; padding:0; background:${CREAM};">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${CREAM};"><tr><td align="center" style="padding:32px 16px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px; max-width:100%;">
+<tr><td style="background:${INK}; padding:32px; text-align:center;"><p style="font-family:${DISPLAY_FONT}; font-style:italic; color:${CREAM}; font-size:16px; margin:0;">Ashok Sunny Tailored</p></td></tr>
+<tr><td style="padding:40px 40px 16px; text-align:center;">
+  <p style="font-family:${BODY_FONT}; font-size:11px; text-transform:uppercase; letter-spacing:0.15em; color:${OXBLOOD}; margin:0 0 12px;">Your saved design</p>
+  <p style="font-family:${DISPLAY_FONT}; font-size:26px; margin:0 0 8px; color:${INK};">${escapeHtml(title)}</p>
+  <p style="font-family:${BODY_FONT}; font-size:14px; color:${MUTED}; margin:0;">${escapeHtml(summary)} · ${escapeHtml(price)}</p>
+</td></tr>
+<tr><td style="padding:8px 40px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${PAPER}; border:1px solid ${LINE}; padding:12px 0;">${list}</table></td></tr>
+<tr><td style="padding:28px 40px 44px; text-align:center;">
+  <a href="${link}" style="display:inline-block; padding:13px 28px; font-family:${BODY_FONT}; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; background:${OXBLOOD}; color:${CREAM}; text-decoration:none;">Open my design</a>
+  <p style="font-family:${BODY_FONT}; font-size:12px; color:${MUTED}; margin:18px 0 0;">Prices are confirmed when you check out.</p>
+</td></tr>
+<tr><td style="background:${INK}; padding:24px 40px; text-align:center;"><p style="font-family:${BODY_FONT}; font-size:11px; color:rgba(245,244,239,0.5); margin:0;">Ridgeways, Nairobi · You asked us to email this design from ashok.navac.co.ke.</p></td></tr>
+</table></td></tr></table></body></html>`;
 }

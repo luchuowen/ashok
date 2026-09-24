@@ -61,7 +61,11 @@ function viewFor(groupId: string, current: PreviewView): PreviewView {
   if (groupId.startsWith("waistcoat.")) return "waistcoat";
   if (groupId === "jacket.vents" || groupId === "trousers.backPockets" || groupId === "accents.elbowPatches") return "back";
   if (groupId.startsWith("accents.lining") || groupId === "accents.underCollar") return "lining";
-  if (groupId.startsWith("jacket.") || groupId.startsWith("trousers.") || groupId === "accents.buttons" || groupId === "accents.buttonholes" || groupId === "accents.pocketSquare" || groupId === "accents.pickStitch") {
+  if (
+    groupId.startsWith("jacket.") ||
+    groupId.startsWith("trousers.") ||
+    ["accents.buttons", "accents.buttonholes", "accents.pocketSquare", "accents.pickStitch", "accents.necktie", "accents.bowtie", "accents.belt", "accents.braces"].includes(groupId)
+  ) {
     return current === "waistcoat" && groupId.startsWith("trousers.") ? current : "front";
   }
   return current;
@@ -559,6 +563,7 @@ export function Configurator() {
                   Share link
                 </button>
               </div>
+              <EmailDesign code={encodeDesign(config)} />
               {saveState.message ? (
                 <p className={`mt-2 text-xs ${saveState.status === "error" ? "text-oxblood" : "text-muted"}`} role="status">
                   {saveState.message}{" "}
@@ -737,5 +742,63 @@ function DesignsDrawer({ signedIn, onClose, onOpen }: { signedIn: boolean; onClo
         </div>
       </div>
     </div>
+  );
+}
+
+/** Guest "save for later": email the design link (Hockerty's save-by-email). */
+function EmailDesign({ code }: { code: string }) {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [consent, setConsent] = useState(false);
+  const [state, setState] = useState<{ status: "idle" | "sending" | "sent" | "error"; message?: string }>({ status: "idle" });
+  if (!open) {
+    return (
+      <button type="button" onClick={() => setOpen(true)} className="mt-3 text-xs text-muted underline underline-offset-2 hover:text-oxblood">
+        Email me this design
+      </button>
+    );
+  }
+  if (state.status === "sent") return <p className="mt-3 text-xs text-muted" role="status">Sent — check your inbox for a link back to this design.</p>;
+  return (
+    <form
+      className="mt-3 space-y-2 border border-line bg-paper p-3"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        setState({ status: "sending" });
+        try {
+          const res = await fetch("/api/suits/email-design", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, code, consent }),
+          });
+          const data = await res.json();
+          setState(res.ok && data.ok ? { status: "sent" } : { status: "error", message: data.error || "Couldn't send." });
+        } catch {
+          setState({ status: "error", message: "Couldn't reach the server." });
+        }
+      }}
+    >
+      <label className="block text-xs text-muted" htmlFor="design-email">
+        Your email
+      </label>
+      <div className="flex gap-2">
+        <input
+          id="design-email"
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="min-w-0 flex-1 border border-line bg-cream px-3 py-2 text-sm focus:border-oxblood focus:outline-none"
+        />
+        <button type="submit" disabled={state.status === "sending" || !consent} className="cta !px-3 !py-2 text-xs disabled:opacity-50">
+          {state.status === "sending" ? "Sending…" : "Send"}
+        </button>
+      </div>
+      <label className="flex items-start gap-2 text-[11px] text-muted">
+        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 accent-[rgb(var(--oxblood))]" />
+        <span>Email me this design. We use your address only for this message.</span>
+      </label>
+      {state.status === "error" ? <p className="text-xs text-oxblood">{state.message}</p> : null}
+    </form>
   );
 }

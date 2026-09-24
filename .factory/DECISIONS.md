@@ -60,3 +60,20 @@ parametric SVG technical drawing is exact, fast and reflects every option).
 
 **Dev tooling:** `TAIFAPAY_ENV=mock` and `ASHOK_FAKE_FIRESTORE=1` allow the whole journey locally;
 both are ignored when `NODE_ENV=production`.
+
+## 2026-09-25 — Hockerty parity pass: accessories, promo codes/gift cards, overseas orders
+
+**Decision:** Added the remaining reference-site features: accessory add-ons in the designer
+(necktie, bow tie, braces, belt — with rules: tie xor bow tie, braces bring braces buttons, belt
+needs belt loops), "no sleeve buttons", guest "email me this design", promo codes and gift cards
+(`promo_codes/{CODE}`, admin at `/admin/promo-codes`, applied in bag/checkout, re-validated
+server-side, uses counted and gift-card balances drawn down on first payment), and international
+courier delivery with foreign phone numbers (international format, email required) for overseas
+suit buyers.
+
+**Why:** Hockerty's configurator sells accessories inline, accepts coupons/gift cards in the bag,
+lets guests save designs by email, and ships worldwide; USD display implied overseas buyers who
+previously couldn't complete checkout (Kenyan-mobile-only rule).
+
+**Not replicated:** photo-realistic 3D renders with skin tones (no render assets — the parametric
+drawing stands in), fabric "looks" photos, body-profile photo upload (would need Firebase Storage).

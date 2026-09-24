@@ -63,6 +63,8 @@ export interface Order {
   amountDueNow?: number;
   /** TaifaPay account reference of the checkout invoice (ASHOK-…). */
   reference?: string;
+  /** Promo code or gift card applied at checkout (already taken off `price`). */
+  promo?: { code: string; discount: number; label: string };
   /** Pricing catalogue version the suits were priced against. */
   catalogueVersion?: string;
   customerEmail?: string;
@@ -88,11 +90,12 @@ export interface SuitOrderLine {
 }
 
 export interface OrderDelivery {
-  method: "collect" | "nairobi" | "kenya";
+  method: "collect" | "nairobi" | "kenya" | "international";
   label: string;
   fee: number;
   address?: string;
   town?: string;
+  country?: string;
   instructions?: string;
 }
 

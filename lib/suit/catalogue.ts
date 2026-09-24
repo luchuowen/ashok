@@ -18,7 +18,7 @@ import type { OptionGroup, PaletteColour, SuitConfig, SuitFabric } from "./types
  *  - Bump CATALOGUE_VERSION whenever a price changes — every order stores
  *    the version it was priced against.
  */
-export const CATALOGUE_VERSION = "2026-09-24.1";
+export const CATALOGUE_VERSION = "2026-09-25.1";
 
 /** Standard make: fitting to collection. Priority service shortens it. */
 export const LEAD_TIME_DAYS = { standard: 21, priority: 12 } as const;
@@ -834,6 +834,7 @@ export const OPTION_GROUPS: OptionGroup[] = [
     display: "chip",
     defaultValue: "4",
     values: [
+      { id: "0", label: "None" },
       { id: "2", label: "2" },
       { id: "3", label: "3" },
       { id: "4", label: "4" },
@@ -1159,6 +1160,61 @@ export const OPTION_GROUPS: OptionGroup[] = [
     ],
   },
   {
+    id: "accents.necktie",
+    section: "accents",
+    label: "Necktie",
+    help: "Cut from the same silks as our pocket squares.",
+    display: "swatch",
+    defaultValue: "none",
+    values: [
+      { id: "none", label: "None" },
+      { id: "oxblood", label: "Oxblood silk", hex: "#8a4432", price: 2500 },
+      { id: "navy", label: "Navy silk", hex: "#1f2c4c", price: 2500 },
+      { id: "charcoal", label: "Charcoal grenadine", hex: "#3a3b3e", price: 2500 },
+      { id: "gold", label: "Gold paisley", hex: "#c09a48", price: 2500 },
+      { id: "black", label: "Black satin", hex: "#121214", price: 2500 },
+    ],
+  },
+  {
+    id: "accents.bowtie",
+    section: "accents",
+    label: "Bow tie",
+    display: "swatch",
+    defaultValue: "none",
+    values: [
+      { id: "none", label: "None" },
+      { id: "black", label: "Black satin", hex: "#121214", price: 3000 },
+      { id: "midnight", label: "Midnight satin", hex: "#141a2b", price: 3000 },
+      { id: "oxblood", label: "Oxblood silk", hex: "#8a4432", price: 3000 },
+    ],
+  },
+  {
+    id: "accents.braces",
+    section: "accents",
+    label: "Braces",
+    help: "Button-on braces; we add the braces buttons to the trousers for you.",
+    display: "swatch",
+    defaultValue: "none",
+    values: [
+      { id: "none", label: "None" },
+      { id: "black", label: "Black", hex: "#121214", price: 2600 },
+      { id: "burgundy", label: "Burgundy", hex: "#6b1f30", price: 2600 },
+      { id: "navy", label: "Navy", hex: "#1f2c4c", price: 2600 },
+    ],
+  },
+  {
+    id: "accents.belt",
+    section: "accents",
+    label: "Belt",
+    display: "swatch",
+    defaultValue: "none",
+    values: [
+      { id: "none", label: "None" },
+      { id: "black", label: "Black calf", hex: "#151515", price: 3100 },
+      { id: "brown", label: "Brown calf", hex: "#5a3a24", price: 3100 },
+    ],
+  },
+  {
     id: "suit.service",
     section: "accents",
     label: "Make",
@@ -1317,6 +1373,12 @@ export const DELIVERY_METHODS = [
     label: "Courier elsewhere in Kenya",
     description: "Tracked courier to your town, usually 1–2 days after completion.",
     fee: 1200,
+  },
+  {
+    id: "international",
+    label: "International courier",
+    description: "Tracked express worldwide, 3–6 working days after completion. Import duties are paid by the recipient.",
+    fee: 7500,
   },
 ] as const;
 

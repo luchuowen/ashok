@@ -462,6 +462,35 @@ function Shirt({ apex }: { apex: [number, number] }) {
   );
 }
 
+/** Necktie or bow tie at the collar, when chosen. */
+function Neckwear({ ctx, apex, neckY }: { ctx: Ctx; apex: [number, number]; neckY: number }) {
+  const tie = getOptionValue("accents.necktie", ctx.o["accents.necktie"] ?? "none");
+  const bow = getOptionValue("accents.bowtie", ctx.o["accents.bowtie"] ?? "none");
+  const [ax, ay] = apex;
+  if (tie?.hex) {
+    const kY = neckY + 11;
+    const end = Math.min(ay + 6, neckY + 170);
+    const endX = CX + ((ax - CX) * (end - neckY)) / Math.max(1, ay - neckY);
+    return (
+      <g>
+        <path d={`M${CX - 4.5} ${kY + 7} L${CX + 4.5} ${kY + 7} L${endX + 7} ${end - 9} L${endX} ${end} L${endX - 7} ${end - 9} Z`} fill={tie.hex} stroke="rgba(0,0,0,0.4)" strokeWidth="0.5" />
+        <path d={`M${CX - 5} ${kY} L${CX + 5} ${kY} L${CX + 4} ${kY + 8} L${CX - 4} ${kY + 8} Z`} fill={shade(tie.hex, -0.12)} stroke="rgba(0,0,0,0.4)" strokeWidth="0.5" />
+        <path d={`M${CX - 4.5} ${kY + 7} L${CX + 4.5} ${kY + 7} L${endX + 7} ${end - 9} L${endX} ${end} L${endX - 7} ${end - 9} Z`} fill={`url(#${ctx.id("sheen")})`} opacity="0.6" />
+      </g>
+    );
+  }
+  if (bow?.hex) {
+    const y = neckY + 12;
+    return (
+      <g stroke="rgba(0,0,0,0.45)" strokeWidth="0.5">
+        <path d={`M${CX} ${y} L${CX - 13} ${y - 6} Q${CX - 15} ${y} ${CX - 13} ${y + 6} Z M${CX} ${y} L${CX + 13} ${y - 6} Q${CX + 15} ${y} ${CX + 13} ${y + 6} Z`} fill={bow.hex} />
+        <rect x={CX - 2.5} y={y - 3.5} width="5" height="7" fill={shade(bow.hex, -0.15)} />
+      </g>
+    );
+  }
+  return null;
+}
+
 /* -------------------------------------------------------------------- */
 /* Jacket — front                                                        */
 /* -------------------------------------------------------------------- */
@@ -542,6 +571,7 @@ function JacketFront({ ctx, config }: { ctx: Ctx; config: SuitConfig }) {
       ) : (
         <g>
           <Shirt apex={A} />
+          <Neckwear ctx={ctx} apex={A} neckY={NECK_Y} />
           {layout.db ? (
             <line x1={A[0]} y1={A[1]} x2={A[0]} y2={HEM_Y + 2} stroke={ctx.stroke} strokeWidth="0.9" />
           ) : (
@@ -824,6 +854,7 @@ function Waistcoat({ ctx, fill }: { ctx: Ctx; fill: string; back: boolean }) {
       {/* V opening shows shirt */}
       <path d={`M${CX - 30} 58 L${CX + 30} 58 L${apexX} ${apexY} Z`} fill="#f4f2ec" stroke={ctx.stroke} strokeWidth="0.8" />
       <line x1={CX} y1={62} x2={CX} y2={apexY} stroke="rgba(0,0,0,0.2)" strokeWidth="0.6" />
+      <Neckwear ctx={ctx} apex={[apexX, apexY]} neckY={46} />
       {db ? <line x1={apexX} y1={apexY} x2={apexX} y2={bottom} stroke={ctx.stroke} strokeWidth="0.9" /> : <line x1={CX} y1={apexY} x2={CX} y2={edge === "pointed" ? 306 : 304} stroke={ctx.stroke} strokeWidth="0.9" />}
       {lapel !== "none"
         ? [-1, 1].map((d) => {
@@ -969,6 +1000,12 @@ function Trousers({ ctx, fill, fabric, back }: { ctx: Ctx; fill: string; fabric:
       )}
 
       {/* Waist details */}
+      {waist === "loops" && getOptionValue("accents.belt", o["accents.belt"] ?? "none")?.hex ? (
+        <g>
+          <rect x={CX - 72} y={top + 3} width="144" height="7" fill={getOptionValue("accents.belt", o["accents.belt"]!)!.hex} stroke="rgba(0,0,0,0.45)" strokeWidth="0.5" />
+          {!back ? <rect x={CX - 7} y={top + 1.5} width="10" height="10" fill="none" stroke="#b8a46a" strokeWidth="1.6" /> : null}
+        </g>
+      ) : null}
       {waist === "loops"
         ? [-64, -40, 40, 64].concat(back ? [0] : []).map((x) => (
             <rect key={x} x={CX + x - 1.6} y={top - 1.5} width="3.2" height={wb + 4} fill={fill} stroke={stroke} strokeWidth="0.6" />

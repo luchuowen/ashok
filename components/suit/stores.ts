@@ -3,6 +3,7 @@
 import { useCallback, useSyncExternalStore } from "react";
 import { CURRENCY_STORAGE_KEY, type DisplayCurrency } from "@/lib/currency";
 import type { FitProfile } from "@/lib/suit/types";
+import { PROMO_STORAGE_KEY } from "@/lib/promo-shared";
 
 /**
  * Tiny localStorage-backed stores shared across the configurator, bag,
@@ -104,4 +105,13 @@ export function useHydrated(): boolean {
     () => true,
     () => false,
   );
+}
+
+const promoStore = createLocalStore<string>(PROMO_STORAGE_KEY, "", (v) => (typeof v === "string" ? v : null));
+
+/** The promo code / gift card the customer applied in the bag, carried to checkout. */
+export function usePromoCode(): [string, (code: string) => void] {
+  const value = useSyncExternalStore(promoStore.subscribe, promoStore.read, promoStore.serverSnapshot);
+  const set = useCallback((code: string) => promoStore.write(code ? code : null), []);
+  return [value, set];
 }

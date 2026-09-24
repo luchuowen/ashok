@@ -71,10 +71,28 @@ export function disabledReason(groupId: string, valueId: string, c: SuitConfig):
       if (valueId === "lapel" && o["jacket.closure"] === "mandarin") {
         return "A mandarin collar has no lapel buttonhole.";
       }
+      if (valueId === "cuffs" && o["jacket.sleeveButtons"] === "0") {
+        return "There are no cuff buttonholes without sleeve buttons.";
+      }
       return null;
     case "accents.pocketSquare":
       if (valueId !== "none" && o["jacket.breastPocket"] === "none") {
         return "A pocket square needs a breast pocket.";
+      }
+      return null;
+    case "accents.belt":
+      if (valueId !== "none" && o["trousers.waist"] !== "loops") {
+        return "A belt needs belt loops — choose Belt loops under Trousers → Waist.";
+      }
+      return null;
+    case "accents.braces":
+      if (valueId !== "none" && o["trousers.waist"] === "active") {
+        return "An elastic active waist doesn't take braces.";
+      }
+      return null;
+    case "jacket.cuffs":
+      if (valueId === "working" && o["jacket.sleeveButtons"] === "0") {
+        return "Working cuffs need sleeve buttons.";
       }
       return null;
     case "trousers.braces":
@@ -169,6 +187,29 @@ export function normalizeConfig(
       }
     }
     if (!changed) break;
+  }
+
+  // Tie or bow tie, never both: the one just chosen wins (tie otherwise).
+  if (c.options["accents.necktie"] !== "none" && c.options["accents.bowtie"] !== "none") {
+    const keepBow = changedGroup === "accents.bowtie";
+    const drop = keepBow ? "accents.necktie" : "accents.bowtie";
+    adjustments.push({
+      groupId: drop,
+      from: c.options[drop]!,
+      to: "none",
+      message: keepBow ? "Necktie removed — you've chosen a bow tie." : "Bow tie removed — you've chosen a necktie.",
+    });
+    c.options[drop] = "none";
+  }
+  // Braces are button-on: they bring braces buttons with them.
+  if (c.options["accents.braces"] !== "none" && c.options["trousers.braces"] !== "yes") {
+    if (changedGroup === "trousers.braces") {
+      adjustments.push({ groupId: "accents.braces", from: c.options["accents.braces"]!, to: "none", message: "Braces removed — they need braces buttons." });
+      c.options["accents.braces"] = "none";
+    } else if (!disabledReason("trousers.braces", "yes", c)) {
+      adjustments.push({ groupId: "trousers.braces", from: c.options["trousers.braces"]!, to: "yes", message: "Braces buttons added to the trousers for your braces." });
+      c.options["trousers.braces"] = "yes";
+    }
   }
 
   // Fabrics.

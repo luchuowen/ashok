@@ -226,6 +226,12 @@ export default function CustomOrderTicketPage({ params }: { params: { id: string
               <span className="text-muted">Total</span>
               <span>KES {order.price.toLocaleString("en-KE")}</span>
             </p>
+            {order.promo ? (
+              <p className="flex justify-between text-oxblood">
+                <span>{order.promo.label}</span>
+                <span>−KES {order.promo.discount.toLocaleString("en-KE")}</span>
+              </p>
+            ) : null}
             <p className="flex justify-between">
               <span className="text-muted">Plan</span>
               <span>{order.paymentPlan === "deposit" ? "50% deposit" : "Pay in full"}</span>
@@ -271,6 +277,7 @@ export default function CustomOrderTicketPage({ params }: { params: { id: string
                 {order.delivery.address ? (
                   <p className="text-muted">
                     {order.delivery.address}, {order.delivery.town}
+                    {order.delivery.country ? `, ${order.delivery.country}` : ""}
                   </p>
                 ) : null}
                 {order.delivery.instructions ? <p className="text-muted">“{order.delivery.instructions}”</p> : null}

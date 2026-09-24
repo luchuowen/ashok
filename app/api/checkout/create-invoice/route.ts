@@ -4,6 +4,8 @@ import { normalizeKenyanMobile } from "@/lib/sms";
 import { createInvoice, TaifaPayError } from "@/lib/taifapay";
 import { deductStockForOrder, effectivePrice, getProduct, restockForOrder, InsufficientStockError } from "@/lib/inventory";
 import { getSessionPhone } from "@/lib/suit-db";
+import { getPromo } from "@/lib/promo";
+import { evaluatePromo, normalizeCode } from "@/lib/promo-shared";
 import {
   getCustomer,
   claimOrderRestock,
@@ -43,12 +45,22 @@ interface SuitLineInput {
 
 interface DeliveryInput {
   method?: unknown;
+  country?: unknown;
   address?: unknown;
   town?: unknown;
   instructions?: unknown;
 }
 
 const clip = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+
+/** "+44 7700 900123" / "0044…" → "447700900123"; must include a country code. */
+function normalizeInternationalPhone(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!/^(\+|00)/.test(trimmed)) return null;
+  const digits = trimmed.replace(/^00/, "").replace(/[^\d]/g, "");
+  if (digits.length < 8 || digits.length > 15 || digits.startsWith("0")) return null;
+  return digits;
+}
 
 function addDays(isoDate: string, days: number): string {
   const d = new Date(`${isoDate}T00:00:00Z`);
@@ -74,6 +86,7 @@ export async function POST(request: NextRequest) {
     customerPhone?: string;
     customerEmail?: string;
     acceptTerms?: unknown;
+    promoCode?: string;
   };
   try {
     body = await request.json();
@@ -100,12 +113,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: `Please order at most ${MAX_SUIT_LINES} suit designs at a time.` }, { status: 400 });
   }
 
-  const mobile = normalizeKenyanMobile(body.customerPhone ?? "");
+  // Overseas suit orders (international delivery) may use a foreign number
+  // in international format; everything else keeps the Kenyan-mobile rule
+  // the portal's SMS sign-in relies on.
+  const kenyan = normalizeKenyanMobile(body.customerPhone ?? "");
+  const overseas = !kenyan && body.delivery?.method === "international" && Array.isArray(body.suits) && body.suits.length > 0;
+  const mobile = kenyan ?? (overseas ? normalizeInternationalPhone(body.customerPhone ?? "") : null);
   if (!mobile) {
     return NextResponse.json(
-      { ok: false, error: "Enter a valid Kenyan phone number." },
+      {
+        ok: false,
+        error: overseas || body.delivery?.method === "international"
+          ? "Enter a valid phone number with its country code, e.g. +44 7700 900123."
+          : "Enter a valid Kenyan phone number.",
+      },
       { status: 400 },
     );
+  }
+  if (!kenyan && !String(body.customerEmail ?? "").trim()) {
+    return NextResponse.json({ ok: false, error: "Add your email — we'll send overseas order updates there." }, { status: 400 });
   }
 
   // Recompute price and confirm each line against the live Firestore
@@ -233,6 +259,21 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // ---- Promo code / gift card: re-validated here against the server-priced
+  // goods (before delivery); the bag's preview is never trusted.
+  let promo: { code: string; discount: number; label: string } | undefined;
+  const promoCode = normalizeCode(String(body.promoCode ?? ""));
+  if (promoCode) {
+    const suitsSubtotal = suitLines.reduce((sum, l) => sum + l.unitPrice * l.qty, 0);
+    const result = evaluatePromo(await getPromo(promoCode).catch(() => null), { subtotal: amount, suitsSubtotal }, nairobiToday());
+    if (!result.ok) {
+      return NextResponse.json({ ok: false, error: `${promoCode}: ${result.error}` }, { status: 400 });
+    }
+    promo = { code: promoCode, discount: result.discount, label: result.label };
+    amount -= result.discount;
+    lines.push(`${result.label} −KES ${result.discount.toLocaleString("en-KE")}`);
+  }
+
   // ---- Delivery (required for suits, optional otherwise).
   let delivery: OrderDelivery | undefined;
   if (body.delivery && body.delivery.method !== undefined) {
@@ -249,6 +290,13 @@ export async function POST(request: NextRequest) {
       }
       delivery.address = address;
       delivery.town = town;
+      if (method.id === "international") {
+        const country = clip(body.delivery.country, 60);
+        if (country.length < 2) {
+          return NextResponse.json({ ok: false, error: "Enter the destination country." }, { status: 400 });
+        }
+        delivery.country = country;
+      }
     }
     const instructions = clip(body.delivery.instructions, 300);
     if (instructions) delivery.instructions = instructions;
@@ -257,7 +305,7 @@ export async function POST(request: NextRequest) {
   }
   if (delivery?.fee) {
     amount += delivery.fee;
-    lines.push(`${delivery.method === "nairobi" ? "Nairobi delivery" : "Courier"}`);
+    lines.push(delivery.method === "nairobi" ? "Nairobi delivery" : delivery.method === "international" ? `International courier (${delivery.country})` : "Courier");
   }
 
   const customerEmail = clip(body.customerEmail, 120);
@@ -335,6 +383,7 @@ export async function POST(request: NextRequest) {
       ...(delivery ? { delivery } : {}),
       amountDueNow,
       reference,
+      ...(promo ? { promo } : {}),
       ...(customerEmail ? { customerEmail } : {}),
       createdAt: new Date().toISOString(),
     });
@@ -387,7 +436,7 @@ export async function POST(request: NextRequest) {
       description,
       customerName: body.customerName?.trim() || undefined,
       customerEmail: customerEmail || undefined,
-      customerPhone: mobile,
+      customerPhone: kenyan ?? undefined,
       externalId: reference,
       returnUrl: `${siteUrl}/checkout/complete`,
       expiresInMinutes: 30,
@@ -434,6 +483,7 @@ export async function POST(request: NextRequest) {
       amountDueNow,
       balanceAfterPayment: amount - amountDueNow,
       paymentPlan,
+      discount: promo?.discount ?? 0,
       hasSuits,
       fitMethod: fitProfile?.method ?? null,
     });

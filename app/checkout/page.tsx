@@ -8,6 +8,7 @@ import { Section } from "@/components/ui/Section";
 import { FormField } from "@/components/ui/FormField";
 import { SuitPreview } from "@/components/suit/SuitPreview";
 import { CurrencyToggle } from "@/components/suit/CurrencyToggle";
+import { PromoField, type PromoPreview } from "@/components/suit/PromoField";
 import { useDisplayCurrency, useFitProfile } from "@/components/suit/stores";
 import { DELIVERY_METHODS, type DeliveryMethodId } from "@/lib/suit/catalogue";
 import { depositFor } from "@/lib/suit/pricing";
@@ -25,11 +26,12 @@ interface Details {
   delivery: DeliveryMethodId;
   address: string;
   town: string;
+  country: string;
   instructions: string;
   plan: "full" | "deposit";
 }
 
-const EMPTY: Details = { name: "", phone: "", email: "", delivery: "collect", address: "", town: "", instructions: "", plan: "full" };
+const EMPTY: Details = { name: "", phone: "", email: "", delivery: "collect", address: "", town: "", country: "", instructions: "", plan: "full" };
 
 export default function CheckoutPage() {
   const { items, subtotal, hydrated } = useCart();
@@ -46,7 +48,10 @@ export default function CheckoutPage() {
   const hasSuits = suitLines.length > 0;
   const fitIssues = useMemo(() => (hasSuits ? validateFitProfile(fit).filter((i) => i.severity === "error") : []), [hasSuits, fit]);
   const deliveryFee = hasSuits ? DELIVERY_METHODS.find((m) => m.id === d.delivery)?.fee ?? 0 : 0;
-  const total = subtotal + deliveryFee;
+  const suitsSubtotal = suitLines.reduce((n, l) => n + l.price * l.qty, 0);
+  const [promo, setPromo] = useState<PromoPreview | null>(null);
+  const discount = promo?.discount ?? 0;
+  const total = subtotal - discount + deliveryFee;
   const dueNow = hasSuits && d.plan === "deposit" ? depositFor(total) : total;
 
   // Restore what they typed last time (not the phone/name of a signed-in
@@ -92,6 +97,8 @@ export default function CheckoutPage() {
     if (hasSuits && !d.name.trim()) return "Enter your name — it goes on your order and fitting appointment.";
     if (d.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email.trim())) return "That email address doesn't look right.";
     if (hasSuits && d.delivery !== "collect" && (d.address.trim().length < 4 || d.town.trim().length < 2)) return "Enter a delivery address and town.";
+    if (hasSuits && d.delivery === "international" && d.country.trim().length < 2) return "Enter the destination country.";
+    if (hasSuits && d.delivery === "international" && !d.email.trim()) return "Add your email — we'll send overseas order updates there.";
     if (hasSuits && fitIssues.length) return fitIssues[0]!.message;
     if (hasSuits && !terms) return "Please accept the made-to-measure terms.";
     return null;
@@ -116,12 +123,13 @@ export default function CheckoutPage() {
           items: shopItems.map((item) => ({ productId: item.productId, variantId: item.variantId, qty: item.qty })),
           suits: suitLines.map((item) => ({ lineId: item.variantId, config: item.suit.config, qty: item.qty })),
           fit: hasSuits ? fit : undefined,
-          delivery: hasSuits ? { method: d.delivery, address: d.address, town: d.town, instructions: d.instructions } : undefined,
+          delivery: hasSuits ? { method: d.delivery, address: d.address, town: d.town, country: d.country, instructions: d.instructions } : undefined,
           paymentPlan: hasSuits ? d.plan : "full",
           customerName: d.name,
           customerPhone: d.phone,
           customerEmail: d.email,
           acceptTerms: hasSuits ? terms : undefined,
+          promoCode: promo?.code,
         }),
       });
       const data = await res.json();
@@ -215,8 +223,8 @@ export default function CheckoutPage() {
                 <FormField label={hasSuits ? "Full name" : "Full name (optional)"} htmlFor="customer-name">
                   <input id="customer-name" type="text" autoComplete="name" value={d.name} onChange={(e) => set("name", e.target.value)} placeholder="Jane Doe" className={`${inputClass} ${touched && hasSuits && !d.name.trim() ? "!border-oxblood" : ""}`} />
                 </FormField>
-                <FormField label="Phone number (M-Pesa)" htmlFor="customer-phone">
-                  <input id="customer-phone" type="tel" autoComplete="tel" required value={d.phone} onChange={(e) => set("phone", e.target.value)} placeholder="07XX XXX XXX" className={`${inputClass} ${touched && !d.phone.trim() ? "!border-oxblood" : ""}`} />
+                <FormField label={hasSuits && d.delivery === "international" ? "Phone (with country code)" : "Phone number (M-Pesa)"} htmlFor="customer-phone">
+                  <input id="customer-phone" type="tel" autoComplete="tel" required value={d.phone} onChange={(e) => set("phone", e.target.value)} placeholder={hasSuits && d.delivery === "international" ? "+44 7700 900123" : "07XX XXX XXX"} className={`${inputClass} ${touched && !d.phone.trim() ? "!border-oxblood" : ""}`} />
                 </FormField>
                 <div className="sm:col-span-2">
                   <FormField label="Email (for your receipt and suit specification)" htmlFor="customer-email">
@@ -252,7 +260,12 @@ export default function CheckoutPage() {
                         <input id="delivery-address" autoComplete="street-address" value={d.address} onChange={(e) => set("address", e.target.value)} className={`${inputClass} ${touched && d.address.trim().length < 4 ? "!border-oxblood" : ""}`} />
                       </FormField>
                     </div>
-                    <FormField label="Town" htmlFor="delivery-town">
+                    {d.delivery === "international" ? (
+                      <FormField label="Country" htmlFor="delivery-country">
+                        <input id="delivery-country" autoComplete="country-name" value={d.country} onChange={(e) => set("country", e.target.value)} className={`${inputClass} ${touched && d.country.trim().length < 2 ? "!border-oxblood" : ""}`} />
+                      </FormField>
+                    ) : null}
+                    <FormField label={d.delivery === "international" ? "City" : "Town"} htmlFor="delivery-town">
                       <input id="delivery-town" autoComplete="address-level2" value={d.town} onChange={(e) => set("town", e.target.value)} placeholder={d.delivery === "nairobi" ? "Nairobi" : ""} className={`${inputClass} ${touched && d.town.trim().length < 2 ? "!border-oxblood" : ""}`} />
                     </FormField>
                     <FormField label="Delivery notes (optional)" htmlFor="delivery-notes">
@@ -351,6 +364,12 @@ export default function CheckoutPage() {
                 <dt className="text-muted">Subtotal</dt>
                 <dd>{formatMoney(subtotal, currency)}</dd>
               </div>
+              {discount ? (
+                <div className="flex justify-between text-oxblood">
+                  <dt>{promo?.label}</dt>
+                  <dd>−{formatMoney(discount, currency)}</dd>
+                </div>
+              ) : null}
               {hasSuits ? (
                 <div className="flex justify-between">
                   <dt className="text-muted">Delivery</dt>
@@ -374,6 +393,9 @@ export default function CheckoutPage() {
                 </>
               ) : null}
             </dl>
+            <div className="mt-4">
+              <PromoField subtotal={subtotal} suitsSubtotal={suitsSubtotal} onChange={setPromo} />
+            </div>
             {currency === "USD" ? <p className="mt-3 text-[11px] text-muted">USD shown at approx. KES {KES_PER_USD}/USD. You&rsquo;ll be charged {formatKes(dueNow)}.</p> : null}
             {error ? (
               <p className="mt-4 text-sm text-oxblood" role="alert">

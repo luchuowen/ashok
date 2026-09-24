@@ -103,7 +103,7 @@ export default function AdminCustomOrdersPage() {
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <Tag variant="stage">{o.stage}</Tag>
                   {o.fitProfile ? <Tag>{METHOD_LABELS[o.fitProfile.method]}</Tag> : null}
-                  {o.delivery ? <Tag>{o.delivery.method === "collect" ? "Collect" : o.delivery.method === "nairobi" ? "Nairobi delivery" : "Courier"}</Tag> : null}
+                  {o.delivery ? <Tag>{o.delivery.method === "collect" ? "Collect" : o.delivery.method === "nairobi" ? "Nairobi delivery" : o.delivery.method === "international" ? `International · ${o.delivery.country ?? ""}` : "Courier"}</Tag> : null}
                   {isPartiallyPaid(o) ? <Tag variant="stage">Balance KES {o.balanceDue.toLocaleString("en-KE")}</Tag> : null}
                   <span className="text-xs text-muted">KES {o.price.toLocaleString("en-KE")}</span>
                 </div>

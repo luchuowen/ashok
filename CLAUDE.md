@@ -93,4 +93,6 @@ Approved and exact. Do not invent alternatives.
   option that changes the silhouette.
 - Orders: `source: "custom"` with `suits[]`, `fitProfile`, `delivery`, `paymentPlan`. Reconcile is
   amount-aware (deposits). See `.factory/DECISIONS.md` 2026-09-24.
+- Promo codes & gift cards: `lib/promo-shared.ts` (maths, client-safe), `lib/promo.ts` (server),
+  `/admin/promo-codes`. Discounts come off goods before delivery; checkout re-validates.
 - Local dev without credentials: `.env.local` with `TAIFAPAY_ENV=mock`, `ASHOK_FAKE_FIRESTORE=1`.

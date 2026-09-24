@@ -115,6 +115,7 @@ export const nav: NavItem[] = [
     group: "admin",
   },
   { slug: "admin-returns", href: "/admin/returns", label: "Returns", group: "admin" },
+  { slug: "admin-promo-codes", href: "/admin/promo-codes", label: "Promo Codes", group: "admin" },
   { slug: "admin-reports", href: "/admin/reports", label: "Reports", group: "admin" },
 ];
 

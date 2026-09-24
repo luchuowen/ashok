@@ -11,6 +11,7 @@ import {
 } from "@/lib/db";
 import { customOrderConfirmationEmail, orderConfirmationEmail } from "@/lib/email-templates";
 import { bookingNotifyAddress } from "@/lib/resend";
+import { recordPromoUse } from "@/lib/promo";
 import { restockForOrder } from "@/lib/inventory";
 import { sendEmail } from "@/lib/resend";
 import type { TaifaPayTransaction } from "@/lib/taifapay";
@@ -112,6 +113,9 @@ export async function reconcileTransaction(
     }
     const paid: Order = { ...order, stage, statusNote, balanceDue };
     const firstPayment = order.stage === "Payment Pending" || wasCancelled;
+    if (firstPayment && order.promo?.code) {
+      await recordPromoUse(order.promo.code, order.promo.discount).catch((e) => console.error("[payment-reconcile] promo use not recorded:", e instanceof Error ? e.message : e));
+    }
     if (firstPayment && order.source === "shop" && order.items && order.items.length > 0) {
       await notifyCustomerOrderConfirmed(paid).catch((emailError) => {
         console.error(

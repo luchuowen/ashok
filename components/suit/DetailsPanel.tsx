@@ -158,9 +158,15 @@ export function DetailsPanel({
         </div>
       ) : null}
       {tiles("accents.pickStitch")}
-      {tiles("accents.pocketSquare")}
       {tiles("accents.underCollar")}
       {tiles("accents.elbowPatches")}
+
+      <h3 className="border-t border-line pt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-oxblood">Accessories</h3>
+      {tiles("accents.pocketSquare")}
+      {tiles("accents.necktie")}
+      {tiles("accents.bowtie")}
+      {tiles("accents.braces")}
+      {tiles("accents.belt")}
 
       <h3 className="border-t border-line pt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-oxblood">Make & notes</h3>
       {tiles("suit.service")}
