@@ -50,7 +50,7 @@ export function OptionTiles({
                 aria-disabled={Boolean(reason)}
                 title={reason ?? v.description ?? v.label}
                 className={`flex flex-col items-center gap-1 border px-1.5 pb-2 pt-2.5 text-center transition-colors ${
-                  selected ? "border-ink bg-paper text-ink ring-1 ring-ink" : reason ? "cursor-not-allowed border-line text-muted/50" : "border-line text-ink hover:border-ink/60 hover:bg-paper"
+                  selected ? "border-ink bg-paper text-ink ring-1 ring-ink" : reason ? "cursor-not-allowed border-line text-muted/50" : "border-line text-ink hover:border-ink/60 hover:bg-cream"
                 }`}
               >
                 {hasGlyph(v.glyph) ? <OptionGlyph name={v.glyph} className="h-11 w-11" /> : null}
@@ -102,7 +102,7 @@ export function OptionTiles({
                 aria-disabled={Boolean(reason)}
                 title={reason ?? v.description ?? v.label}
                 className={`flex flex-col items-start border px-3 py-2 text-left text-xs transition-colors ${
-                  selected ? "border-ink bg-ink text-cream" : reason ? "cursor-not-allowed border-line text-muted/50" : "border-line text-ink hover:border-ink/60 hover:bg-paper"
+                  selected ? "border-ink bg-ink text-cream" : reason ? "cursor-not-allowed border-line text-muted/50" : "border-line text-ink hover:border-ink/60 hover:bg-cream"
                 }`}
               >
                 <span>{v.label}</span>

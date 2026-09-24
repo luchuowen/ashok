@@ -365,8 +365,8 @@ export function Configurator() {
       </section>
 
       {/* ---------------- Panel ---------------- */}
-      <section className="flex min-h-0 flex-1 flex-col lg:w-[440px] lg:flex-none xl:w-[480px]" aria-label="Design options">
-        <nav className="flex flex-none border-b border-line bg-cream" aria-label="Design steps">
+      <section className="flex min-h-0 flex-1 flex-col bg-paper lg:w-[440px] lg:flex-none xl:w-[480px]" aria-label="Design options">
+        <nav className="flex flex-none border-b border-line bg-paper" aria-label="Design steps">
           {STEPS.map((s, i) => (
             <button
               key={s.id}
