@@ -16,8 +16,8 @@ import { FabricPicker } from "./FabricPicker";
 import { OptionTiles } from "./OptionTiles";
 import { DetailsPanel } from "./DetailsPanel";
 import { SpecList } from "./SpecList";
-import { Stage } from "./Stage";
-import { SuitPreview, type PreviewView } from "./SuitPreview";
+import { Stage, type StageView } from "./Stage";
+import { SuitPreview } from "./SuitPreview";
 import { useDisplayCurrency } from "./stores";
 import { CurrencyToggle } from "./CurrencyToggle";
 
@@ -56,15 +56,19 @@ function writeJson(key: string, value: unknown) {
   }
 }
 
+/** Groups the on-model photographs show; everything else is easier to judge on the flat drawings. */
+const MODEL_GROUPS = new Set(["suit.pieces", "suit.fabricMode", "jacket.closure", "jacket.lapel", "accents.necktie", "accents.bowtie"]);
+
 /** Which preview view best shows the option that was just changed. */
-function viewFor(groupId: string, current: PreviewView): PreviewView {
+function viewFor(groupId: string, current: StageView): StageView {
+  if (MODEL_GROUPS.has(groupId)) return current === "modelBack" ? current : "model";
   if (groupId.startsWith("waistcoat.")) return "waistcoat";
   if (groupId === "jacket.vents" || groupId === "trousers.backPockets" || groupId === "accents.elbowPatches") return "back";
   if (groupId.startsWith("accents.lining") || groupId === "accents.underCollar") return "lining";
   if (
     groupId.startsWith("jacket.") ||
     groupId.startsWith("trousers.") ||
-    ["accents.buttons", "accents.buttonholes", "accents.pocketSquare", "accents.pickStitch", "accents.necktie", "accents.bowtie", "accents.belt", "accents.braces"].includes(groupId)
+    ["accents.buttons", "accents.buttonholes", "accents.pocketSquare", "accents.pickStitch", "accents.belt", "accents.braces"].includes(groupId)
   ) {
     return current === "waistcoat" && groupId.startsWith("trousers.") ? current : "front";
   }
@@ -82,7 +86,7 @@ export function Configurator() {
   const [ready, setReady] = useState(false);
   const [step, setStep] = useState<Step>("fabric");
   const [fabricTarget, setFabricTarget] = useState<"jacket" | "trousers" | "waistcoat">("jacket");
-  const [view, setView] = useState<PreviewView>("front");
+  const [view, setView] = useState<StageView>("model");
   const [advanced, setAdvanced] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [editLineId, setEditLineId] = useState<string | null>(null);
@@ -211,7 +215,7 @@ export function Configurator() {
         return normalizeConfig({ ...prev, waistcoatFabric: id }).config;
       });
       if (fabricTarget === "waistcoat") setView("waistcoat");
-      else if (view === "waistcoat") setView("front");
+      else if (view === "waistcoat") setView("model");
     },
     [fabricTarget, view],
   );
@@ -312,7 +316,7 @@ export function Configurator() {
     window.history.replaceState(null, "", url.toString());
     setQty(1);
     setStep("fabric");
-    setView("front");
+    setView("model");
   }
 
   const sections: { id: OptionSection; title: string }[] = [
@@ -340,7 +344,12 @@ export function Configurator() {
       style={fillHeight ? { height: fillHeight } : undefined}
     >
       {/* ---------------- Stage ---------------- */}
-      <section className="relative flex h-[40%] flex-none flex-col border-b border-line bg-[radial-gradient(ellipse_at_50%_35%,rgb(var(--paper))_0%,rgb(var(--cream))_70%)] lg:h-full lg:flex-1 lg:border-b-0 lg:border-l" aria-label="Suit preview">
+      <section
+        className={`relative flex h-[40%] flex-none flex-col border-b border-line transition-colors duration-300 lg:h-full lg:flex-1 lg:border-b-0 lg:border-l ${
+          view === "model" || view === "modelBack" ? "bg-[#eeeeee]" : "bg-[radial-gradient(ellipse_at_50%_35%,rgb(var(--paper))_0%,rgb(var(--cream))_70%)]"
+        }`}
+        aria-label="Suit preview"
+      >
         <div className="min-h-0 flex-1">
           <Stage config={config} view={view} onViewChange={setView} />
         </div>

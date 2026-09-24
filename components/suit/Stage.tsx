@@ -3,16 +3,66 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SuitConfig } from "@/lib/suit/types";
 import { SuitPreview, type PreviewView } from "./SuitPreview";
+import { ModelPreview, SKIN_TONES, type SkinToneId } from "./ModelPreview";
 
-const VIEW_LABELS: Record<PreviewView, string> = {
-  front: "Front",
-  back: "Back",
+/** Stage views: the photographic on-model views plus the flat technical drawings. */
+export type StageView = "model" | "modelBack" | PreviewView;
+
+const VIEW_LABELS: Record<StageView, string> = {
+  model: "On model",
+  modelBack: "Back",
+  front: "Flat",
+  back: "Flat back",
   lining: "Inside",
   waistcoat: "Waistcoat",
 };
 
-/** Close-up widths for the full-screen zoom, smallest first. */
+const isModel = (v: StageView) => v === "model" || v === "modelBack";
+
+/** Close-up widths for the full-screen zoom, smallest first. Photos top out lower (source resolution). */
 const ZOOM_WIDTHS = ["min(170vw, 1000px)", "min(260vw, 1700px)", "min(380vw, 2500px)"];
+const MODEL_ZOOM_WIDTHS = ["min(100vw, 900px)", "min(170vw, 1300px)", "min(240vw, 1700px)"];
+
+const SKIN_KEY = "ashok.suit.skinTone";
+function readSkin(): SkinToneId {
+  try {
+    const v = window.localStorage.getItem(SKIN_KEY);
+    return SKIN_TONES.some((t) => t.id === v) ? (v as SkinToneId) : "brown";
+  } catch {
+    return "brown";
+  }
+}
+
+function SkinSwatches({ skin, onSkin, compact = false }: { skin: SkinToneId; onSkin: (s: SkinToneId) => void; compact?: boolean }) {
+  return (
+    <div className={`flex items-center ${compact ? "gap-1" : "gap-1.5"}`} role="radiogroup" aria-label="Skin tone">
+      {!compact ? <span className="mr-1 text-[11px] uppercase tracking-wide text-muted">Skin</span> : null}
+      {SKIN_TONES.map((t) => {
+        const rgb = t.rgb ?? [164, 108, 81];
+        return (
+          <button
+            key={t.id}
+            type="button"
+            role="radio"
+            aria-checked={skin === t.id}
+            aria-label={`${t.label} skin tone`}
+            title={t.label}
+            onClick={() => onSkin(t.id)}
+            className={`h-6 w-6 rounded-full border ${skin === t.id ? "border-ink ring-1 ring-ink ring-offset-1" : "border-line"}`}
+            style={{ background: `rgb(${rgb.join(",")})` }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function Preview({ config, view, hideJacket, skin, fit, title }: { config: SuitConfig; view: StageView; hideJacket: boolean; skin: SkinToneId; fit: "contain" | "width"; title: string }) {
+  if (isModel(view)) {
+    return <ModelPreview config={config} view={view === "modelBack" ? "back" : "front"} hideJacket={hideJacket} skin={skin} fit={fit} className={fit === "width" ? "w-full" : "h-full w-full"} title={title} />;
+  }
+  return <SuitPreview config={config} view={view as PreviewView} hideJacket={hideJacket} className={fit === "width" ? "block h-auto w-full" : "h-full w-full"} title={title} />;
+}
 
 function JacketIcon({ hidden }: { hidden: boolean }) {
   return (
@@ -35,15 +85,29 @@ export function Stage({
   caption,
 }: {
   config: SuitConfig;
-  view: PreviewView;
-  onViewChange: (v: PreviewView) => void;
+  view: StageView;
+  onViewChange: (v: StageView) => void;
   caption?: string;
 }) {
   const three = config.options["suit.pieces"] === "three";
   const [hideJacket, setHideJacket] = useState(false);
-  const views: PreviewView[] = hideJacket ? ["front", "back"] : three ? ["front", "back", "lining", "waistcoat"] : ["front", "back", "lining"];
-  const current = views.includes(view) ? view : "front";
+  const views: StageView[] = hideJacket
+    ? ["model", "modelBack", "front", "back"]
+    : three
+      ? ["model", "modelBack", "front", "back", "lining", "waistcoat"]
+      : ["model", "modelBack", "front", "back", "lining"];
+  const current = views.includes(view) ? view : "model";
   const [zoomOpen, setZoomOpen] = useState(false);
+  const [skin, setSkinState] = useState<SkinToneId>("brown");
+  useEffect(() => setSkinState(readSkin()), []);
+  const setSkin = useCallback((t: SkinToneId) => {
+    setSkinState(t);
+    try {
+      window.localStorage.setItem(SKIN_KEY, t);
+    } catch {
+      // per-viewer convenience only
+    }
+  }, []);
 
   const step = (dir: 1 | -1) => {
     const i = views.indexOf(current);
@@ -70,7 +134,7 @@ export function Stage({
         }}
       >
         <div className="absolute inset-0">
-          <SuitPreview config={config} view={current} hideJacket={hideJacket} className="h-full w-full" title={label} />
+          <Preview config={config} view={current} hideJacket={hideJacket} skin={skin} fit="contain" title={label} />
         </div>
       </div>
 
@@ -78,7 +142,7 @@ export function Stage({
         <button type="button" onClick={() => step(-1)} className="flex h-9 w-9 flex-none items-center justify-center border border-line bg-paper text-lg text-ink hover:border-ink" aria-label="Previous view">
           ‹
         </button>
-        <div className="flex min-w-0 flex-1 justify-center gap-1" role="tablist" aria-label="Preview view">
+        <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto [scrollbar-width:none] sm:justify-center" role="tablist" aria-label="Preview view">
           {views.map((v) => (
             <button
               key={v}
@@ -86,7 +150,7 @@ export function Stage({
               role="tab"
               aria-selected={v === current}
               onClick={() => onViewChange(v)}
-              className={`border px-2 py-1 text-[11px] uppercase tracking-wide transition-colors sm:px-2.5 ${v === current ? "border-ink bg-ink text-cream" : "border-line bg-paper text-muted hover:text-ink"}`}
+              className={`flex-none whitespace-nowrap border px-2 py-1 text-[11px] uppercase tracking-wide transition-colors sm:px-2.5 ${v === current ? "border-ink bg-ink text-cream" : "border-line bg-paper text-muted hover:text-ink"}`}
             >
               {VIEW_LABELS[v]}
             </button>
@@ -110,8 +174,19 @@ export function Stage({
         <button type="button" onClick={() => setZoomOpen(true)} aria-label="Zoom" className="flex h-9 w-9 items-center justify-center border border-line bg-paper text-lg leading-none text-ink">
           +
         </button>
+        {isModel(current) ? (
+          <button
+            type="button"
+            onClick={() => setSkin(SKIN_TONES[(SKIN_TONES.findIndex((t) => t.id === skin) + 1) % SKIN_TONES.length]!.id)}
+            aria-label="Change skin tone"
+            className="flex h-9 w-9 items-center justify-center border border-line bg-paper"
+          >
+            <span className="h-5 w-5 rounded-full border border-line" style={{ background: `rgb(${(SKIN_TONES.find((t) => t.id === skin)?.rgb ?? [164, 108, 81]).join(",")})` }} />
+          </button>
+        ) : null}
       </div>
       <div className="hidden items-center justify-center gap-2 px-2 pb-3 sm:flex sm:px-4">
+        {isModel(current) ? <SkinSwatches skin={skin} onSkin={setSkin} /> : null}
         <button
           type="button"
           onClick={() => setHideJacket((h) => !h)}
@@ -139,6 +214,8 @@ export function Stage({
           onViewChange={onViewChange}
           hideJacket={hideJacket}
           onHideJacket={setHideJacket}
+          skin={skin}
+          onSkin={setSkin}
           onClose={() => setZoomOpen(false)}
         />
       ) : null}
@@ -153,16 +230,21 @@ function ZoomOverlay({
   onViewChange,
   hideJacket,
   onHideJacket,
+  skin,
+  onSkin,
   onClose,
 }: {
   config: SuitConfig;
-  views: PreviewView[];
-  view: PreviewView;
-  onViewChange: (v: PreviewView) => void;
+  views: StageView[];
+  view: StageView;
+  onViewChange: (v: StageView) => void;
   hideJacket: boolean;
   onHideJacket: (h: boolean) => void;
+  skin: SkinToneId;
+  onSkin: (s: SkinToneId) => void;
   onClose: () => void;
 }) {
+  const widths = isModel(view) ? MODEL_ZOOM_WIDTHS : ZOOM_WIDTHS;
   const [level, setLevel] = useState(0);
   const [progress, setProgress] = useState({ top: 0, size: 1 });
   const scroller = useRef<HTMLDivElement>(null);
@@ -182,7 +264,7 @@ function ZoomOverlay({
     closeBtn.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
-      if (e.key === "+" || e.key === "=") setLevel((l) => Math.min(ZOOM_WIDTHS.length - 1, l + 1));
+      if (e.key === "+" || e.key === "=") setLevel((l) => Math.min(2, l + 1));
       if (e.key === "-") setLevel((l) => Math.max(0, l - 1));
     };
     window.addEventListener("keydown", onKey);
@@ -209,16 +291,10 @@ function ZoomOverlay({
   const on = `${tool} border-ink bg-ink text-cream`;
 
   return (
-    <div className="fixed inset-0 z-[70] bg-white" role="dialog" aria-modal="true" aria-label="Close-up of your suit">
+    <div className={`fixed inset-0 z-[70] ${isModel(view) ? "bg-[#eeeeee]" : "bg-white"}`} role="dialog" aria-modal="true" aria-label="Close-up of your suit">
       <div ref={scroller} onScroll={measure} className="h-full w-full overflow-auto overscroll-contain">
-        <div className="mx-auto" style={{ width: ZOOM_WIDTHS[level] }}>
-          <SuitPreview
-            config={config}
-            view={view}
-            hideJacket={hideJacket}
-            className="block h-auto w-full"
-            title={`Close-up, ${VIEW_LABELS[view].toLowerCase()} view${hideJacket ? " without the jacket" : ""}`}
-          />
+        <div className="mx-auto" style={{ width: widths[level] }}>
+          <Preview config={config} view={view} hideJacket={hideJacket} skin={skin} fit="width" title={`Close-up, ${VIEW_LABELS[view].toLowerCase()} view${hideJacket ? " without the jacket" : ""}`} />
         </div>
       </div>
 
@@ -241,7 +317,7 @@ function ZoomOverlay({
       </div>
 
       <div className="fixed bottom-7 right-3 flex flex-col gap-1 sm:right-5">
-        <button type="button" onClick={() => setLevel((l) => Math.min(ZOOM_WIDTHS.length - 1, l + 1))} disabled={level === ZOOM_WIDTHS.length - 1} aria-label="Zoom in" className={`${off} w-9 text-base disabled:opacity-40`}>
+        <button type="button" onClick={() => setLevel((l) => Math.min(2, l + 1))} disabled={level === widths.length - 1} aria-label="Zoom in" className={`${off} w-9 text-base disabled:opacity-40`}>
           +
         </button>
         <button type="button" onClick={() => setLevel((l) => Math.max(0, l - 1))} disabled={level === 0} aria-label="Zoom out" className={`${off} w-9 text-base disabled:opacity-40`}>
@@ -251,6 +327,12 @@ function ZoomOverlay({
           <JacketIcon hidden={hideJacket} />
         </button>
       </div>
+
+      {isModel(view) ? (
+        <div className="fixed bottom-7 left-3 border border-line bg-white/90 px-2 py-1.5 backdrop-blur sm:left-5">
+          <SkinSwatches skin={skin} onSkin={onSkin} compact />
+        </div>
+      ) : null}
 
       {/* Scroll position indicator */}
       <div className="pointer-events-none fixed bottom-3 left-1/2 h-1 w-24 -translate-x-1/2 bg-line" aria-hidden="true">

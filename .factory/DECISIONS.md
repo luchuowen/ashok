@@ -89,3 +89,21 @@ drawing stands in), fabric "looks" photos, body-profile photo upload (would need
   an in-place scale.
 - "Hide jacket" shows the shirt (and waistcoat on a three-piece) over the trousers; preview-only,
   not part of the order spec.
+
+## 2026-09-25 — On-model photographic preview (owner picked option C)
+
+- The designer's default view is now **On model**: studio photos of one model in a neutral light-grey
+  suit, re-dyed in the browser (`components/suit/ModelPreview.tsx`). Per pose,
+  `scripts/build-model-poses.py` turns `design/model-src/<pose>.jpg` into `public/model/<pose>/`
+  (photo, normalised shading, part masks, background mask) + `lib/suit/model-poses.json`. The chosen
+  fabric texture is tiled and multiplied by the shading inside the jacket/trousers/waistcoat masks;
+  tie colour and skin tone (4 tones) are re-coloured the same way; the studio backdrop is made
+  transparent.
+- Poses: sb2 (with tie / without / bow tie), sb1 (with / without tie), double-breasted (with / without
+  tie), three-piece (with / without tie), waistcoat-only and shirt-only (hide jacket), back, mandarin.
+  `choosePose()` maps a configuration to a pose.
+- Photos were AI-generated (Canva) from one base shot so pose, light and framing match. Details the
+  photos can't show (lapel width, pocket style, buttons, vents, lining, monogram…) switch the stage to
+  the flat drawings ("Flat", "Flat back", "Inside", "Waistcoat"), which still render every option.
+  Swapping in a real photoshoot later = same poses, same file names, re-run the script.
+- Bag, checkout, admin and saved-design thumbnails keep the flat drawing (no canvas work in lists).

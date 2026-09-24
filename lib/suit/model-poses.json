@@ -1,0 +1,207 @@
+{
+  "tilePx": 150,
+  "poses": {
+    "front-sb2-notch": {
+      "width": 896,
+      "height": 1746,
+      "refs": {
+        "suit": 147.7,
+        "skin": 122.6,
+        "tie": 81.5
+      },
+      "skin": [
+        165,
+        108,
+        81
+      ],
+      "hasTie": true,
+      "hasWaistcoat": false
+    },
+    "front-notie": {
+      "width": 896,
+      "height": 1746,
+      "refs": {
+        "suit": 148.7,
+        "skin": 122.9
+      },
+      "skin": [
+        169,
+        108,
+        77
+      ],
+      "hasTie": false,
+      "hasWaistcoat": false
+    },
+    "front-bowtie": {
+      "width": 896,
+      "height": 1746,
+      "refs": {
+        "suit": 148.6,
+        "skin": 121.7,
+        "tie": 59.5
+      },
+      "skin": [
+        165,
+        107,
+        80
+      ],
+      "hasTie": true,
+      "hasWaistcoat": false
+    },
+    "front-sb1-shawl": {
+      "width": 896,
+      "height": 1746,
+      "refs": {
+        "suit": 148.4,
+        "skin": 121.8,
+        "tie": 78.7
+      },
+      "skin": [
+        165,
+        107,
+        79
+      ],
+      "hasTie": true,
+      "hasWaistcoat": false
+    },
+    "front-db6-peak": {
+      "width": 896,
+      "height": 1746,
+      "refs": {
+        "suit": 147.9,
+        "skin": 121.1,
+        "tie": 79.6
+      },
+      "skin": [
+        165,
+        106,
+        79
+      ],
+      "hasTie": true,
+      "hasWaistcoat": false
+    },
+    "front-threepiece": {
+      "width": 896,
+      "height": 1746,
+      "refs": {
+        "suit": 142.7,
+        "skin": 119.4,
+        "tie": 81.5
+      },
+      "skin": [
+        163,
+        105,
+        77
+      ],
+      "hasTie": true,
+      "hasWaistcoat": true
+    },
+    "front-threepiece-notie": {
+      "width": 896,
+      "height": 1746,
+      "refs": {
+        "suit": 144.7,
+        "skin": 122.2
+      },
+      "skin": [
+        171,
+        106,
+        77
+      ],
+      "hasTie": false,
+      "hasWaistcoat": true
+    },
+    "front-db6-peak-notie": {
+      "width": 896,
+      "height": 1746,
+      "refs": {
+        "suit": 149.5,
+        "skin": 120.6
+      },
+      "skin": [
+        166,
+        106,
+        77
+      ],
+      "hasTie": false,
+      "hasWaistcoat": false
+    },
+    "front-sb1-shawl-notie": {
+      "width": 896,
+      "height": 1746,
+      "refs": {
+        "suit": 147.2,
+        "skin": 122.3
+      },
+      "skin": [
+        169,
+        106,
+        78
+      ],
+      "hasTie": false,
+      "hasWaistcoat": false
+    },
+    "front-waistcoat": {
+      "width": 896,
+      "height": 1746,
+      "refs": {
+        "suit": 143.0,
+        "skin": 117.7,
+        "tie": 81.8
+      },
+      "skin": [
+        162,
+        103,
+        74
+      ],
+      "hasTie": true,
+      "hasWaistcoat": true
+    },
+    "front-mandarin": {
+      "width": 896,
+      "height": 1746,
+      "refs": {
+        "suit": 147.9,
+        "skin": 117.0
+      },
+      "skin": [
+        164,
+        101,
+        72
+      ],
+      "hasTie": false,
+      "hasWaistcoat": false
+    },
+    "front-nojacket": {
+      "width": 896,
+      "height": 1746,
+      "refs": {
+        "suit": 143.2,
+        "skin": 121.3,
+        "tie": 86.3
+      },
+      "skin": [
+        165,
+        107,
+        79
+      ],
+      "hasTie": true,
+      "hasWaistcoat": false
+    },
+    "back": {
+      "width": 896,
+      "height": 1746,
+      "refs": {
+        "suit": 157.9,
+        "skin": 110.3
+      },
+      "skin": [
+        144,
+        97,
+        78
+      ],
+      "hasTie": false,
+      "hasWaistcoat": false
+    }
+  }
+}
