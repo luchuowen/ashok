@@ -16,6 +16,11 @@ interface PendingOrder {
   currency: string;
   description: string;
   createdAt: number;
+  orderId?: string;
+  total?: number;
+  balanceAfterPayment?: number;
+  hasSuits?: boolean;
+  fitMethod?: string | null;
 }
 
 type Outcome = "checking" | "completed" | "failed" | "timeout" | "unknown";
@@ -135,20 +140,65 @@ export default function CheckoutCompletePage() {
 
           {outcome === "completed" ? (
             <>
-              <h1 className="text-3xl italic">Payment received</h1>
+              <h1 className="text-3xl italic">{order?.hasSuits ? "Your suit is on the cutting table" : "Payment received"}</h1>
               <p className="mt-4 text-sm text-muted">
                 Thank you — your order is confirmed. You&rsquo;ll get an SMS or M-Pesa receipt
-                for your records.
+                for your records{order?.hasSuits ? ", and your full suit specification by email if you gave us one" : ""}.
               </p>
               {order && order.description ? (
-                <p className="mt-6 border border-line p-4 text-sm">
-                  {order.description}
-                  <br />
-                  {order.currency} {order.amount.toLocaleString("en-KE")}
-                </p>
+                <div className="mt-6 border border-line p-4 text-left text-sm">
+                  {order.orderId ? (
+                    <p className="text-[11px] uppercase tracking-[0.15em] text-oxblood">Order {order.orderId.slice(-8).toUpperCase()}</p>
+                  ) : null}
+                  <p className="mt-1">{order.description}</p>
+                  <p className="mt-3 flex justify-between border-t border-line pt-3">
+                    <span className="text-muted">Paid</span>
+                    <span>
+                      {order.currency} {order.amount.toLocaleString("en-KE")}
+                    </span>
+                  </p>
+                  {order.balanceAfterPayment ? (
+                    <p className="mt-1 flex justify-between">
+                      <span className="text-muted">Balance at fitting</span>
+                      <span>KES {order.balanceAfterPayment.toLocaleString("en-KE")}</span>
+                    </p>
+                  ) : null}
+                </div>
               ) : null}
-              <div className="mt-8">
-                <Button href="/shop">Continue Shopping</Button>
+              {order?.hasSuits ? (
+                <ol className="mt-6 space-y-3 text-left text-sm">
+                  {order.fitMethod === "atelier" ? (
+                    <li>
+                      <span className="font-medium">1. Book your measuring appointment.</span>{" "}
+                      <span className="text-muted">We measure you at the Ridgeways atelier before we cut.</span>
+                    </li>
+                  ) : (
+                    <li>
+                      <span className="font-medium">1. We draft your pattern</span>{" "}
+                      <span className="text-muted">from the measurements you gave us.</span>
+                    </li>
+                  )}
+                  <li>
+                    <span className="font-medium">2. Fitting at the atelier.</span>{" "}
+                    <span className="text-muted">We&rsquo;ll message you on WhatsApp to arrange it.</span>
+                  </li>
+                  <li>
+                    <span className="font-medium">3. Collection or delivery</span>{" "}
+                    <span className="text-muted">— track every stage in your record.</span>
+                  </li>
+                </ol>
+              ) : null}
+              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                {order?.hasSuits && order.fitMethod === "atelier" ? (
+                  <Button href="/booking?type=made-to-measure&ref=custom-suit-measuring">Book measuring appointment</Button>
+                ) : null}
+                {order?.hasSuits ? (
+                  <Button href="/portal/orders" variant={order.fitMethod === "atelier" ? "ghost" : "primary"}>
+                    Track your order
+                  </Button>
+                ) : (
+                  <Button href="/shop">Continue Shopping</Button>
+                )}
               </div>
             </>
           ) : null}

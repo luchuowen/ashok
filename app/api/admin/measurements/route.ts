@@ -69,7 +69,8 @@ export async function POST(request: NextRequest) {
     // staff don't have to separately remember to update order stage too.
     const orders = await listOrdersForCustomer(phone);
     const openOrder = orders.find(
-      (order) => order.source === "bespoke" && order.stage === "Consultation",
+      // Includes custom suits ordered online with "measure me at the atelier".
+      (order) => (order.source === "bespoke" || order.source === "custom") && order.stage === "Consultation",
     );
     if (openOrder) {
       await updateOrder(openOrder.id, {

@@ -49,8 +49,14 @@ export const BESPOKE_ONLY_STAGES: readonly OrderStage[] = [
   "Final Fitting",
 ];
 
-/** Stages staff may set on an order, filtered by its source. */
-export function stagesFor(source: "shop" | "bespoke"): readonly OrderStage[] {
+/** Where an order came from: the shop, a staff-created bespoke order, or a
+ *  suit designed online in the custom-suit configurator. */
+export type OrderSource = "shop" | "bespoke" | "custom";
+
+/** Stages staff may set on an order, filtered by its source. Custom
+ *  (configurator) suits go through the full tailoring process, same as
+ *  bespoke. */
+export function stagesFor(source: OrderSource): readonly OrderStage[] {
   if (source === "shop") {
     return ORDER_STAGES.filter((stage) => !BESPOKE_ONLY_STAGES.includes(stage));
   }

@@ -41,7 +41,7 @@ export function LedgerTable<T extends { id: string }>({
             rows.map((row) => (
               <tr key={row.id} className="border-b border-line last:border-b-0">
                 {columns.map((col) => (
-                  <td key={String(col.key)} className="px-4 py-3">
+                  <td key={String(col.key)} className="px-4 py-3 align-top">
                     {col.render ? col.render(row) : String(row[col.key])}
                   </td>
                 ))}

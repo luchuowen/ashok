@@ -25,6 +25,15 @@ function getAdminApp(): App {
 let firestore: Firestore | undefined;
 
 export function adminDb(): Firestore {
+  // Local development only: an in-memory stand-in so the whole journey can
+  // run without GCP credentials (see lib/dev/fake-firestore.ts). Never on in
+  // a production build.
+  if (process.env.ASHOK_FAKE_FIRESTORE === "1" && process.env.NODE_ENV !== "production") {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { FakeFirestore } = require("./dev/fake-firestore") as typeof import("./dev/fake-firestore");
+    const g = globalThis as unknown as { __ashokFakeDb?: Firestore };
+    return (g.__ashokFakeDb ??= new FakeFirestore() as unknown as Firestore);
+  }
   if (!firestore) {
     firestore = getFirestore(getAdminApp());
     // Firestore rejects a document containing any `undefined` value

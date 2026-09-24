@@ -1,6 +1,11 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { MAX_SUITS_PER_LINE } from "@/lib/suit/catalogue";
+import { priceSuit, suitTitle } from "@/lib/suit/pricing";
+import { normalizeConfig, validateConfigStrict } from "@/lib/suit/rules";
+import { specSummary } from "@/lib/suit/spec";
+import type { SuitConfig } from "@/lib/suit/types";
 
 /**
  * Cart state lives in React state, persisted to localStorage so it
@@ -14,6 +19,17 @@ const CART_STORAGE_KEY = "ashok-cart";
 /** Mirrors MAX_QTY_PER_ITEM in app/api/checkout/create-invoice/route.ts. */
 export const MAX_QTY_PER_LINE = 20;
 
+/** productId shared by every custom-suit line; variantId is the line's own id. */
+export const CUSTOM_SUIT_PRODUCT_ID = "custom-suit";
+
+export interface CartSuit {
+  config: SuitConfig;
+  /** Set when the saved design no longer validates (a retired cloth or
+   *  option). The line is kept as designed, and checkout is blocked until
+   *  the customer reopens it — we never silently swap what they chose. */
+  issue?: string;
+}
+
 export interface CartItem {
   productId: string;
   variantId: string;
@@ -23,6 +39,39 @@ export interface CartItem {
   price: number;
   currency: string;
   qty: number;
+  /** Present only on custom-suit lines (productId === CUSTOM_SUIT_PRODUCT_ID). */
+  suit?: CartSuit;
+}
+
+export function isSuitLine(item: Pick<CartItem, "productId" | "suit">): item is CartItem & { suit: CartSuit } {
+  return item.productId === CUSTOM_SUIT_PRODUCT_ID && Boolean(item.suit?.config);
+}
+
+export function maxQtyFor(item: Pick<CartItem, "productId">): number {
+  return item.productId === CUSTOM_SUIT_PRODUCT_ID ? MAX_SUITS_PER_LINE : MAX_QTY_PER_LINE;
+}
+
+/** Build (or rebuild) a suit line from a config — price always recomputed from the catalogue. */
+function suitLine(config: SuitConfig, lineId: string, qty: number): CartItem {
+  const checked = validateConfigStrict(config);
+  const issue = "error" in checked ? checked.error : undefined;
+  const normalized = normalizeConfig(config).config;
+  return {
+    productId: CUSTOM_SUIT_PRODUCT_ID,
+    variantId: lineId,
+    variantLabel: specSummary(normalized),
+    slug: "custom-suits",
+    name: suitTitle(normalized),
+    price: priceSuit(normalized).unitTotal,
+    currency: "KES",
+    qty: Math.min(MAX_SUITS_PER_LINE, Math.max(1, qty)),
+    suit: issue ? { config, issue } : { config: normalized },
+  };
+}
+
+function newLineId(): string {
+  const rand = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID().slice(0, 8) : Math.random().toString(36).slice(2, 10);
+  return `suit-${Date.now().toString(36)}-${rand}`;
 }
 
 interface CartContextValue {
@@ -32,6 +81,12 @@ interface CartContextValue {
   setQty: (productId: string, variantId: string, qty: number) => void;
   clear: () => void;
   subtotal: number;
+  /** Adds a custom suit and returns its line id. */
+  addSuit: (config: SuitConfig, qty?: number) => string;
+  /** Replaces the design on an existing suit line (edit from the bag). */
+  updateSuit: (lineId: string, config: SuitConfig) => void;
+  duplicateLine: (productId: string, variantId: string) => void;
+  hydrated: boolean;
 }
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
@@ -56,16 +111,27 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         // Drop malformed lines from an older/corrupt save rather than
         // letting them crash the cart page or fail checkout.
         if (Array.isArray(parsed)) {
+          const valid = parsed.filter(
+            (i): i is CartItem =>
+              i &&
+              typeof i.productId === "string" &&
+              typeof i.variantId === "string" &&
+              typeof i.price === "number" &&
+              Number.isFinite(i.qty) &&
+              i.qty >= 1 &&
+              (i.productId !== CUSTOM_SUIT_PRODUCT_ID || Boolean(i.suit?.config)),
+          );
+          // Suit lines are re-priced from the current catalogue on every
+          // load, so a price change never leaves a stale number in the bag.
           setItems(
-            parsed.filter(
-              (i): i is CartItem =>
-                i &&
-                typeof i.productId === "string" &&
-                typeof i.variantId === "string" &&
-                typeof i.price === "number" &&
-                Number.isFinite(i.qty) &&
-                i.qty >= 1,
-            ),
+            valid.map((i) => {
+              if (i.productId !== CUSTOM_SUIT_PRODUCT_ID) return i;
+              try {
+                return suitLine(i.suit!.config, i.variantId, i.qty);
+              } catch {
+                return i;
+              }
+            }),
           );
         }
       }
@@ -107,8 +173,29 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // Clamped to 1..MAX_QTY_PER_LINE (the checkout API's own per-line cap);
   // removing a line is removeItem's job.
   const setQty = (productId: string, variantId: string, qty: number) => {
-    const next = Math.min(MAX_QTY_PER_LINE, Math.max(1, Math.floor(qty)));
+    const next = Math.min(maxQtyFor({ productId }), Math.max(1, Math.floor(qty)));
     setItems((prev) => prev.map((i) => (sameLine(i, { productId, variantId }) ? { ...i, qty: next } : i)));
+  };
+
+  const addSuit = (config: SuitConfig, qty = 1) => {
+    const lineId = newLineId();
+    setItems((prev) => [...prev, suitLine(config, lineId, qty)]);
+    return lineId;
+  };
+
+  const updateSuit = (lineId: string, config: SuitConfig) => {
+    setItems((prev) =>
+      prev.map((i) => (i.productId === CUSTOM_SUIT_PRODUCT_ID && i.variantId === lineId ? suitLine(config, lineId, i.qty) : i)),
+    );
+  };
+
+  const duplicateLine = (productId: string, variantId: string) => {
+    setItems((prev) => {
+      const line = prev.find((i) => sameLine(i, { productId, variantId }));
+      if (!line) return prev;
+      if (isSuitLine(line)) return [...prev, suitLine(line.suit.config, newLineId(), 1)];
+      return prev.map((i) => (sameLine(i, line) ? { ...i, qty: Math.min(MAX_QTY_PER_LINE, i.qty + 1) } : i));
+    });
   };
 
   const clear = () => {
@@ -126,8 +213,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo<CartContextValue>(
-    () => ({ items, addItem, removeItem, setQty, clear, subtotal }),
-    [items, subtotal],
+    () => ({ items, addItem, removeItem, setQty, clear, subtotal, addSuit, updateSuit, duplicateLine, hydrated }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [items, subtotal, hydrated],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

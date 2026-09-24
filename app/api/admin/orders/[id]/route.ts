@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isStaffAuthed } from "@/lib/require-staff";
-import { ORDER_STAGES, BESPOKE_ONLY_STAGES, getOrder, updateOrder, type Order, type OrderStage } from "@/lib/db";
+import { ORDER_STAGES, BESPOKE_ONLY_STAGES, claimOrderRestock, getOrder, listPaymentsForOrder, updateOrder, type Order, type OrderStage } from "@/lib/db";
 import { restockForOrder } from "@/lib/inventory";
 
 const TERMINAL_STAGES: OrderStage[] = ["Cancelled", "Returned", "Refunded"];
@@ -14,7 +14,8 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
     if (!order) {
       return NextResponse.json({ ok: false, error: "Order not found." }, { status: 404 });
     }
-    return NextResponse.json({ ok: true, order });
+    const payments = await listPaymentsForOrder(order.id).catch(() => []);
+    return NextResponse.json({ ok: true, order, payments });
   } catch (error) {
     console.error("[admin/orders/:id] get failed:", error instanceof Error ? error.message : error);
     return NextResponse.json({ ok: false, error: "Could not load that order." }, { status: 502 });
@@ -74,7 +75,15 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     // a stage bounce that isn't actually a fresh cancellation.
     if (patch.stage === "Cancelled") {
       const existing = existingForValidation ?? (await getOrder(params.id));
-      if (existing && existing.source === "shop" && !TERMINAL_STAGES.includes(existing.stage) && existing.items?.length) {
+      // Custom-suit orders can carry shop accessories too — any order with
+      // stocked `items` gets them back; bespoke orders never have items.
+      if (
+        existing &&
+        existing.source !== "bespoke" &&
+        !TERMINAL_STAGES.includes(existing.stage) &&
+        existing.items?.length &&
+        (await claimOrderRestock(existing.id))
+      ) {
         await restockForOrder(
           existing.items.map((item) => ({ productId: item.productId, variantId: item.variantId, qty: item.qty })),
           existing.id,

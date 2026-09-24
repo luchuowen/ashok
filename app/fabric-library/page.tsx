@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Section } from "@/components/ui/Section";
 import { TitleBand } from "@/components/ui/TitleBand";
 import { Photo } from "@/components/ui/Photo";
@@ -41,6 +42,9 @@ export default function FabricLibraryPage() {
               <p className="text-xs text-muted">
                 {fabric.origin} · {fabric.weight}
               </p>
+              <Link href={`/custom-suits/design?fabric=${fabric.id}`} className="mt-2 inline-block text-[11px] uppercase tracking-wide text-ink underline underline-offset-2 hover:text-oxblood">
+                Design a suit in this cloth
+              </Link>
             </div>
           ))}
         </div>
@@ -51,6 +55,11 @@ export default function FabricLibraryPage() {
         <p className="mt-4 max-w-2xl text-base text-muted">
           Explore our fabric collection and select your preferred option before your consultation.
           We’ll have it ready for you to review when you arrive.
+        </p>
+        <p className="mt-6">
+          <Link href="/custom-suits/design" className="cta">
+            Or design your suit online
+          </Link>
         </p>
       </Section>
     </main>

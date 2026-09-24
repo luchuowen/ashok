@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
@@ -372,6 +373,14 @@ function CustomerDetailPanel({
                       <p>
                         {o.item} — {o.currency} {o.price.toLocaleString("en-KE")}
                       </p>
+                      {o.source === "custom" ? (
+                        <p className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+                          <Tag variant="stage">Designed online</Tag>
+                          <Link href={`/admin/custom-orders/${o.id}`} className="uppercase tracking-wide text-ink underline hover:text-oxblood">
+                            Work ticket & spec
+                          </Link>
+                        </p>
+                      ) : null}
                       {o.balanceDue > 0 ? (
                         <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
                           <span>

@@ -19,6 +19,7 @@ const VISIT_TYPES = ["Bespoke", "Made-to-Measure", "Alterations", "Wedding Party
 // track — kept simple rather than adding more visit types for this alone.
 function preselectedType(param: string | null): string | null {
   if (param === "wedding" || param === "corporate") return "Wedding Party";
+  if (param === "made-to-measure") return "Made-to-Measure";
   return null;
 }
 

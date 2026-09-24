@@ -23,7 +23,7 @@ export function AdminNav() {
       <div className="mx-auto max-w-6xl">
         <ul className="flex gap-1 overflow-x-auto">
           {adminTabs.map((tab) => {
-            const isActive = pathname === tab.href;
+            const isActive = pathname === tab.href || (tab.href !== "/admin" && pathname?.startsWith(`${tab.href}/`));
             return (
               <li key={tab.slug} className="flex-shrink-0">
                 <Link

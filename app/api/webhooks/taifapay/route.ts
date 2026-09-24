@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
         : normalizeTransactionStatus(event.data?.status ?? "");
   if (transactionId) {
     try {
-      const result = await reconcileTransaction(transactionId, status);
+      const result = await reconcileTransaction(transactionId, status, Number(event.data?.amount) || undefined);
       console.log(`[taifapay-webhook] reconcile ${transactionId}: ${result.action}`);
     } catch (dbError) {
       console.error(

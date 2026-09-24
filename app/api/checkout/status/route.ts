@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   try {
     const transaction = await getTransaction(transactionId);
     if (transaction.status !== "PENDING") {
-      await reconcileTransaction(transactionId, transaction.status).catch((dbError) => {
+      await reconcileTransaction(transactionId, transaction.status, transaction.amount).catch((dbError) => {
         // The customer still gets the real TaifaPay status; the webhook (or
         // the next poll) gets another go at the Firestore side.
         console.error(

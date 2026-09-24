@@ -79,3 +79,18 @@ Approved and exact. Do not invent alternatives.
   document would look like.
 - Don't start building any of the other routes beyond what a session was explicitly scoped to —
   check `.factory/manifest.json` and the relevant `.factory/changes/*.md` first.
+
+## Custom suit engine (added 2026-09-24)
+
+- Routes: `/custom-suits` (landing), `/custom-suits/design` (configurator; `?preset=`, `?fabric=`,
+  `?d=<share code>`, `?edit=<bag line id>`, `?step=`), `/custom-suits/measurements` (fit profile),
+  `/admin/custom-orders` (+ `/[id]` work ticket), `/portal/designs`.
+- `lib/suit/` is client-safe and the single source of truth: `catalogue.ts` (fabrics, palettes,
+  option groups + KES surcharges, presets, delivery), `rules.ts` (dependencies, normalisation, strict
+  server validation), `pricing.ts`, `spec.ts`, `measurements.ts`, `codec.ts`. Never price a suit
+  anywhere else. Bump `CATALOGUE_VERSION` when prices change.
+- `components/suit/SuitPreview.tsx` draws every visible option; add drawing there when adding an
+  option that changes the silhouette.
+- Orders: `source: "custom"` with `suits[]`, `fitProfile`, `delivery`, `paymentPlan`. Reconcile is
+  amount-aware (deposits). See `.factory/DECISIONS.md` 2026-09-24.
+- Local dev without credentials: `.env.local` with `TAIFAPAY_ENV=mock`, `ASHOK_FAKE_FIRESTORE=1`.

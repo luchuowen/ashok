@@ -8,6 +8,10 @@ import { Tag } from "@/components/ui/Tag";
 import { usePortalData } from "@/app/portal/portal-context";
 import type { Order, OrderStage } from "@/lib/db";
 import { isPartiallyPaid } from "@/lib/order-stages";
+import Link from "next/link";
+import { SuitPreview } from "@/components/suit/SuitPreview";
+import { SpecList } from "@/components/suit/SpecList";
+import { METHOD_LABELS } from "@/lib/suit/measurements";
 
 const inputClasses =
   "border border-line bg-paper px-3 py-2 text-sm text-ink focus:border-oxblood focus:outline-none";
@@ -23,7 +27,7 @@ export default function OrdersPage() {
       <div className="mt-8">
         <LedgerTable<Order>
           columns={[
-            { key: "item", header: "Order" },
+            { key: "item", header: "Order", render: (row) => <OrderSummaryCell order={row} /> },
             {
               key: "stage",
               header: "Stage",
@@ -156,5 +160,45 @@ function RequestReturnAction({ order, onRequested }: { order: Order; onRequested
       </div>
       {error ? <p className="text-xs text-oxblood">{error}</p> : null}
     </form>
+  );
+}
+
+/** Order description; custom suits get their drawing and full specification on demand. */
+function OrderSummaryCell({ order }: { order: Order }) {
+  const [open, setOpen] = useState(false);
+  if (order.source !== "custom" || !order.suits?.length) return <span>{order.item}</span>;
+  return (
+    <div className="min-w-[220px]">
+      <div className="flex items-start gap-3">
+        <span className="h-16 w-11 flex-none border border-line bg-cream">
+          <SuitPreview config={order.suits[0]!.config} className="h-full w-full" />
+        </span>
+        <span>
+          <span className="block">{order.item}</span>
+          <span className="block text-[11px] text-muted">Ref {order.id.slice(-8).toUpperCase()}{order.estimatedCompletion ? ` · ready around ${order.estimatedCompletion}` : ""}</span>
+          <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="mt-1 text-[11px] uppercase tracking-wide text-ink underline hover:text-oxblood">
+            {open ? "Hide specification" : "View specification"}
+          </button>
+        </span>
+      </div>
+      {open ? (
+        <div className="mt-3 space-y-5 border border-line bg-paper p-4">
+          {order.suits.map((s) => (
+            <div key={s.lineId}>
+              <p className="mb-2 font-display text-base">
+                {s.qty}× {s.title}
+              </p>
+              <SpecList groups={s.spec} compact />
+            </div>
+          ))}
+          {order.fitProfile ? <p className="text-xs text-muted">Measurements: {METHOD_LABELS[order.fitProfile.method]}</p> : null}
+          {order.fitProfile?.method === "atelier" && order.stage === "Consultation" ? (
+            <Link href="/booking?type=made-to-measure&ref=custom-suit-measuring" className="inline-block text-xs uppercase tracking-wide underline hover:text-oxblood">
+              Book your measuring appointment
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
   );
 }

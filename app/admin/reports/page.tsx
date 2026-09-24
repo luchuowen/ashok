@@ -9,6 +9,9 @@ interface ReportData {
     shopOrderCount: number;
     paidShopOrderCount: number;
     shopRevenue: number;
+    customOrderCount?: number;
+    customCollected?: number;
+    customOutstanding?: number;
     ordersByStage: Record<string, number>;
   };
   reconciliation: {
@@ -95,6 +98,11 @@ export default function AdminReportsPage() {
         <StatCard label="Shop Revenue (Paid+)" value={`KES ${report.sales.shopRevenue.toLocaleString("en-KE")}`} />
         <StatCard label="Paid Shop Orders" value={String(report.sales.paidShopOrderCount)} />
         <StatCard label="All Shop Orders" value={String(report.sales.shopOrderCount)} />
+      </div>
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatCard label="Custom Suits Collected" value={`KES ${(report.sales.customCollected ?? 0).toLocaleString("en-KE")}`} />
+        <StatCard label="Custom Suits Outstanding" value={`KES ${(report.sales.customOutstanding ?? 0).toLocaleString("en-KE")}`} />
+        <StatCard label="Custom Suit Orders" value={String(report.sales.customOrderCount ?? 0)} />
       </div>
       <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted">
         {Object.entries(report.sales.ordersByStage).map(([stage, count]) => (

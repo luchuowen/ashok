@@ -21,7 +21,7 @@ const houseSlugs = [
   "portfolio",
   "weddings-corporate",
 ];
-const shopSlugs = ["shop", "cart", "checkout"];
+const shopSlugs = ["custom-suits", "suit-designer", "shop", "cart", "checkout"];
 // "auth" is handled separately below (AccountLinks) since it needs to
 // switch between "Sign In" and the signed-in phone/Sign Out state.
 const accountOverrides: { slug: string; label: string }[] = [

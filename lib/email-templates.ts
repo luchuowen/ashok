@@ -7,6 +7,9 @@
  * with system-font fallbacks since most email clients ignore @font-face.
  */
 
+import type { Order } from "@/lib/db";
+import { METHOD_LABELS } from "@/lib/suit/measurements";
+
 const SITE_URL = "https://ashok.navac.co.ke";
 
 function escapeHtml(input: string): string {
@@ -336,4 +339,86 @@ export function lowStockAlertEmail({ items }: LowStockAlertEmailParams): string 
     <table style="font-size:14px; border-collapse:collapse;">${rows}</table>
     <p style="margin-top:16px;"><a href="${SITE_URL}/admin/stock" style="color:${OXBLOOD};">Open Stock Levels</a> to reorder or adjust.</p>
   </div>`;
+}
+
+export interface CustomOrderEmailParams {
+  name: string;
+  orderReference: string;
+  order: Order;
+  paidAmount: number;
+}
+
+/** Confirmation for a suit designed online — the full specification per
+ *  suit, what was paid, what's outstanding and what happens next. Sent to
+ *  the customer and (same body) to the atelier as the new-order notice. */
+export function customOrderConfirmationEmail({ name, orderReference, order, paidAmount }: CustomOrderEmailParams): string {
+  const kes = (n: number) => `KES ${Math.round(n).toLocaleString("en-KE")}`;
+  const atelier = order.fitProfile?.method === "atelier";
+  const suits = (order.suits ?? [])
+    .map((s) => {
+      const groups = s.spec
+        .map(
+          (g) => `
+      <tr><td colspan="2" style="padding:14px 24px 4px; font-family:${BODY_FONT}; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:${OXBLOOD};">${escapeHtml(g.title)}</td></tr>
+      ${g.rows
+        .map(
+          (r) => `<tr><td style="padding:2px 24px; font-family:${BODY_FONT}; font-size:13px; color:${MUTED}; width:40%; vertical-align:top;">${escapeHtml(r.label)}</td><td style="padding:2px 24px 2px 0; font-family:${BODY_FONT}; font-size:13px; color:${INK};">${escapeHtml(r.value)}</td></tr>`,
+        )
+        .join("")}`,
+        )
+        .join("");
+      return `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${PAPER}; border:1px solid ${LINE}; margin-bottom:16px;">
+    <tr><td style="padding:18px 24px; border-bottom:1px solid ${LINE}; font-family:${DISPLAY_FONT}; font-size:18px; color:${INK};">${escapeHtml(`${s.qty}× ${s.title}`)}</td>
+        <td align="right" style="padding:18px 24px; border-bottom:1px solid ${LINE}; font-family:${BODY_FONT}; font-size:14px; color:${INK}; font-weight:600;">${kes(s.unitPrice * s.qty)}</td></tr>
+    ${groups}
+    <tr><td colspan="2" style="padding:0 0 14px;"></td></tr>
+  </table>`;
+    })
+    .join("");
+  const shopRows = (order.items ?? [])
+    .map((i) => `<tr><td style="padding:8px 24px; font-family:${BODY_FONT}; font-size:13px; color:${MUTED};">${escapeHtml(`${i.qty}x ${i.productName} (${i.variantLabel})`)}</td><td align="right" style="padding:8px 24px; font-family:${BODY_FONT}; font-size:13px;">${kes(i.unitPrice * i.qty)}</td></tr>`)
+    .join("");
+  const deliveryLine = order.delivery
+    ? `${escapeHtml(order.delivery.label)}${order.delivery.address ? ` — ${escapeHtml(order.delivery.address)}, ${escapeHtml(order.delivery.town ?? "")}` : ""}`
+    : "Collect at the atelier";
+  const next = atelier
+    ? "Book your measuring appointment at our Ridgeways atelier — we don't cut until we've measured you."
+    : "Our cutter is drafting your pattern now. We'll message you on WhatsApp to arrange your fitting.";
+
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Your suit order — Ashok Sunny Tailored</title></head>
+<body style="margin:0; padding:0; background:${CREAM}; font-family:${BODY_FONT};">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${CREAM};"><tr><td align="center" style="padding:32px 16px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px; max-width:100%;">
+<tr><td style="background:${INK}; padding:36px 32px; text-align:center;">
+  <img src="${SITE_URL}/email/logo-badge.png" width="56" height="56" alt="Ashok Sunny Tailored" style="display:inline-block; border-radius:12px;" />
+  <p style="font-family:${DISPLAY_FONT}; font-style:italic; color:${CREAM}; font-size:15px; margin:14px 0 0;">Ashok Sunny Tailored</p>
+</td></tr>
+<tr><td style="padding:40px 40px 16px; text-align:center;">
+  <p style="font-family:${BODY_FONT}; font-size:11px; text-transform:uppercase; letter-spacing:0.15em; color:${OXBLOOD}; margin:0 0 14px;">Order ${escapeHtml(orderReference)}</p>
+  <p style="font-family:${DISPLAY_FONT}; font-size:26px; line-height:1.3; margin:0 0 14px; color:${INK};">Thank you, ${escapeHtml(name)} — your suit is on the cutting table.</p>
+  <p style="font-family:${BODY_FONT}; font-size:14px; color:${MUTED}; line-height:1.7; margin:0 auto; max-width:440px;">${escapeHtml(next)}</p>
+</td></tr>
+<tr><td style="padding:16px 40px 0;">${suits}
+  ${shopRows ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${PAPER}; border:1px solid ${LINE}; margin-bottom:16px;">${shopRows}</table>` : ""}
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${PAPER}; border:1px solid ${LINE};">
+    <tr><td style="padding:10px 24px; font-size:13px; color:${MUTED}; font-family:${BODY_FONT};">Measurements</td><td align="right" style="padding:10px 24px; font-size:13px; font-family:${BODY_FONT};">${escapeHtml(order.fitProfile ? METHOD_LABELS[order.fitProfile.method] : "—")}</td></tr>
+    <tr><td style="padding:10px 24px; font-size:13px; color:${MUTED}; font-family:${BODY_FONT};">Delivery</td><td align="right" style="padding:10px 24px; font-size:13px; font-family:${BODY_FONT};">${deliveryLine}</td></tr>
+    <tr><td style="padding:10px 24px; font-size:13px; color:${MUTED}; font-family:${BODY_FONT};">Estimated ready</td><td align="right" style="padding:10px 24px; font-size:13px; font-family:${BODY_FONT};">${escapeHtml(order.estimatedCompletion || "We'll confirm at your fitting")}</td></tr>
+    <tr><td style="padding:12px 24px; background:${CREAM}; font-size:14px; font-weight:600; font-family:${BODY_FONT};">Order total</td><td align="right" style="padding:12px 24px; background:${CREAM}; font-size:14px; font-weight:600; font-family:${BODY_FONT};">${kes(order.price)}</td></tr>
+    <tr><td style="padding:10px 24px; font-size:13px; color:${MUTED}; font-family:${BODY_FONT};">Paid today</td><td align="right" style="padding:10px 24px; font-size:13px; font-family:${BODY_FONT};">${kes(paidAmount)}</td></tr>
+    <tr><td style="padding:10px 24px; font-size:13px; color:${MUTED}; font-family:${BODY_FONT};">Balance (due at fitting)</td><td align="right" style="padding:10px 24px; font-size:13px; font-family:${BODY_FONT};">${kes(order.balanceDue)}</td></tr>
+  </table>
+</td></tr>
+<tr><td style="padding:32px 40px 44px; text-align:center;">
+  <a href="${SITE_URL}/portal/orders" style="display:inline-block; padding:13px 28px; font-family:${BODY_FONT}; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; background:${OXBLOOD}; color:${CREAM}; text-decoration:none;">View in Your Record</a>
+  ${atelier ? `<p style="margin:18px 0 0;"><a href="${SITE_URL}/booking?type=made-to-measure&ref=custom-suit-measuring" style="font-family:${BODY_FONT}; font-size:13px; color:${INK};">Book your measuring appointment →</a></p>` : ""}
+</td></tr>
+<tr><td style="background:${INK}; padding:28px 40px; text-align:center;">
+  <p style="font-family:${BODY_FONT}; font-size:11px; color:rgba(245,244,239,0.5); margin:0 0 4px;">Ridgeways, Nairobi &middot; +254 705 706 433</p>
+  <p style="font-family:${BODY_FONT}; font-size:11px; color:rgba(245,244,239,0.5); margin:0;">Sent because you placed an order on ashok.navac.co.ke.</p>
+</td></tr>
+</table></td></tr></table>
+</body></html>`;
 }

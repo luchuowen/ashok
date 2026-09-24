@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Section } from "@/components/ui/Section";
 import { TitleBand } from "@/components/ui/TitleBand";
 import { CardGrid } from "@/components/ui/CardGrid";
@@ -32,6 +33,27 @@ export default function MadeToMeasurePage() {
           intro="A house block, adjusted against your measurements, for occasionwear and everyday pieces — shirts, trousers, dresses, blazers. One fitting, ready in 2–3 weeks."
           priceChip={<PriceChip price={32000} />}
         />
+      </Section>
+
+      <Section>
+        <div className="grid items-center gap-8 border border-line bg-paper p-6 sm:grid-cols-[1fr_auto] md:p-10">
+          <div className="text-center sm:text-left">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-oxblood">New · design online</p>
+            <h2 className="mt-2 text-3xl">Design your made-to-measure suit online</h2>
+            <p className="mt-3 max-w-xl text-sm text-muted">
+              Choose the cloth, lapels, pockets, lining and monogram, see it drawn as you go, then add your measurements and pay by M-Pesa or card.
+              We still fit you in person.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Link href="/custom-suits/design" className="cta">
+              Design your suit
+            </Link>
+            <Link href="/custom-suits" className="text-center text-xs uppercase tracking-wide underline hover:text-oxblood">
+              How it works
+            </Link>
+          </div>
+        </div>
       </Section>
 
       <Section>

@@ -16,8 +16,9 @@ import { adminDb } from "@/lib/firebase-admin";
  * failure break the email/payment flow that already works without it.
  */
 
-export { ORDER_STAGES, BESPOKE_ONLY_STAGES, stagesFor, isPartiallyPaid, type OrderStage } from "@/lib/order-stages";
-import type { OrderStage } from "@/lib/order-stages";
+export { ORDER_STAGES, BESPOKE_ONLY_STAGES, stagesFor, isPartiallyPaid, type OrderStage, type OrderSource } from "@/lib/order-stages";
+import type { OrderStage, OrderSource } from "@/lib/order-stages";
+import type { FitProfile, PriceLine, SpecGroup, SuitConfig } from "@/lib/suit/types";
 
 export interface OrderItem {
   productId: string;
@@ -40,7 +41,7 @@ export interface Order {
   price: number;
   currency: "KES";
   balanceDue: number;
-  source: "shop" | "bespoke";
+  source: OrderSource;
   transactionId?: string;
   /** Structured line items for a shop order — what stock deduction, returns
    *  and restocking (see lib/inventory.ts) actually operate on. `item` above
@@ -49,6 +50,50 @@ export interface Order {
    *  this is the machine-readable version alongside it. Bespoke orders have
    *  no discrete stocked products, so this stays undefined for them. */
   items?: OrderItem[];
+  /** Custom suits designed online (source "custom"). A full snapshot —
+   *  config, human-readable spec and price breakdown — so the order stays
+   *  readable and re-printable even after the catalogue changes. */
+  suits?: SuitOrderLine[];
+  /** Customer's fit profile at the time of ordering (source "custom"). */
+  fitProfile?: FitProfile;
+  delivery?: OrderDelivery;
+  /** How the customer chose to pay at checkout. */
+  paymentPlan?: "full" | "deposit";
+  /** Amount invoiced at checkout (the deposit, or the full total). */
+  amountDueNow?: number;
+  /** TaifaPay account reference of the checkout invoice (ASHOK-…). */
+  reference?: string;
+  /** Pricing catalogue version the suits were priced against. */
+  catalogueVersion?: string;
+  customerEmail?: string;
+  createdAt?: string;
+  /** Gateway transaction ids whose COMPLETED payment has already been
+   *  applied to this order — the idempotency record for reconcile. */
+  appliedTransactions?: string[];
+  /** Set once this order's stocked items have been put back, so a later
+   *  cancellation (or a second failure signal) can never restock twice. */
+  restockedAt?: string;
+}
+
+export interface SuitOrderLine {
+  lineId: string;
+  title: string;
+  summary: string;
+  qty: number;
+  unitPrice: number;
+  priceLines: PriceLine[];
+  config: SuitConfig;
+  spec: SpecGroup[];
+  leadTimeDays: number;
+}
+
+export interface OrderDelivery {
+  method: "collect" | "nairobi" | "kenya";
+  label: string;
+  fee: number;
+  address?: string;
+  town?: string;
+  instructions?: string;
 }
 
 export type PaymentStatus = "Paid" | "Outstanding" | "Failed";
@@ -329,6 +374,33 @@ export async function updateOrder(id: string, patch: Partial<Order>): Promise<vo
   await adminDb().collection(COLLECTIONS.orders).doc(id).set(patch, { merge: true });
 }
 
+/**
+ * Atomically claim a gateway transaction for an order. Returns false when it
+ * was already applied — whichever of the webhook or the customer's status
+ * poll gets here first applies the payment; the other becomes a no-op.
+ */
+export async function claimOrderTransaction(orderId: string, transactionId: string): Promise<boolean> {
+  const ref = adminDb().collection(COLLECTIONS.orders).doc(orderId);
+  return adminDb().runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const applied = ((snap.data() as Order | undefined)?.appliedTransactions ?? []) as string[];
+    if (applied.includes(transactionId)) return false;
+    tx.set(ref, { appliedTransactions: [...applied, transactionId] }, { merge: true });
+    return true;
+  });
+}
+
+/** Atomically mark an order's stock as returned. False if it already was. */
+export async function claimOrderRestock(orderId: string): Promise<boolean> {
+  const ref = adminDb().collection(COLLECTIONS.orders).doc(orderId);
+  return adminDb().runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if ((snap.data() as Order | undefined)?.restockedAt) return false;
+    tx.set(ref, { restockedAt: new Date().toISOString() }, { merge: true });
+    return true;
+  });
+}
+
 export async function getOrderByTransactionId(transactionId: string): Promise<Order | null> {
   const snap = await adminDb()
     .collection(COLLECTIONS.orders)
@@ -367,6 +439,33 @@ export async function listRecentPayments(limit = 20): Promise<Payment[]> {
 export async function createPayment(data: Omit<Payment, "id">): Promise<string> {
   const ref = await adminDb().collection(COLLECTIONS.payments).add(data);
   return ref.id;
+}
+
+export async function getPaymentByTransactionId(transactionId: string): Promise<Payment | null> {
+  const snap = await adminDb()
+    .collection(COLLECTIONS.payments)
+    .where("transactionId", "==", transactionId)
+    .limit(1)
+    .get();
+  if (snap.empty) return null;
+  const doc = snap.docs[0]!;
+  return { id: doc.id, ...(doc.data() as Omit<Payment, "id">) };
+}
+
+export async function listPaymentsForOrder(orderId: string): Promise<Payment[]> {
+  const snap = await adminDb().collection(COLLECTIONS.payments).where("orderId", "==", orderId).get();
+  return snap.docs
+    .map((doc) => ({ id: doc.id, ...(doc.data() as Omit<Payment, "id">) }))
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+/** Custom-suit orders, newest first. Single-field equality query (no
+ *  composite index), sorted in memory — bounded by `limit`. */
+export async function listCustomOrders(limit = 1000): Promise<Order[]> {
+  const snap = await adminDb().collection(COLLECTIONS.orders).where("source", "==", "custom").limit(limit).get();
+  return snap.docs
+    .map((doc) => ({ id: doc.id, ...(doc.data() as Omit<Order, "id">) }))
+    .sort((a, b) => (b.createdAt ?? b.startedAt).localeCompare(a.createdAt ?? a.startedAt));
 }
 
 export async function updatePaymentByTransactionId(

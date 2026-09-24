@@ -12,7 +12,10 @@ import { AccountMenu } from "@/components/layout/AccountMenu";
 // Approved Home page nav is a curated subset of "core" (Atelier, Fabric Library,
 // Process, Portfolio) plus the Shop entry point from "commerce" — not the full
 // 8-item core group. Sourced from lib/nav by slug so hrefs/labels stay centralized.
-const HEADER_SLUGS = ["atelier", "fabric-library", "process", "portfolio", "shop"];
+const HEADER_SLUGS = ["atelier", "custom-suits", "fabric-library", "process", "portfolio", "shop"];
+// Tablet widths (md–lg) can't fit every link beside the account/cart/book
+// controls; these stay in the footer and appear again from lg up.
+const TABLET_HIDDEN = ["process", "portfolio"];
 const headerLinks = HEADER_SLUGS.map((slug) => nav.find((item) => item.slug === slug)).filter(
   (item): item is NonNullable<typeof item> => Boolean(item),
 );
@@ -69,12 +72,12 @@ export function Header() {
           />
         </Link>
 
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center gap-4 md:flex lg:gap-6">
           {headerLinks.map((item) => (
             <Link
               key={item.slug}
               href={item.href}
-              className="text-sm text-ink hover:text-oxblood"
+              className={`whitespace-nowrap text-[13px] text-ink hover:text-oxblood lg:text-sm ${TABLET_HIDDEN.includes(item.slug) ? "hidden lg:inline" : ""}`}
             >
               {item.label}
             </Link>
@@ -84,8 +87,9 @@ export function Header() {
         <div className="hidden items-center gap-2 md:flex">
           <AccountMenu />
           <CartLink count={cartCount} />
-          <Button href="/booking" className="!px-4 !py-2 !text-xs">
-            Book a Consultation
+          <Button href="/booking" className="whitespace-nowrap !px-4 !py-2 !text-xs">
+            <span className="lg:hidden">Book</span>
+            <span className="hidden lg:inline">Book a Consultation</span>
           </Button>
         </div>
 

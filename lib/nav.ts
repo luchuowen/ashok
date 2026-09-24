@@ -41,6 +41,9 @@ export const nav: NavItem[] = [
 
   // commerce (7)
   { slug: "shop", href: "/shop", label: "Shop", group: "commerce" },
+  { slug: "custom-suits", href: "/custom-suits", label: "Custom Suits", group: "commerce" },
+  { slug: "suit-designer", href: "/custom-suits/design", label: "Design Your Suit", group: "commerce" },
+  { slug: "suit-measurements", href: "/custom-suits/measurements", label: "Your Measurements", group: "commerce" },
   {
     slug: "shop-pdp",
     href: "/shop/[slug]",
@@ -65,6 +68,7 @@ export const nav: NavItem[] = [
     group: "portal",
   },
   { slug: "portal-orders", href: "/portal/orders", label: "Orders", group: "portal" },
+  { slug: "portal-designs", href: "/portal/designs", label: "Suit Designs", group: "portal" },
   { slug: "portal-quotes", href: "/portal/quotes", label: "Quotes", group: "portal" },
   {
     slug: "portal-payments",
@@ -93,6 +97,7 @@ export const nav: NavItem[] = [
 
   // admin (9) — staff dashboard
   { slug: "admin-customers", href: "/admin", label: "Customers", group: "admin" },
+  { slug: "admin-custom-orders", href: "/admin/custom-orders", label: "Custom Suits", group: "admin" },
   { slug: "admin-products", href: "/admin/products", label: "Products", group: "admin" },
   { slug: "admin-categories", href: "/admin/categories", label: "Categories", group: "admin" },
   { slug: "admin-stock", href: "/admin/stock", label: "Stock", group: "admin" },

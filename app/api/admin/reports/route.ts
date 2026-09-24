@@ -38,6 +38,11 @@ export async function GET() {
     const shopOrders = orders.filter((o) => o.source === "shop");
     const paidShopOrders = shopOrders.filter((o) => PAID_OR_LATER_STAGES.includes(o.stage));
     const shopRevenue = paidShopOrders.reduce((sum, o) => sum + o.price, 0);
+    // Custom suits designed online: revenue collected so far (deposits and
+    // balances) and what's still owed, excluding abandoned/cancelled checkouts.
+    const liveCustom = orders.filter((o) => o.source === "custom" && !["Payment Pending", "Cancelled"].includes(o.stage));
+    const customCollected = liveCustom.reduce((sum, o) => sum + (o.price - o.balanceDue), 0);
+    const customOutstanding = liveCustom.reduce((sum, o) => sum + o.balanceDue, 0);
     const ordersByStage: Record<string, number> = {};
     for (const o of orders) {
       ordersByStage[o.stage] = (ordersByStage[o.stage] ?? 0) + 1;
@@ -104,6 +109,9 @@ export async function GET() {
         shopOrderCount: shopOrders.length,
         paidShopOrderCount: paidShopOrders.length,
         shopRevenue,
+        customOrderCount: liveCustom.length,
+        customCollected,
+        customOutstanding,
         ordersByStage,
       },
       reconciliation: {

@@ -251,7 +251,58 @@ export interface TaifaPayInvoice {
   expiresAt: string;
 }
 
+/* ------------------------------------------------------------------ */
+/* Local mock gateway — development only                               */
+/* ------------------------------------------------------------------ */
+/**
+ * TAIFAPAY_ENV=mock turns on an in-memory stand-in for TaifaPay so the full
+ * checkout → payment → reconcile journey can be exercised locally without
+ * credentials. Hard-gated to NODE_ENV !== "production": any production build
+ * (`next build` / `next start`, App Hosting) ignores it and uses the real
+ * gateway. The hosted "payment page" is app/dev/mock-pay.
+ */
+export function isMockGateway(): boolean {
+  return process.env.TAIFAPAY_ENV === "mock" && process.env.NODE_ENV !== "production";
+}
+
+type MockTx = { transactionId: string; amount: number; status: "PENDING" | "COMPLETED" | "FAILED"; accountReference: string; description: string; returnUrl?: string };
+const mockStore: Map<string, MockTx> =
+  ((globalThis as unknown as { __ashokMockTaifaPay?: Map<string, MockTx> }).__ashokMockTaifaPay ??= new Map());
+
+export function mockGetTx(id: string): MockTx | undefined {
+  return isMockGateway() ? mockStore.get(id) : undefined;
+}
+
+export function mockSetStatus(id: string, status: "COMPLETED" | "FAILED"): MockTx | undefined {
+  if (!isMockGateway()) return undefined;
+  const tx = mockStore.get(id);
+  if (tx) tx.status = status;
+  return tx;
+}
+
 export async function createInvoice(params: CreateInvoiceParams): Promise<TaifaPayInvoice> {
+  if (isMockGateway()) {
+    const transactionId = `MOCK-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`.toUpperCase();
+    mockStore.set(transactionId, {
+      transactionId,
+      amount: params.amount,
+      status: "PENDING",
+      accountReference: params.accountReference,
+      description: params.description,
+      returnUrl: params.returnUrl,
+    });
+    const origin = params.returnUrl ? new URL(params.returnUrl).origin : "";
+    return {
+      transactionId,
+      checkoutUrl: `${origin}/dev/mock-pay?tx=${encodeURIComponent(transactionId)}`,
+      invoiceNo: `INV-${transactionId.slice(5, 11)}`,
+      amount: params.amount,
+      currency: "KES",
+      status: "PENDING",
+      methods: ["MPESA", "CARD"],
+      expiresAt: new Date(Date.now() + (params.expiresInMinutes ?? 30) * 60_000).toISOString(),
+    };
+  }
   const data = await taifaPayFetch<{ invoice: TaifaPayInvoice }>("/checkout/invoices", {
     method: "POST",
     body: JSON.stringify({
@@ -295,6 +346,11 @@ export function normalizeTransactionStatus(raw: string): "PENDING" | "COMPLETED"
 }
 
 export async function getTransaction(transactionId: string): Promise<TaifaPayTransaction> {
+  if (isMockGateway()) {
+    const tx = mockStore.get(transactionId);
+    if (!tx) throw new TaifaPayError("Transaction not found.", 404, true);
+    return { transactionId, status: tx.status, amount: tx.amount, currency: "KES", accountReference: tx.accountReference };
+  }
   const raw = await taifaPayFetch<RawTaifaPayTransaction>(
     `/transactions/${encodeURIComponent(transactionId)}`,
   );
