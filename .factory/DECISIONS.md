@@ -77,3 +77,15 @@ previously couldn't complete checkout (Kenyan-mobile-only rule).
 
 **Not replicated:** photo-realistic 3D renders with skin tones (no render assets — the parametric
 drawing stands in), fabric "looks" photos, body-profile photo upload (would need Firebase Storage).
+
+## 2026-09-25 — Photo-style suit preview, close-up zoom, hide jacket
+
+- `SuitPreview` redrawn as a lit product flat-lay (jacket large, trousers folded beneath) to match
+  Hockerty's photographic renders without per-option photography. Cloth comes from generated,
+  seamless textures in `public/textures/fabrics/<fabric id>.jpg` — run
+  `python3 scripts/generate-fabric-textures.py` after adding a fabric. Volume comes from inner/cast
+  shadows and layered-stroke creases (no blur filters on thin paths: they clip to the bounding box).
+- Zoom opens a full-screen white close-up (Esc/× closes, +/− levels, scroll indicator) instead of
+  an in-place scale.
+- "Hide jacket" shows the shirt (and waistcoat on a three-piece) over the trousers; preview-only,
+  not part of the order spec.
