@@ -100,14 +100,19 @@ async function renderPose(poseId: PoseId, config: SuitConfig, skin: SkinToneId):
   const hit = composites.get(key);
   if (hit) return hit;
 
-  const T = manifest.tilePx;
+  // Rendered at 2x the source photo: the cloth texture is sampled at full detail (fine weaves and
+  // checks stay crisp on retina screens) while the photo's shading is smoothly upscaled.
+  const S = 2;
+  const T = manifest.tilePx * S;
+  const PW = pose.width * S;
+  const PH = pose.height * S;
   const dir = `/model/${poseId}`;
   const tex = (id: string) => loadData(`/textures/fabrics/${(getFabric(id) ?? getFabric("house-navy-stretch")!).id}.jpg`, T, T);
   const [base, shade, mask, mask2, tj, tt, tw] = await Promise.all([
-    loadData(`${dir}/base.jpg`),
-    loadData(`${dir}/shade.jpg`),
-    loadData(`${dir}/mask.png`),
-    loadData(`${dir}/mask2.png`),
+    loadData(`${dir}/base.jpg`, PW, PH),
+    loadData(`${dir}/shade.jpg`, PW, PH),
+    loadData(`${dir}/mask.png`, PW, PH),
+    loadData(`${dir}/mask2.png`, PW, PH),
     tex(jf),
     tex(tf),
     tex(wf),
@@ -224,8 +229,8 @@ export function ModelPreview({
     <div className={`relative flex items-center justify-center ${fit === "width" ? "min-h-[60vh]" : ""} ${className}`}>
       <canvas
         ref={canvasRef}
-        width={pose.width}
-        height={pose.height}
+        width={pose.width * 2}
+        height={pose.height * 2}
         role="img"
         aria-label={title ?? "Your suit, worn"}
         className={`block transition-opacity duration-300 ${fit === "width" ? "h-auto w-full" : "h-full max-h-full w-auto max-w-full object-contain"} ${state === "ready" ? "opacity-100" : "opacity-0"}`}

@@ -69,6 +69,27 @@ function Preview({ config, view, hideJacket, fit, title, skin, lastGroup = null 
   return <PhotoPreview config={config} view={pv} fit={fit} className={cls} title={title} fallback={drawing(pv)} />;
 }
 
+function SkinSwatches({ skin, onSkin }: { skin: SkinToneId; onSkin: (s: SkinToneId) => void }) {
+  return (
+    <div className="flex items-center gap-1.5 px-1" role="radiogroup" aria-label="Skin tone">
+      <span className="mr-1 text-[11px] uppercase tracking-wide text-muted">Skin</span>
+      {SKIN_TONES.map((t) => (
+        <button
+          key={t.id}
+          type="button"
+          role="radio"
+          aria-checked={skin === t.id}
+          aria-label={`${t.label} skin tone`}
+          title={t.label}
+          onClick={() => onSkin(t.id)}
+          className={`h-6 w-6 rounded-full border ${skin === t.id ? "border-ink ring-1 ring-ink ring-offset-1" : "border-line"}`}
+          style={{ background: SKIN_SWATCH[t.id] }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function JacketIcon({ hidden }: { hidden: boolean }) {
   return (
     <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
@@ -206,42 +227,6 @@ export function Stage({
           ›
         </button>
       </div>
-      {/* On model / garment toggle and skin tones */}
-      <div className="absolute left-3 top-[46px] z-10 flex flex-col items-start gap-2 lg:left-6 lg:top-[64px]" onClick={(e) => e.stopPropagation()}>
-        <div className="flex border border-line bg-paper text-[10px] uppercase tracking-[0.15em]" role="group" aria-label="Preview mode">
-          {(["model", "product"] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              aria-pressed={mode === m}
-              onClick={() => {
-                setMode(m);
-                onViewChange(m === "model" ? "body" : "model");
-              }}
-              className={`px-2 py-1 transition-colors sm:px-3 sm:py-1.5 ${mode === m ? "bg-ink text-cream" : "text-muted hover:text-ink"}`}
-            >
-              {m === "model" ? "On model" : "Garment"}
-            </button>
-          ))}
-        </div>
-        {mode === "model" ? (
-          <div className="flex gap-1.5" role="radiogroup" aria-label="Skin tone">
-            {SKIN_TONES.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                role="radio"
-                aria-checked={skin === t.id}
-                aria-label={`${t.label} skin tone`}
-                title={t.label}
-                onClick={() => setSkin(t.id)}
-                className={`h-5 w-5 rounded-full border-2 transition-transform ${skin === t.id ? "scale-110 border-ink" : "border-paper hover:scale-110"}`}
-                style={{ background: SKIN_SWATCH[t.id] }}
-              />
-            ))}
-          </div>
-        ) : null}
-      </div>
       {/* Phone: compact icon controls over the preview */}
       <div className="absolute right-2 top-2 flex flex-col gap-1 sm:hidden">
         <button
@@ -256,8 +241,47 @@ export function Stage({
         <button type="button" onClick={() => setZoomOpen(true)} aria-label="Zoom" className="flex h-9 w-9 items-center justify-center border border-line bg-paper text-lg leading-none text-ink">
           +
         </button>
+        <button
+          type="button"
+          onClick={() => {
+            const m = mode === "model" ? "product" : "model";
+            setMode(m);
+            onViewChange(m === "model" ? "body" : "model");
+          }}
+          aria-label={mode === "model" ? "Show the garment" : "Show on model"}
+          className="flex h-9 w-9 items-center justify-center border border-line bg-paper text-[9px] uppercase leading-tight tracking-wide text-ink"
+        >
+          {mode === "model" ? "Suit" : "Model"}
+        </button>
+        {mode === "model" ? (
+          <button
+            type="button"
+            onClick={() => setSkin(SKIN_TONES[(SKIN_TONES.findIndex((t) => t.id === skin) + 1) % SKIN_TONES.length]!.id)}
+            aria-label="Change skin tone"
+            className="flex h-9 w-9 items-center justify-center border border-line bg-paper"
+          >
+            <span className="h-5 w-5 rounded-full border border-line" style={{ background: SKIN_SWATCH[skin] }} />
+          </button>
+        ) : null}
       </div>
-      <div className="hidden items-center justify-center gap-2 px-2 pb-3 sm:flex sm:px-4">
+      <div className="hidden flex-wrap items-center justify-center gap-2 px-2 pb-3 sm:flex sm:px-4">
+        <div className="flex border border-line bg-paper text-[11px] uppercase tracking-wide" role="group" aria-label="Preview mode">
+          {(["model", "product"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              aria-pressed={mode === m}
+              onClick={() => {
+                setMode(m);
+                onViewChange(m === "model" ? "body" : "model");
+              }}
+              className={`h-9 px-3 transition-colors ${mode === m ? "bg-ink text-cream" : "text-muted hover:text-ink"}`}
+            >
+              {m === "model" ? "On model" : "Garment"}
+            </button>
+          ))}
+        </div>
+        {mode === "model" ? <SkinSwatches skin={skin} onSkin={setSkin} /> : null}
         <button
           type="button"
           onClick={() => setHideJacket((h) => !h)}
