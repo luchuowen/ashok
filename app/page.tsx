@@ -48,18 +48,22 @@ const imageStrip = [
 const heroSlides: HeroSlide[] = [
   {
     src: "/photos/home/hero.jpg",
+    focus: "80% 35%",
     alt: "A tailor's hands pinning a jacket during a fitting",
   },
   {
     src: "/photos/home/hero-bespoke-portrait.jpg",
+    focus: "92% 30%",
     alt: "A client in a bespoke burgundy double-breasted suit",
   },
   {
     src: "/photos/home/hero-lifestyle-walk.jpg",
+    focus: "78% 55%",
     alt: "A client in a tailored olive suit on a Ridgeways street",
   },
   {
     src: "/photos/home/hero-shop-detail.jpg",
+    focus: "88% 55%",
     alt: "Oxford shoes and a silk tie styled on a wooden table",
   },
 ];
@@ -108,7 +112,7 @@ export default function Home() {
             subject's light jacket sits right where the headline lands). */}
         <div className="absolute inset-0 z-[1] bg-gradient-to-t from-ink/90 via-ink/45 to-transparent" />
         <div className="absolute inset-0 z-[1] hidden bg-gradient-to-r from-ink/80 via-ink/25 to-transparent md:block" />
-        <div className="relative z-10 flex min-h-[480px] flex-col justify-end px-6 py-8 md:min-h-[560px] md:px-12 md:py-16">
+        <div className="relative z-10 flex min-h-[max(480px,78svh)] flex-col justify-end px-6 py-8 md:min-h-[560px] md:px-12 md:py-16">
           <div className="mx-auto w-full max-w-6xl">
             <h1
               className="mx-auto max-w-xl text-center text-4xl text-cream [text-shadow:0_2px_16px_rgb(0_0_0_/_65%)] md:mx-0 md:text-left md:text-6xl"

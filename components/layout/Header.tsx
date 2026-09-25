@@ -93,10 +93,9 @@ export function Header() {
           </Button>
         </div>
 
-        <div className="ml-auto flex items-center gap-1 md:hidden">
-          <AccountMenu />
-          <CartLink count={cartCount} />
-          <MobileNav links={headerLinks} />
+        {/* Phones: account and cart live inside the menu, so the bar is just logo + menu. */}
+        <div className="ml-auto flex items-center md:hidden">
+          <MobileNav links={headerLinks} cartCount={cartCount} />
         </div>
       </div>
     </header>

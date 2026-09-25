@@ -6,6 +6,10 @@ import Image from "next/image";
 export type HeroSlide = {
   src: string;
   alt: string;
+  /** Where the subject sits in the photo (CSS object-position, e.g. "88% 40%"). Phones crop a
+   *  landscape photo to a narrow portrait, so this keeps the person in frame; the slow zoom is
+   *  anchored on it too, so it never drifts the subject out. */
+  focus?: string;
 };
 
 // Cinematic hero background: slow cross-fades between full-bleed photos with
@@ -56,7 +60,11 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
             sizes="100vw"
             priority={index === 0}
             className={reduceMotion ? "object-cover" : "object-cover animate-hero-kenburns"}
-            style={reduceMotion ? undefined : { animationDuration: `${cycleDuration}ms` }}
+            style={{
+              objectPosition: slide.focus ?? "50% 50%",
+              transformOrigin: slide.focus ?? "50% 50%",
+              ...(reduceMotion ? {} : { animationDuration: `${cycleDuration}ms` }),
+            }}
           />
         </div>
       ))}
