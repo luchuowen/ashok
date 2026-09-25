@@ -93,8 +93,8 @@ export default function CheckoutPage() {
     if (items.length === 0) return "Your bag is empty.";
     const broken = suitLines.find((l) => l.suit.issue);
     if (broken) return `${broken.name}: ${broken.suit.issue} Reopen it from your bag.`;
-    if (!d.phone.trim()) return "Enter a phone number to continue.";
     if (hasSuits && !d.name.trim()) return "Enter your name — it goes on your order and fitting appointment.";
+    if (!d.phone.trim()) return "Enter a phone number to continue.";
     if (d.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email.trim())) return "That email address doesn't look right.";
     if (hasSuits && d.delivery !== "collect" && (d.address.trim().length < 4 || d.town.trim().length < 2)) return "Enter a delivery address and town.";
     if (hasSuits && d.delivery === "international" && d.country.trim().length < 2) return "Enter the destination country.";

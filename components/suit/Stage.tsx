@@ -38,6 +38,10 @@ function readSkin(): SkinToneId {
 function Preview({ config, view, hideJacket, fit, title, lastGroup = null }: { config: SuitConfig; view: StageView; hideJacket: boolean; skin: SkinToneId; fit: "contain" | "width"; title: string; lastGroup?: string | null }) {
   const cls = fit === "width" ? "w-full" : "h-full w-full p-[3%]";
   const drawing = (v: PreviewView) => <SuitDrawing config={config} view={v} hideJacket={hideJacket} className={fit === "width" ? "block h-auto w-full" : "h-full w-full"} title={title} />;
+  if (hideJacket && (view === "back" || view === "modelBack")) {
+    const back = `wc-back-${config.options["waistcoat.back"] === "fabric" ? "fabric" : "lining"}`;
+    return <PhotoPreview config={config} view="waistcoat" asset={back} fit={fit} className={cls} title={title} fallback={drawing("back")} />;
+  }
   if (hideJacket) return <PhotoPreview config={config} view="nojacket" fit={fit} className={cls} title={title} fallback={drawing("front")} />;
   if (view === "front") {
     const want = detailPhotoFor(lastGroup, config);
@@ -90,8 +94,11 @@ export function Stage({
 }) {
   const three = config.options["suit.pieces"] === "three";
   const [hideJacket, setHideJacket] = useState(false);
+  // Without the jacket: front, plus the waistcoat's back on a three-piece (there is no shirt-back photo).
   const views: StageView[] = hideJacket
-    ? ["model", "back"]
+    ? three
+      ? ["model", "back"]
+      : ["model"]
     : three
       ? ["model", "back", "lining", "waistcoat", "front"]
       : ["model", "back", "lining", "front"];
@@ -149,7 +156,7 @@ export function Stage({
               role="tab"
               aria-selected={v === current}
               onClick={() => onViewChange(v)}
-              className={`flex-none whitespace-nowrap border px-2 py-1 text-[11px] uppercase tracking-wide transition-colors sm:px-2.5 ${v === current ? "border-ink bg-ink text-cream" : "border-line bg-paper text-muted hover:text-ink"}`}
+              className={`flex-none whitespace-nowrap border px-1.5 py-1 text-[10px] uppercase tracking-normal transition-colors sm:px-2.5 sm:text-[11px] sm:tracking-wide ${v === current ? "border-ink bg-ink text-cream" : "border-line bg-paper text-muted hover:text-ink"}`}
             >
               {VIEW_LABELS[v]}
             </button>

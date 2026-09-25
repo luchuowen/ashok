@@ -67,7 +67,7 @@ export function waistcoatPhotoFor(groupId: string | null, config: SuitConfig): s
 
 /** Nearest stand-in while a close-up has not been photographed yet. */
 export const DETAIL_FALLBACK: Record<string, string> = {
-  "detail-cuff-3-work": "detail-cuff-3-dec",
+  "detail-cuff-3-dec": "detail-cuff-3-work",
   "detail-cuff-4-work": "detail-cuff-4-dec",
   "detail-hem-turnups": "detail-break-half",
   "detail-break-none": "detail-hem-plain",

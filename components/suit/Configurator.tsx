@@ -374,6 +374,11 @@ export function Configurator() {
         </div>
         <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5 lg:left-6 lg:top-6">
           <CurrencyToggle value={currency} onChange={setCurrency} />
+          {view === "lining" && step !== "details" ? (
+            <button type="button" onClick={() => goStep("details")} className="border border-ink bg-paper px-2.5 py-1.5 text-[10px] uppercase tracking-[0.15em] text-ink hover:bg-ink hover:text-cream">
+              Change lining
+            </button>
+          ) : null}
         </div>
 
         {/* Desktop step rail */}

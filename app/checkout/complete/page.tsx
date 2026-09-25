@@ -207,10 +207,11 @@ export default function CheckoutCompletePage() {
             <>
               <h1 className="text-3xl italic">Payment didn&rsquo;t go through</h1>
               <p className="mt-4 text-sm text-muted">
-                Nothing was charged. You can try again from your cart.
+                Nothing was charged. Your suit and details are saved &mdash; try again, or pay with a different method.
               </p>
-              <div className="mt-8">
-                <Button href="/cart">Back to Cart</Button>
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <Button href="/checkout">Try payment again</Button>
+                <Button href="/cart" variant="ghost">Back to cart</Button>
               </div>
             </>
           ) : null}

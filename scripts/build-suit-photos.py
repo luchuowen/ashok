@@ -89,6 +89,21 @@ def build(asset: str) -> dict:
                 contrast = (np.median(ann) - np.median(ring)) if ann.size else 0
                 if ring.size and np.median(ring) < 95 and lining[cy, cx] < 0.2 and (warm > 3 or np.median(ring) < 40) and contrast > (38 if close else 22) and (not close or ((np.median(ring) < 80 or (asset.startswith("detail-cuff") and np.median(ring) < 110 and warm > 4)) and np.median(ann) - np.median(ring) > 18 and (L[max(cy - r // 2, 0) : cy + r // 2, max(cx - r // 2, 0) : cx + r // 2] < 95).mean() > 0.7 and L[max(cy - r // 2, 0) : cy + r // 2, max(cx - r // 2, 0) : cx + r // 2].std() > 9 and cy > 0.12 * h and cx > 0.04 * WIDTH and cx < 0.96 * WIDTH)):
                     cv2.circle(btn, (cx, cy), max(r - 1, 3), 1, -1)
+    if asset.startswith("detail-cuff"):
+        # Sleeve close-ups: horn buttons are the only warm-brown things on the neutral grey cloth.
+        warmth = R - B
+        cand = ((warmth > 9) & (L < 150) & fg).astype(np.uint8)
+        cand = cv2.morphologyEx(cand, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+        cand = cv2.morphologyEx(cand, cv2.MORPH_CLOSE, np.ones((7, 7), np.uint8))
+        n_, lab_, st_, _ = cv2.connectedComponentsWithStats(cand)
+        btn = np.zeros(L.shape, np.uint8)
+        for k in range(1, n_):
+            x_, y_, w_, h_, a_ = st_[k]
+            if 120 < a_ < 40000 and max(w_, h_) < 420:
+                comp = (lab_ == k).astype(np.uint8)
+                cnts, _ = cv2.findContours(comp, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                cv2.drawContours(btn, [cv2.convexHull(c) for c in cnts], -1, 1, -1)
+        btn = cv2.dilate(btn, np.ones((3, 3), np.uint8))
     # Tight discs: the cloth is dyed underneath, the photographed button is laid back on top.
     mbtn = cv2.GaussianBlur(btn.astype(np.float32), (0, 0), 0.7) * alpha
     # Shirt (three-piece / no-jacket shots): flood-fill from bright neutral seeds

@@ -1,6 +1,6 @@
 "use client";
 
-import { GROUP_BY_ID, LINING_COLOURS, MONOGRAM_FONTS, THREAD_COLOURS } from "@/lib/suit/catalogue";
+import { GROUP_BY_ID, LINING_COLOURS, MONOGRAM_FONTS, THREAD_COLOURS, getFabric } from "@/lib/suit/catalogue";
 import { NOTES_MAX, isGroupApplicable, sanitizeMonogram } from "@/lib/suit/rules";
 import type { MonogramSpec, PaletteColour, SuitConfig } from "@/lib/suit/types";
 import { formatMoney, type DisplayCurrency } from "@/lib/currency";
@@ -77,11 +77,26 @@ export function DetailsPanel({
     <div>
       <h3 className="pt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-oxblood">Lining</h3>
       {tiles("accents.liningStyle")}
-      {tiles("accents.liningColour")}
-      {isGroupApplicable("accents.liningColour", config) && o["accents.liningColour"] === "custom" ? (
-        <div className="pb-5">
-          <PaletteGrid colours={LINING_COLOURS} selected={config.lining} onSelect={(id) => onPatch({ lining: id })} currency={currency} label="Lining colour" />
-        </div>
+      {isGroupApplicable("accents.liningColour", config) ? (
+        <fieldset className="border-t border-line py-5">
+          <legend className="sr-only">Lining colour</legend>
+          <p className="mb-3 text-[15px] text-ink">Lining colour</p>
+          {/* One grid, as on the reference: tone-matched first, then every colour and print (a choice switches to a custom lining). */}
+          <PaletteGrid
+            colours={[{ id: "__house", name: "Tone-matched", hex: getFabric(config.fabric)?.hex ?? "#3a3b3e" } as PaletteColour, ...LINING_COLOURS]}
+            selected={o["accents.liningColour"] === "custom" ? config.lining : "__house"}
+            onSelect={(id) => {
+              if (id === "__house") onOption("accents.liningColour", "house");
+              else {
+                onOption("accents.liningColour", "custom");
+                onPatch({ lining: id });
+              }
+            }}
+            currency={currency}
+            label="Lining colour"
+          />
+          <p className="mt-2 text-[11px] text-muted">Tone-matched is included; a colour or print is +{formatMoney(GROUP_BY_ID["accents.liningColour"]?.values.find((v) => v.id === "custom")?.price ?? 0, currency)}.</p>
+        </fieldset>
       ) : null}
 
       <h3 className="border-t border-line pt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-oxblood">Buttons & threads</h3>
