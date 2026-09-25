@@ -49,6 +49,13 @@ function Preview({ config, view, hideJacket, fit, title, lastGroup = null }: { c
     const wc = waistcoatPhotoFor(lastGroup, config);
     return <PhotoPreview config={config} view="waistcoat" asset={wc} fit={fit} className={cls} title={title} fallback={drawing("waistcoat")} />;
   }
+  const o = config.options;
+  const neck = (lastGroup === "accents.necktie" || lastGroup === "accents.bowtie") && (o[lastGroup] ?? "none") !== "none";
+  if (isPhoto(view) && neck) {
+    // neckwear needs the shirt showing: the three-piece or open-shirt photo
+    const shirt = o["suit.pieces"] === "three" ? "front-3pc-notch" : "front-shirt-notch";
+    return <PhotoPreview config={config} view="front" asset={shirt} fit={fit} className={cls} title={title} fallback={drawing("front")} />;
+  }
   const pv = isPhoto(view) ? "front" : view === "modelBack" ? "back" : (view as "back" | "lining");
   return <PhotoPreview config={config} view={pv} fit={fit} className={cls} title={title} fallback={drawing(pv)} />;
 }

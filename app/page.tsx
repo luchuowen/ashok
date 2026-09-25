@@ -121,8 +121,8 @@ export default function Home() {
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4 md:justify-start">
               <Button href="/booking" className="!border-cream">Book a Fitting</Button>
-              <Button href="/process" variant="ghost" className="!border-cream !text-cream">
-                Read the Process
+              <Button href="/custom-suits/design" variant="ghost" className="!border-cream !text-cream">
+                Design Your Suit
               </Button>
             </div>
           </div>

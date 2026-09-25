@@ -87,7 +87,7 @@ def build(asset: str) -> dict:
                 yy, xx = np.ogrid[y0 - cy : y1 - cy, x0 - cx : x1 - cx]
                 ann = annulus[(yy**2 + xx**2 > (1.4 * r) ** 2)[: annulus.shape[0], : annulus.shape[1]]]
                 contrast = (np.median(ann) - np.median(ring)) if ann.size else 0
-                if ring.size and np.median(ring) < 95 and lining[cy, cx] < 0.2 and (warm > 3 or np.median(ring) < 40) and contrast > (38 if close else 22) and (not close or (np.median(ring) < 80 and np.median(ann) - np.median(ring) > 18 and (L[max(cy - r // 2, 0) : cy + r // 2, max(cx - r // 2, 0) : cx + r // 2] < 95).mean() > 0.7 and L[max(cy - r // 2, 0) : cy + r // 2, max(cx - r // 2, 0) : cx + r // 2].std() > 9 and cy > 0.12 * h and cx > 0.04 * WIDTH and cx < 0.96 * WIDTH)):
+                if ring.size and np.median(ring) < 95 and lining[cy, cx] < 0.2 and (warm > 3 or np.median(ring) < 40) and contrast > (38 if close else 22) and (not close or ((np.median(ring) < 80 or (asset.startswith("detail-cuff") and np.median(ring) < 110 and warm > 4)) and np.median(ann) - np.median(ring) > 18 and (L[max(cy - r // 2, 0) : cy + r // 2, max(cx - r // 2, 0) : cx + r // 2] < 95).mean() > 0.7 and L[max(cy - r // 2, 0) : cy + r // 2, max(cx - r // 2, 0) : cx + r // 2].std() > 9 and cy > 0.12 * h and cx > 0.04 * WIDTH and cx < 0.96 * WIDTH)):
                     cv2.circle(btn, (cx, cy), max(r - 1, 3), 1, -1)
     # Tight discs: the cloth is dyed underneath, the photographed button is laid back on top.
     mbtn = cv2.GaussianBlur(btn.astype(np.float32), (0, 0), 0.7) * alpha
@@ -106,7 +106,7 @@ def build(asset: str) -> dict:
             if ff[y + 1, x + 1] == 0:
                 cv2.floodFill(img8, ff, (int(x), int(y)), 0, loDiff=3, upDiff=3, flags=4 | cv2.FLOODFILL_MASK_ONLY | (255 << 8))
         shirt_m = (ff[1:-1, 1:-1] > 0).astype(np.uint8)
-        shirt_m &= ((sat < (42 if close else 26)) & (L > (175 if close else 120))).astype(np.uint8)
+        shirt_m &= ((sat < (42 if close else 26)) & (L > (175 if close else (120 if asset.startswith("nojacket") else max(120, float(np.median(L[fg])) + 38))))).astype(np.uint8)
         # keep only components that contain a seed (drop leaks into grey cloth)
         n, lab = cv2.connectedComponents(shirt_m)
         keep = np.zeros(n, bool)
@@ -114,6 +114,13 @@ def build(asset: str) -> dict:
         keep[0] = False
         shirt_m = keep[lab].astype(np.uint8)
         shirt_m = cv2.morphologyEx(shirt_m, cv2.MORPH_CLOSE, np.ones((7, 7), np.uint8))
+    if asset.startswith(("nojacket", "front-")):
+        # the shirt never reaches the folded trousers
+        rows_ = (alpha > 0.5).sum(axis=1)
+        lo_ = int(h * 0.45)
+        gap = np.where(rows_[lo_:] < 3)[0]
+        if len(gap):
+            shirt_m[lo_ + gap[0] :] = 0
     # Grow the shirt a little so no dyed fringe is left on its edge.
     shirt_m = cv2.dilate(shirt_m, np.ones((7, 7), np.uint8))
     shirt = cv2.GaussianBlur(shirt_m.astype(np.float32), (0, 0), 0.8) * alpha
@@ -121,7 +128,17 @@ def build(asset: str) -> dict:
 
     if asset.startswith("detail-break"):
         # the black shoe is not cloth
-        shoe = cv2.GaussianBlur(((L < 45) & fg).astype(np.float32), (0, 0), 1.5)
+        dark = ((L < 32) & fg).astype(np.uint8)
+        dark[: int(h * 0.55)] = 0
+        n_, lab_, st_, _ = cv2.connectedComponentsWithStats(dark)
+        hull = np.zeros_like(dark)
+        for k in range(1, n_):
+            if st_[k, 4] > 2500:
+                pts = np.column_stack(np.nonzero(lab_ == k))[:, ::-1].astype(np.int32)
+                cv2.fillConvexPoly(hull, cv2.convexHull(pts), 1)
+        # keep the trouser cloth that dips into the hull (lighter, mid-grey)
+        dark = (hull.astype(bool) & ~((L > 90) & (L < 200) & (sat < 14) & (np.arange(h)[:, None] < np.argmax(dark.any(axis=1)) + 30))).astype(np.uint8)
+        shoe = cv2.GaussianBlur(dark.astype(np.float32), (0, 0), 1.5)
         cloth = np.clip(cloth - shoe * 1.5, 0, 1)
 
     # Shade: cloth luminance with the grey weave smoothed out, highlights not
@@ -133,6 +150,11 @@ def build(asset: str) -> dict:
     dist = cv2.distanceTransform(fg.astype(np.uint8), cv2.DIST_L2, 5)
     k = np.clip(dist / 6, 0, 1)
     shade = np.where(shade > 1, 1 + (shade - 1) * k, shade)
+    if asset == "wc-back-lining":
+        # the satin back panel takes the lining colour
+        band = np.zeros_like(cloth); band[:, int(WIDTH * 0.25) : int(WIDTH * 0.75)] = 1
+        band = cv2.GaussianBlur(band, (0, 0), 6)
+        lining = np.maximum(lining, cloth * band); cloth = np.clip(cloth - lining, 0, 1)
     # Lining shade from its own luminance (satin sheen).
     lref = float(np.median(L[lining > 0.8])) if (lining > 0.8).sum() > 50 else 100.0
     lshade = np.clip(cv2.GaussianBlur(L, (0, 0), 1.0) / lref, 0, 2.5)

@@ -384,6 +384,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   },
   {
     id: "premium-midnight-s130",
+    image: "/photos/fabrics/premium-midnight-s130.jpg",
     name: "Midnight Super 130s",
     collection: "premium",
     price: 60000,
@@ -404,6 +405,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   },
   {
     id: "premium-windowpane",
+    image: "/photos/fabrics/premium-windowpane.jpg",
     name: "Blue-Grey Windowpane",
     collection: "premium",
     price: 56000,
@@ -427,6 +429,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   // ---- Luxury ----
   {
     id: "luxury-navy-s150",
+    image: "/photos/fabrics/luxury-navy-s150.jpg",
     name: "Navy Super 150s",
     collection: "luxury",
     price: 78000,
@@ -447,6 +450,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   },
   {
     id: "luxury-charcoal-s150",
+    image: "/photos/fabrics/luxury-charcoal-s150.jpg",
     name: "Charcoal Super 150s",
     collection: "luxury",
     price: 78000,
@@ -467,6 +471,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   },
   {
     id: "luxury-grey-s150",
+    image: "/photos/fabrics/luxury-grey-s150.jpg",
     name: "Mid Grey Super 150s",
     collection: "luxury",
     price: 78000,
@@ -531,6 +536,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   },
   {
     id: "seasonal-sage-linen",
+    image: "/photos/fabrics/seasonal-sage-linen.jpg",
     name: "Sage Linen Blend",
     collection: "seasonal",
     price: 42000,
@@ -552,6 +558,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   },
   {
     id: "seasonal-sky-cotton-linen",
+    image: "/photos/fabrics/seasonal-sky-cotton-linen.jpg",
     name: "Sky Cotton-Linen",
     collection: "seasonal",
     price: 40000,
@@ -593,6 +600,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   },
   {
     id: "seasonal-donegal-tweed",
+    image: "/photos/fabrics/seasonal-donegal-tweed.jpg",
     name: "Grey Donegal Tweed",
     collection: "seasonal",
     price: 52000,
@@ -613,6 +621,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   },
   {
     id: "seasonal-burgundy-velvet",
+    image: "/photos/fabrics/seasonal-burgundy-velvet.jpg",
     name: "Burgundy Velvet",
     collection: "seasonal",
     price: 56000,

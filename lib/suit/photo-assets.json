@@ -120,6 +120,11 @@
       "height": 1200,
       "width": 1200
     },
+    "detail-break-full": {
+      "buttons": [],
+      "height": 1200,
+      "width": 1200
+    },
     "detail-break-half": {
       "buttons": [
         [
@@ -131,6 +136,27 @@
           1015,
           984,
           45
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-break-none": {
+      "buttons": [
+        [
+          626,
+          863,
+          32
+        ],
+        [
+          949,
+          1024,
+          34
+        ],
+        [
+          653,
+          1063,
+          34
         ]
       ],
       "height": 1200,
@@ -243,6 +269,17 @@
       "height": 1200,
       "width": 1200
     },
+    "detail-cuff-4-work": {
+      "buttons": [
+        [
+          445,
+          681,
+          33
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
     "detail-fastening-extended": {
       "buttons": [
         [
@@ -271,6 +308,11 @@
       "width": 1200
     },
     "detail-hem-plain": {
+      "buttons": [],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-hem-turnups": {
       "buttons": [],
       "height": 1200,
       "width": 1200
@@ -699,6 +741,38 @@
       "split": 1115,
       "width": 1200
     },
+    "front-shirt-notch": {
+      "buttons": [
+        [
+          605,
+          746,
+          14
+        ],
+        [
+          583,
+          907,
+          12
+        ],
+        [
+          879,
+          1203,
+          14
+        ],
+        [
+          320,
+          1203,
+          13
+        ],
+        [
+          823,
+          1565,
+          12
+        ]
+      ],
+      "height": 1789,
+      "split": 1264,
+      "width": 1200
+    },
     "inside": {
       "buttons": [
         [
@@ -708,6 +782,12 @@
         ]
       ],
       "height": 1789,
+      "width": 1200
+    },
+    "nojacket": {
+      "buttons": [],
+      "height": 1789,
+      "split": 1228,
       "width": 1200
     },
     "nojacket-vest": {
@@ -735,6 +815,16 @@
     "waistcoat-sb5": {
       "buttons": [],
       "height": 1789,
+      "width": 1200
+    },
+    "wc-back-fabric": {
+      "buttons": [],
+      "height": 1200,
+      "width": 1200
+    },
+    "wc-back-lining": {
+      "buttons": [],
+      "height": 1200,
       "width": 1200
     },
     "wc-db6": {
@@ -789,6 +879,32 @@
           580,
           940,
           8
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "wc-nopockets": {
+      "buttons": [
+        [
+          605,
+          530,
+          19
+        ],
+        [
+          603,
+          641,
+          15
+        ],
+        [
+          608,
+          865,
+          14
+        ],
+        [
+          609,
+          974,
+          14
         ]
       ],
       "height": 1200,

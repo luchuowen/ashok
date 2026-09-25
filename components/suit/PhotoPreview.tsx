@@ -18,6 +18,10 @@ type Assets = Record<string, { width: number; height: number; split?: number; bu
 const ASSETS = (manifest as { assets: Assets; tilePx: number }).assets;
 const TILE = (manifest as { tilePx: number }).tilePx ?? 180;
 /** Photographed cloths (scripts/fabric-photos-to-textures.py) tile at their true scale. */
+/** Trouser stripes run along the folded leg (horizontal). */
+const TA = 0; // exact axis swap: rotated sampling of 1px pinstripes aliases into dashes
+const TC = Math.cos(TA);
+const TS = Math.sin(TA);
 const tileFor = (id: string) => (textureScale as Record<string, number>)[id] ?? TILE;
 
 export const hasPhoto = (asset: string) => asset in ASSETS;
@@ -51,7 +55,8 @@ export function choosePhoto(config: SuitConfig, view: PhotoView = "front"): stri
   if (three && closure === "sb2" && lapel === "notch" && pockets === "flap" && has("front-3pc-notch")) return "front-3pc-notch";
   if (lapel === "shawl") return has("front-sb1-shawl");
   if (closure === "sb1") return has(`front-sb1-${lapel}`) ?? has(`front-sb2-${lapel}`);
-  if (closure === "sb3") return has("front-sb3-notch");
+  if (closure === "sb3" && lapel === "notch" && pockets === "flap") return has("front-sb3-notch");
+  if (closure === "sb1" && pockets !== "flap" && lapel === "notch") return has(`front-sb2-${pockets === "none" ? "jetted" : pockets}`);
   if (lapel === "notch" && pockets !== "flap") return has(`front-sb2-${pockets === "none" ? "jetted" : pockets}`) ?? has("front-sb2-notch");
   return has(`front-sb2-${lapel}`) ?? has("front-sb2-notch");
 }
@@ -133,7 +138,13 @@ async function render(asset: string, fabricId: string, linHex: string, trouserId
       let g = b[i + 1]!;
       let bl = b[i + 2]!;
       if (c > 0.002) {
-        const k = (ty + (x % T)) * 4;
+        // Folded trousers lie across the frame: their stripes run along the leg (near horizontal).
+        let k: number;
+        if (lower) {
+          const u = Math.floor(x * TC + y * TS) % T; // texture row runs along the leg
+          const v = Math.floor(y * TC - x * TS) % T; // texture column across it
+          k = (((u + T) % T) * T + ((v + T) % T)) * 4;
+        } else k = (ty + (x % T)) * 4;
         const sh = s[i]! / 128;
         r = r * (1 - c) + t[k]! * sh * c;
         g = g * (1 - c) + t[k + 1]! * sh * c;
@@ -256,7 +267,7 @@ function drawHole(x: CanvasRenderingContext2D, cx: number, cy: number, len: numb
 }
 
 /** Collar knot point for photos that show the shirt. */
-const KNOT: Record<string, [number, number]> = { "front-3pc-notch": [600, 262], "nojacket-vest": [600, 266], "front-shirt-notch": [600, 262] };
+const KNOT: Record<string, [number, number]> = { "front-3pc-notch": [600, 262], "nojacket-vest": [600, 266], "front-shirt-notch": [600, 193], nojacket: [600, 213] };
 
 /** Tie or bow tie, drawn on its own layer and kept only where the white shirt shows. */
 function drawNeckwear(x: CanvasRenderingContext2D, asset: string, config: SuitConfig) {
@@ -275,6 +286,8 @@ function drawNeckwear(x: CanvasRenderingContext2D, asset: string, config: SuitCo
   const [r, g, b] = hexRgb(hex);
   const L = (m: number) => `rgb(${Math.min(255, r * m)},${Math.min(255, g * m)},${Math.min(255, b * m)})`;
   const [cx, cy] = k;
+  const BL = asset.startsWith("nojacket") ? 600 : 372; // blade length: to the waistband without a jacket
+  const R = BL + 50;
   if (bow) {
     const gr = l.createLinearGradient(cx - 40, cy, cx + 40, cy);
     gr.addColorStop(0, L(0.8)); gr.addColorStop(0.45, L(1.15)); gr.addColorStop(0.55, L(1.15)); gr.addColorStop(1, L(0.8));
@@ -291,7 +304,7 @@ function drawNeckwear(x: CanvasRenderingContext2D, asset: string, config: SuitCo
     l.beginPath(); // knot
     l.moveTo(cx - 21, cy - 13); l.lineTo(cx + 21, cy - 13); l.lineTo(cx + 12, cy + 22); l.lineTo(cx - 12, cy + 22); l.closePath(); l.fill();
     l.beginPath(); // blade
-    l.moveTo(cx - 11, cy + 22); l.lineTo(cx + 11, cy + 22); l.lineTo(cx + 40, cy + 330); l.lineTo(cx, cy + 372); l.lineTo(cx - 40, cy + 330); l.closePath(); l.fill();
+    l.moveTo(cx - 11, cy + 22); l.lineTo(cx + 11, cy + 22); l.lineTo(cx + 40, cy + BL - 42); l.lineTo(cx, cy + BL); l.lineTo(cx - 40, cy + BL - 42); l.closePath(); l.fill();
     l.strokeStyle = "rgba(0,0,0,0.25)"; l.lineWidth = 1.2;
     l.beginPath(); l.moveTo(cx - 10, cy + 20); l.lineTo(cx + 10, cy + 20); l.stroke();
   }
@@ -299,7 +312,7 @@ function drawNeckwear(x: CanvasRenderingContext2D, asset: string, config: SuitCo
   const src = x.getImageData(0, 0, W, H).data;
   const t = l.getImageData(0, 0, W, H);
   const td = t.data;
-  for (let y = Math.max(0, cy - 60); y < Math.min(H, cy + 420); y++)
+  for (let y = Math.max(0, cy - 60); y < Math.min(H, cy + R); y++)
     for (let xx = cx - 90; xx < cx + 90; xx++) {
       const i = (y * W + xx) * 4;
       const R = src[i]!, G = src[i + 1]!, B = src[i + 2]!;
@@ -307,8 +320,8 @@ function drawNeckwear(x: CanvasRenderingContext2D, asset: string, config: SuitCo
       const sat = Math.max(R, G, B) - Math.min(R, G, B);
       if (!(lum > 150 && sat < 30 && src[i + 3]! > 200)) td[i + 3] = 0;
     }
-  for (let y = 0; y < H; y++) if (y < cy - 60 || y >= cy + 420) for (let xx = 0; xx < W; xx++) td[(y * W + xx) * 4 + 3] = 0;
-  for (let y = cy - 60; y < cy + 420; y++) for (let xx = 0; xx < W; xx++) if (xx < cx - 90 || xx >= cx + 90) td[(y * W + xx) * 4 + 3] = 0;
+  for (let y = 0; y < H; y++) if (y < cy - 60 || y >= cy + R) for (let xx = 0; xx < W; xx++) td[(y * W + xx) * 4 + 3] = 0;
+  for (let y = cy - 60; y < cy + R; y++) for (let xx = 0; xx < W; xx++) if (xx < cx - 90 || xx >= cx + 90) td[(y * W + xx) * 4 + 3] = 0;
   l.putImageData(t, 0, 0);
   x.save();
   x.shadowColor = "rgba(0,0,0,0.3)";
