@@ -1,146 +1,145 @@
 /**
- * Option-tile illustrations: fine technical line drawings of the garment
- * (a tailor's flat sketch), one per choice. Original artwork drawn for Ashok in
- * the house's hairline style: dark outer lines, soft grey construction lines.
- * Unknown keys render nothing and the tile falls back to its label alone.
+ * Option-tile illustrations: fine technical flat sketches of the garment,
+ * one per choice. Original artwork drawn for Ashok: single-weight hairlines,
+ * true garment proportions (long jacket, sloped shoulders, sleeves hanging
+ * beside the body). Stroke is currentColor so tiles can grey out unselected
+ * options and ink the selected one. Unknown keys render nothing.
  */
 import type React from "react";
 
-const INK = "currentColor";
-const SOFT = "#a3a09a";
-const L = { fill: "none", stroke: INK, strokeWidth: 1.05, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
-const G = { ...L, stroke: SOFT, strokeWidth: 0.8 };
+const SW = 0.75;
+const L = { fill: "none", stroke: "currentColor", strokeWidth: SW, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+const FILL_SOFT = "rgba(20,18,15,0.10)";
 
 type Closure = "sb1" | "sb2" | "sb3" | "db4" | "db6" | "mandarin";
 type Lapel = "notch" | "peak" | "shawl";
 type Pocket = "flap" | "jetted" | "patch" | "none";
 
-const btn = (x: number, y: number, r = 1.25) => <circle key={`${x}:${y}`} cx={x} cy={y} r={r} fill="#fff" stroke={INK} strokeWidth={0.9} />;
+/* Jacket drawn in a 60 x 80 box: neck at y 6, hem at ~y 72. */
+const NECK_L = 25;
+const NECK_R = 35;
+const SH_Y = 12;
 
-/** Front view of a jacket in a 64 x 72 box. */
-function Jacket({ closure = "sb2", lapel = "notch", pocket = "flap", ghost = false }: { closure?: Closure; lapel?: Lapel; pocket?: Pocket; ghost?: boolean }) {
-  const db = closure === "db4" || closure === "db6";
-  const mand = closure === "mandarin";
-  const topY = mand ? 14 : closure === "sb1" ? 40 : closure === "sb3" ? 30 : db ? 33 : 35; // lapel roll point
-  const rx = db ? 38 : 32; // x where the fronts meet
-  const body = (
-    <>
-      {/* shoulders, sides, hem */}
-      <path {...L} d={`M24 9 Q17 11 12 13 Q9 15 9 19 L9 22 M40 9 Q47 11 52 13 Q55 15 55 19 L55 22`} />
-      <path {...L} d={`M13 23 L14 58 Q22 61 ${db ? 26 : 30} 61 M51 23 L50 58 Q42 61 ${db ? 38 : 34} 61`} />
-      {/* sleeves */}
-      <path {...L} d="M9 19 Q7 38 8 61 L14 61 L15 30 M55 19 Q57 38 56 61 L50 61 L49 30" />
-      <path {...G} d="M8.4 56 L14 56 M55.6 56 L50 56" />
-      {[0, 1, 2].map((i) => (
-        <g key={i}>
-          {btn(12.6 - i * 0.2, 58.6 - i * 1.9, 0.55)}
-          {btn(51.4 + i * 0.2, 58.6 - i * 1.9, 0.55)}
-        </g>
-      ))}
-      {/* back collar seen inside */}
-      <path {...G} d="M24 9 Q32 12 40 9" />
-    </>
-  );
+const button = (x: number, y: number, r = 1) => <circle key={`${x}:${y}`} cx={x} cy={y} r={r} {...L} />;
+const hole = (x: number, y: number, dir: 1 | -1 = -1) => <path key={`h${x}:${y}`} {...L} d={`M${x + dir * 1.8} ${y} L${x + dir * 4} ${y}`} />;
 
-  let front: React.ReactNode;
-  if (mand) {
-    front = (
-      <>
-        <path {...L} d="M24 9 L24 5.5 Q32 3.5 40 5.5 L40 9 Q32 11.5 24 9 Z" />
-        <path {...L} d="M32 11 L32 60" />
-        {[18, 26, 34, 42, 50].map((y) => btn(32, y))}
-      </>
-    );
-  } else {
-    const noteL =
-      lapel === "shawl"
-        ? `M24 9 Q18 18 20 ${topY - 8} Q24 ${topY - 2} ${rx} ${topY}`
-        : lapel === "peak"
-          ? `M24 9 L22 15 L15 13 L18 19 Q21 ${topY - 10} ${rx} ${topY}`
-          : `M24 9 L22 16 L17 16.5 L19 20 Q22 ${topY - 10} ${rx} ${topY}`;
-    const noteR =
-      lapel === "shawl"
-        ? `M40 9 Q46 18 44 ${topY - 8} Q40 ${topY - 2} ${db ? 26 : 32} ${topY + (db ? 0 : 0)}`
-        : lapel === "peak"
-          ? `M40 9 L42 15 L49 13 L46 19 Q43 ${topY - 10} ${db ? 26 : 32} ${topY}`
-          : `M40 9 L42 16 L47 16.5 L45 20 Q42 ${topY - 10} ${db ? 26 : 32} ${topY}`;
-    front = (
-      <>
-        <path {...L} d={noteL} />
-        <path {...L} d={noteR} />
-        {/* gorge / collar */}
-        {lapel !== "shawl" ? <path {...G} d={`M22 ${lapel === "peak" ? 15 : 16} L24 9 M42 ${lapel === "peak" ? 15 : 16} L40 9`} /> : null}
-        {/* shirt V */}
-        <path {...G} d={`M26 10 L32 ${Math.min(topY, 26)} L38 10`} />
-        {/* front edge + cutaway */}
-        {db ? (
-          <path {...L} d={`M${rx} ${topY} L${rx} 61`} />
-        ) : (
-          <path {...L} d={`M${rx} ${topY} L${rx} 52 Q31 58 28 61 M32 52 Q33 58 36 61`} />
-        )}
-        {/* buttons */}
-        {closure === "sb1" ? btn(33.4, 44) : null}
-        {closure === "sb2" ? [btn(33.4, 40), btn(33.4, 48)] : null}
-        {closure === "sb3" ? [btn(33.4, 33), btn(33.4, 41), btn(33.4, 49)] : null}
-        {closure === "db4" ? [btn(27, 40), btn(37, 40), btn(27, 49), btn(37, 49)] : null}
-        {closure === "db6" ? [btn(25, 32), btn(39, 32), btn(27, 40), btn(37, 40), btn(27, 49), btn(37, 49)] : null}
-      </>
-    );
-  }
-
-  const pk = (x: number, w: number) => {
-    const y = 47;
-    if (pocket === "none") return null;
-    if (pocket === "jetted") return <path key={x} {...L} d={`M${x} ${y} L${x + w} ${y} M${x} ${y + 1.4} L${x + w} ${y + 1.4}`} strokeWidth={0.8} />;
-    if (pocket === "patch") return <path key={x} {...L} d={`M${x} ${y - 1} L${x + w} ${y - 1} L${x + w} ${y + 8} Q${x + w} ${y + 9.5} ${x + w - 1.5} ${y + 9.5} L${x + 1.5} ${y + 9.5} Q${x} ${y + 9.5} ${x} ${y + 8} Z`} />;
-    return <path key={x} {...L} d={`M${x - 0.3} ${y} L${x + w + 0.3} ${y} L${x + w} ${y + 4} L${x} ${y + 4} Z`} />;
-  };
-
+function Shell({ collar = true }: { collar?: boolean }) {
   return (
-    <g opacity={ghost ? 0.4 : 1}>
-      {body}
-      {front}
-      {pk(16, 9)}
-      {pk(39, 9)}
-      {/* breast pocket */}
-      {!mand ? <path {...(pocket === "patch" ? L : G)} d="M40 25 L47 24.4 L47 26.2 L40 26.8 Z" /> : null}
+    <g>
+      {/* shoulders */}
+      <path {...L} d={`M${NECK_L} 6 Q18.6 8 12.6 ${SH_Y} Q10.8 13.6 10.5 17.5`} />
+      <path {...L} d={`M${NECK_R} 6 Q41.4 8 47.4 ${SH_Y} Q49.2 13.6 49.5 17.5`} />
+      {/* sleeves: outer edge, cuff, inner edge */}
+      <path {...L} d="M10.5 17.5 Q9.4 41 10 66 L15.1 66.5 Q15.4 45 16.2 27" />
+      <path {...L} d="M49.5 17.5 Q50.6 41 50 66 L44.9 66.5 Q44.6 45 43.8 27" />
+      {/* body sides under the arm */}
+      <path {...L} d="M16.2 27 Q16.6 52 16.4 73.5" />
+      <path {...L} d="M43.8 27 Q43.4 52 43.6 73.5" />
+      {collar ? <path {...L} d={`M${NECK_L} 6 Q30 4.4 ${NECK_R} 6 Q30 8.4 ${NECK_L} 6`} /> : null}
     </g>
   );
 }
 
-function Trousers({ y = 0, x = 0, scale = 1, hatch = false, pleats = 0 }: { y?: number; x?: number; scale?: number; hatch?: boolean; pleats?: number }) {
+function Jacket({ closure = "sb2", lapel = "notch", pocket = "flap", vest = false }: { closure?: Closure; lapel?: Lapel; pocket?: Pocket; vest?: boolean }) {
+  const db = closure === "db4" || closure === "db6";
+  const mand = closure === "mandarin";
+  // roll point (where the lapels end / top button)
+  const roll = closure === "sb1" ? 45 : closure === "sb3" ? 34 : db ? 40 : 40;
+  const edgeX = db ? 36.5 : 31; // x of the overlapping front edge
+
+  let front: React.ReactNode;
+  if (mand) {
+    front = (
+      <g>
+        <path {...L} d={`M${NECK_L} 6 L${NECK_L - 0.4} 2.6 Q30 1.2 ${NECK_R + 0.4} 2.6 L${NECK_R} 6`} />
+        <path {...L} d="M30 6.6 L30 74" />
+        <path {...L} d="M30 74 Q23 75.2 16.4 73.5 M30 74 Q37 75.2 43.6 73.5" />
+        {[15, 27, 39, 51, 63].map((y) => button(31.6, y, 0.9))}
+      </g>
+    );
+  } else {
+    // lapel outline for the wearer's right side (viewer left) and left (viewer right)
+    const gorge = 17;
+    const lapelLeft =
+      lapel === "shawl"
+        ? `M${NECK_L} 6 Q20 14 21.5 26 Q23.5 ${roll - 6} ${edgeX - 1} ${roll}`
+        : lapel === "peak"
+          ? `M${NECK_L} 6 L23.4 ${gorge} L18.6 ${gorge - 3.6} L20.4 ${gorge + 3.4} Q22 ${roll - 10} ${edgeX - 1} ${roll}`
+          : `M${NECK_L} 6 L23.2 ${gorge} L19.6 ${gorge + 0.6} L21 ${gorge + 3.4} Q22.4 ${roll - 10} ${edgeX - 1} ${roll}`;
+    const lapelRight =
+      lapel === "shawl"
+        ? `M${NECK_R} 6 Q40 14 38.5 26 Q37 ${roll - 8} ${db ? 25 : 31} ${db ? roll - 8 : roll}`
+        : lapel === "peak"
+          ? `M${NECK_R} 6 L36.6 ${gorge} L41.4 ${gorge - 3.6} L39.6 ${gorge + 3.4} Q38.2 ${roll - 12} ${db ? 25 : 31} ${db ? roll - 8 : roll}`
+          : `M${NECK_R} 6 L36.8 ${gorge} L40.4 ${gorge + 0.6} L39 ${gorge + 3.4} Q37.8 ${roll - 12} ${db ? 25 : 31} ${db ? roll - 8 : roll}`;
+    front = (
+      <g>
+        <path {...L} d={lapelLeft} />
+        <path {...L} d={lapelRight} />
+        {/* shirt / inside V */}
+        <path {...L} d={`M${NECK_L + 1.4} 6.8 L30 ${Math.min(roll - 8, 24)} L${NECK_R - 1.4} 6.8`} opacity={0.4} />
+        {vest ? <path {...L} d={`M27 10.5 L30 ${roll - 11} L33 10.5`} /> : null}
+        {vest ? [button(30, roll - 8, 0.7), button(30, roll - 4.2, 0.7)] : null}
+        {/* front edge and hem */}
+        {db ? (
+          <path {...L} d={`M${edgeX - 1} ${roll} L${edgeX - 1} 74 Q28 75.4 16.4 73.5 M${edgeX - 1} 74 L43.6 73.5`} />
+        ) : (
+          <path {...L} d={`M30 ${roll} L30 63 Q29.4 70 22.4 74 Q19 74.3 16.4 73.5 M30.6 ${roll} L30.6 63 Q31.4 70 37.6 74 Q41 74.3 43.6 73.5`} />
+        )}
+        {closure === "sb1" ? [button(31.4, roll + 1.6), hole(30, roll + 1.6)] : null}
+        {closure === "sb2" ? [button(31.4, roll + 1.6), button(31.4, roll + 11), hole(30, roll + 11)] : null}
+        {closure === "sb3" ? [button(31.4, roll + 1.8), button(31.4, roll + 11), button(31.4, roll + 20)] : null}
+        {closure === "db4" ? [button(27.4, roll + 2), button(33.6, roll + 2), button(27.4, roll + 10), button(33.6, roll + 10), hole(26, roll + 10)] : null}
+        {closure === "db6" ? [button(25.6, roll - 6), button(35.4, roll - 6), button(27.4, roll + 2), button(33.6, roll + 2), button(27.4, roll + 10), button(33.6, roll + 10)] : null}
+      </g>
+    );
+  }
+
+  const pk = (x: number, key: string) => {
+    const w = 7.4;
+    const y = 56;
+    if (pocket === "none") return null;
+    if (pocket === "jetted") return <path key={key} {...L} d={`M${x} ${y} L${x + w} ${y} M${x} ${y + 0.9} L${x + w} ${y + 0.9}`} />;
+    if (pocket === "patch") return <path key={key} {...L} d={`M${x} ${y - 1} L${x + w} ${y - 1} L${x + w} ${y + 7} Q${x + w} ${y + 8.4} ${x + w - 1.4} ${y + 8.4} L${x + 1.4} ${y + 8.4} Q${x} ${y + 8.4} ${x} ${y + 7} Z`} />;
+    return <path key={key} {...L} d={`M${x - 0.2} ${y} L${x + w + 0.2} ${y} L${x + w} ${y + 2.8} L${x} ${y + 2.8} Z`} />;
+  };
+
   return (
-    <g transform={`translate(${x} ${y}) scale(${scale})`}>
-      {hatch ? (
-        <>
-          <defs>
-            <pattern id="og-hatch" width="2.4" height="2.4" patternUnits="userSpaceOnUse" patternTransform="rotate(90)">
-              <path d="M0 0 L0 2.4" stroke={SOFT} strokeWidth="0.7" />
-            </pattern>
-          </defs>
-          <path d="M20 4 L44 4 L47 66 L35 66 L32 24 L29 66 L17 66 Z" fill="url(#og-hatch)" />
-        </>
-      ) : null}
-      <path {...L} d="M20 4 L44 4 L47 66 L35 66 L32 24 L29 66 L17 66 Z" />
-      <path {...L} d="M20 4 L20 9 L44 9 L44 4" />
-      <path {...G} d="M32 9 L32 22 M24.5 10 L24.5 66 M39.5 10 L39.5 66" />
-      <path {...G} d="M21 12 L25 18 M43 12 L39 18" />
-      {pleats >= 1 ? <path {...L} d="M27 9 L27 17 M37 9 L37 17" strokeWidth={0.8} /> : null}
-      {pleats >= 2 ? <path {...L} d="M29 9 L29 14 M35 9 L35 14" strokeWidth={0.8} /> : null}
-      {btn(32, 6.5, 0.9)}
+    <g>
+      <Shell collar={!mand} />
+      {front}
+      {pk(19.2, "l")}
+      {pk(33.4, "r")}
+      {!mand ? <path {...L} d={pocket === "patch" ? "M36 25.6 L41.2 25.6 L41.2 30 L36 30 Z" : "M36 27 L41.4 26.4"} /> : null}
+    </g>
+  );
+}
+
+function Trousers({ soft = false, pleats = 0 }: { soft?: boolean; pleats?: number }) {
+  // 30 x 80 box
+  const outline = "M4 4 L26 4 L27.5 76 L18 76 L15 22 L12 76 L2.5 76 Z";
+  return (
+    <g>
+      {soft ? <path d={outline} fill={FILL_SOFT} stroke="none" /> : null}
+      <path {...L} d={outline} />
+      <path {...L} d="M4 4 L4 8.4 L26 8.4 L26 4" />
+      <path {...L} d="M15 8.4 L15 20" />
+      <path {...L} d="M5.2 11 Q7.6 14 8.4 18 M24.8 11 Q22.4 14 21.6 18" />
+      {pleats >= 1 ? <path {...L} d="M11.4 8.4 L11.6 16 M18.6 8.4 L18.4 16" /> : null}
+      {pleats >= 2 ? <path {...L} d="M9.6 8.4 L9.8 13 M20.4 8.4 L20.2 13" /> : null}
+      <path {...L} d="M8 9 L8 76 M22 9 L22 76" opacity={0.35} />
     </g>
   );
 }
 
 function Waistcoat({ db = false, six = false }: { db?: boolean; six?: boolean }) {
-  const ys = db ? [30, 38, 46] : six ? [24, 30, 36, 42, 48, 54] : [26, 33, 40, 47, 54];
+  const ys = db ? [34, 42, 50] : six ? [27, 33, 39, 45, 51, 57] : [30, 37, 44, 51, 58];
   return (
     <g>
-      <path {...L} d="M22 8 Q17 11 16 16 Q18 26 13 30 L13 58 L26 64 L32 60 L38 64 L51 58 L51 30 Q46 26 48 16 Q47 11 42 8" />
-      <path {...L} d={db ? "M22 8 L28 26 L38 30 M42 8 L38 30 L38 62" : "M22 8 L32 22 L42 8 M32 22 L32 60"} />
-      <path {...G} d="M16 16 Q22 12 22 8 M48 16 Q42 12 42 8" />
-      <path {...G} d="M18 44 L27 43 M37 43 L46 44 M19 28 L26 27 M38 27 L45 28" />
-      {db ? ys.flatMap((y) => [btn(28, y), btn(42, y)]) : ys.map((y) => btn(32, y))}
+      <path {...L} d="M23 8 Q19 11 16.5 15 Q17.6 23 14 28 L14 60 L27 68 L30 64 L33 68 L46 60 L46 28 Q42.4 23 43.5 15 Q41 11 37 8" />
+      <path {...L} d={db ? "M23 8 L27.6 30 L36 34 M37 8 L36 34 L36 66" : "M23 8 L30 25 L37 8 M30 25 L30 64"} />
+      <path {...L} d="M17.6 50 L25 49.4 M35 49.4 L42.4 50 M18.4 31 L24 30.4 M36 30.4 L41.6 31" opacity={0.7} />
+      {db ? ys.flatMap((y) => [button(27.6, y, 0.95), button(38.4, y, 0.95)]) : ys.map((y) => button(31.4, y, 0.95))}
     </g>
   );
 }
@@ -148,94 +147,101 @@ function Waistcoat({ db = false, six = false }: { db?: boolean; six?: boolean })
 function JacketBack({ vent }: { vent: "none" | "centre" | "side" }) {
   return (
     <g>
-      <path {...L} d="M24 9 Q17 11 12 13 Q9 15 9 19 Q7 38 8 61 L14 61 L15 30 M40 9 Q47 11 52 13 Q55 15 55 19 Q57 38 56 61 L50 61 L49 30" />
-      <path {...L} d="M13 23 L14 60 L50 60 L51 23" />
-      <path {...L} d="M24 9 Q32 6 40 9 L40 12 Q32 10 24 12 Z" />
-      <path {...G} d="M32 12 L32 60 M22 22 Q20 40 20 60 M42 22 Q44 40 44 60" />
-      {vent === "centre" ? <path {...L} d="M32 44 L32 60 M32 44 L33.6 46 L33.6 60" /> : null}
-      {vent === "side" ? <path {...L} d="M20 45 L20 60 M44 45 L44 60 M20 45 L21.6 47 L21.6 60 M44 45 L42.4 47 L42.4 60" /> : null}
+      <Shell collar={false} />
+      <path {...L} d={`M${NECK_L} 6 Q30 3.6 ${NECK_R} 6 L${NECK_R + 0.4} 9 Q30 7 ${NECK_L - 0.4} 9 Z`} />
+      <path {...L} d="M16.4 73.5 Q30 74.6 43.6 73.5" />
+      <path {...L} d="M30 8 L30 73.8" opacity={0.6} />
+      <path {...L} d="M21 24 Q20 48 21 74 M39 24 Q40 48 39 74" opacity={0.45} />
+      {vent === "centre" ? <path {...L} d="M30 55 L30 74 M30 55 L31.4 57 L31.4 74" /> : null}
+      {vent === "side" ? <path {...L} d="M16.6 55 L18 57 L18 73.6 M43.4 55 L42 57 L42 73.6" /> : null}
     </g>
   );
 }
 
-const V = (children: React.ReactNode, vb = "0 0 64 72") => ({ vb, children });
+type Glyph = { vb: string; body: React.ReactNode };
+const J = (props: Parameters<typeof Jacket>[0]): Glyph => ({ vb: "0 0 60 80", body: <Jacket {...props} /> });
 
-const GLYPHS: Record<string, { vb: string; children: React.ReactNode }> = {
-  "pieces-two": V(
-    <>
-      <g transform="translate(-6 0) scale(0.78)">
+const GLYPHS: Record<string, Glyph> = {
+  "pieces-two": {
+    vb: "0 0 90 80",
+    body: (
+      <>
         <Jacket />
-      </g>
-      <g transform="translate(26 16) scale(0.62)">
-        <Trousers />
-      </g>
-    </>,
-  ),
-  "pieces-three": V(
-    <>
-      <g transform="translate(-8 0) scale(0.72)">
-        <Jacket ghost />
-      </g>
-      <g transform="translate(6 6) scale(0.6)">
-        <Waistcoat />
-      </g>
-      <g transform="translate(30 18) scale(0.58)">
-        <Trousers />
-      </g>
-    </>,
-  ),
-  "fabric-same": V(
-    <>
-      <g transform="translate(-4 2) scale(0.74)">
+        <g transform="translate(58 0)">
+          <Trousers />
+        </g>
+      </>
+    ),
+  },
+  "pieces-three": {
+    vb: "0 0 90 80",
+    body: (
+      <>
+        <Jacket vest />
+        <g transform="translate(58 0)">
+          <Trousers />
+        </g>
+      </>
+    ),
+  },
+  "fabric-same": {
+    vb: "0 0 90 80",
+    body: (
+      <>
         <Jacket />
-      </g>
-      <g transform="translate(28 16) scale(0.6)">
-        <Trousers />
-      </g>
-    </>,
-  ),
-  "fabric-mixed": V(
-    <>
-      <g transform="translate(-4 2) scale(0.74)">
+        <g transform="translate(58 0)">
+          <Trousers />
+        </g>
+      </>
+    ),
+  },
+  "fabric-mixed": {
+    vb: "0 0 90 80",
+    body: (
+      <>
         <Jacket />
-      </g>
-      <g transform="translate(28 16) scale(0.6)">
-        <Trousers hatch />
-      </g>
-    </>,
-  ),
-  "closure-sb1": V(<Jacket closure="sb1" />),
-  "closure-sb2": V(<Jacket closure="sb2" />),
-  "closure-sb3": V(<Jacket closure="sb3" />),
-  "closure-db4": V(<Jacket closure="db4" lapel="peak" />),
-  "closure-db6": V(<Jacket closure="db6" lapel="peak" />),
-  "closure-mandarin": V(<Jacket closure="mandarin" />),
-  "lapel-notch": V(<Jacket lapel="notch" />),
-  "lapel-peak": V(<Jacket lapel="peak" />),
-  "lapel-shawl": V(<Jacket closure="sb1" lapel="shawl" />),
-  "pocket-flap": V(<Jacket pocket="flap" />),
-  "pocket-jetted": V(<Jacket pocket="jetted" />),
-  "pocket-patch": V(<Jacket pocket="patch" />),
-  "pocket-none": V(<Jacket pocket="none" />),
-  "vent-none": V(<JacketBack vent="none" />),
-  "vent-centre": V(<JacketBack vent="centre" />),
-  "vent-side": V(<JacketBack vent="side" />),
-  "pleat-none": V(<Trousers x={0} y={2} pleats={0} />),
-  "pleat-single": V(<Trousers x={0} y={2} pleats={1} />),
-  "pleat-double": V(<Trousers x={0} y={2} pleats={2} />),
-  "vest-sb5": V(<Waistcoat />),
-  "vest-sb6": V(<Waistcoat six />),
-  "vest-db6": V(<Waistcoat db />),
+        <g transform="translate(58 0)">
+          <Trousers soft />
+        </g>
+      </>
+    ),
+  },
+  "closure-sb1": J({ closure: "sb1" }),
+  "closure-sb2": J({ closure: "sb2" }),
+  "closure-sb3": J({ closure: "sb3" }),
+  "closure-db4": J({ closure: "db4", lapel: "peak" }),
+  "closure-db6": J({ closure: "db6", lapel: "peak" }),
+  "closure-mandarin": J({ closure: "mandarin" }),
+  "lapel-notch": J({ lapel: "notch" }),
+  "lapel-peak": J({ lapel: "peak" }),
+  "lapel-shawl": J({ closure: "sb1", lapel: "shawl" }),
+  "pocket-flap": J({ pocket: "flap" }),
+  "pocket-jetted": J({ pocket: "jetted" }),
+  "pocket-patch": J({ pocket: "patch" }),
+  "pocket-none": J({ pocket: "none" }),
+  "vent-none": { vb: "0 0 60 80", body: <JacketBack vent="none" /> },
+  "vent-centre": { vb: "0 0 60 80", body: <JacketBack vent="centre" /> },
+  "vent-side": { vb: "0 0 60 80", body: <JacketBack vent="side" /> },
+  "pleat-none": { vb: "-15 0 60 80", body: <Trousers pleats={0} /> },
+  "pleat-single": { vb: "-15 0 60 80", body: <Trousers pleats={1} /> },
+  "pleat-double": { vb: "-15 0 60 80", body: <Trousers pleats={2} /> },
+  "vest-sb5": { vb: "0 0 60 80", body: <Waistcoat /> },
+  "vest-sb6": { vb: "0 0 60 80", body: <Waistcoat six /> },
+  "vest-db6": { vb: "0 0 60 80", body: <Waistcoat db /> },
 };
 
 export function OptionGlyph({ name, className = "" }: { name?: string; className?: string }) {
   const g = name ? GLYPHS[name] : undefined;
   if (!g) return null;
   return (
-    <svg viewBox={g.vb} className={className} aria-hidden="true">
-      {g.children}
+    <svg viewBox={g.vb} className={className} aria-hidden="true" preserveAspectRatio="xMidYMid meet">
+      {g.body}
     </svg>
   );
+}
+
+export function glyphIsWide(name?: string): boolean {
+  return Boolean(name && GLYPHS[name]?.vb.startsWith("0 0 90"));
 }
 
 export function hasGlyph(name?: string): boolean {
