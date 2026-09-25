@@ -60,7 +60,7 @@ const steps = [
 export default function ProcessPage() {
   return (
     <main>
-      <Section border={false} className="bg-white">
+      <Section border={false}>
         {/* Masthead */}
         <div className="flex flex-col gap-8 border-b border-line pb-14 sm:flex-row sm:items-end sm:justify-between">
           <div className="mx-auto max-w-2xl text-center sm:mx-0 sm:text-left">
@@ -83,7 +83,7 @@ export default function ProcessPage() {
           tab, and an italic caption underneath — claims all the width
           that's left instead of stopping at an arbitrary column edge. */}
       {steps.map((step, index) => (
-        <Section key={step.number} className={index % 2 === 1 ? "bg-paper" : ""}>
+        <Section key={step.number} >
           <div
             className={`flex flex-col items-center gap-10 py-14 sm:items-center sm:gap-14 md:gap-16 md:py-16 ${
               index % 2 === 1 ? "sm:flex-row-reverse" : "sm:flex-row"
@@ -119,7 +119,7 @@ export default function ProcessPage() {
         </Section>
       ))}
 
-      <Section className={3 % 2 === 1 ? "bg-paper" : ""}>
+      <Section >
         <div className="py-14 text-center md:py-16">
           <p className="text-3xl italic text-oxblood">&ldquo;</p>
           <p className="mx-auto max-w-xl text-2xl italic leading-snug">{pullQuote}</p>

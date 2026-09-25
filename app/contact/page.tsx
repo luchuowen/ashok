@@ -22,7 +22,7 @@ export default function ContactPage() {
         />
       </Section>
 
-      <Section className="bg-paper">
+      <Section>
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2">
           <Photo
             src="/photos/home/contact-storefront.jpg"

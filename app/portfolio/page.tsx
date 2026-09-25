@@ -62,7 +62,7 @@ export default function PortfolioPage() {
           </CardGrid>
         )}
       </Section>
-      <Section className="bg-paper">
+      <Section>
         <Quote attribution="A CLIENT, EXECUTIVE WARDROBE, 2026">
           Dressed for the room I was about to walk into — boardroom, this time.
         </Quote>

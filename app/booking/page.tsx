@@ -121,7 +121,7 @@ function BookingForm() {
 
   return (
     <main>
-      <Section border={false} className="bg-white">
+      <Section border={false}>
         <TitleBand
           eyebrow="Book"
           title="Book a Consultation"

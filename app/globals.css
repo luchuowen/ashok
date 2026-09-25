@@ -70,3 +70,12 @@ h4 {
   animation-iteration-count: infinite;
   animation-direction: alternate;
 }
+
+/* Alternate section backgrounds site-wide (white / cream) so long pages have rhythm.
+   Zero-specificity :where() keeps any explicit bg-* on a section in charge. */
+main > :where(section:nth-of-type(odd)) {
+  background-color: rgb(var(--paper));
+}
+main > :where(section:nth-of-type(even)) {
+  background-color: rgb(var(--cream));
+}

@@ -31,7 +31,7 @@ export default function AtelierPage() {
         />
       </Section>
 
-      <Section className="bg-paper text-center sm:text-left">
+      <Section className="text-center sm:text-left">
         <div className="grid grid-cols-1 items-center gap-10 sm:grid-cols-2">
           <Photo src={masterTailorImage} label="IMG-40 · master tailor at the cutting table" aspectRatio="4 / 3" />
           <p className="text-base text-muted">

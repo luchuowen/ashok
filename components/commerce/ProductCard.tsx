@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Photo } from "@/components/ui/Photo";
-import { effectivePrice, type Product } from "@/lib/inventory";
+import { effectivePrice } from "@/lib/pricing";
+import type { Product } from "@/lib/inventory";
 
 export function ProductCard({ product }: { product: Product }) {
   const totalStock = product.variants.reduce((sum, v) => sum + v.stockQty, 0);

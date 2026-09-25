@@ -106,7 +106,7 @@ export default function CustomSuitsPage() {
         <DesignerShowcase />
       </Section>
 
-      <Section className="bg-paper">
+      <Section>
         <div className="flex flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
           <div>
             <Eyebrow>Start with a base style</Eyebrow>

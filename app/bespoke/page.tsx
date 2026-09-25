@@ -44,7 +44,7 @@ export default function BespokePage() {
         </CardGrid>
       </Section>
 
-      <Section className="bg-paper text-center sm:text-left">
+      <Section className="text-center sm:text-left">
         <h2 className="text-3xl">Who it&apos;s for</h2>
         <p className="mt-4 max-w-2xl text-base text-muted">
           Wedding suits, boardroom wardrobes, the one suit you want to stop thinking about once

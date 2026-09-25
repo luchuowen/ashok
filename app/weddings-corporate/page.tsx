@@ -59,7 +59,7 @@ export default function WeddingsCorporatePage() {
         </CardGrid>
       </Section>
 
-      <Section className="bg-paper text-center sm:text-left">
+      <Section className="text-center sm:text-left">
         <h2 className="text-3xl">How group bookings work</h2>
         <ol className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-3">
           {groupSteps.map((step) => (

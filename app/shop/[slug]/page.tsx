@@ -219,7 +219,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
       </Section>
 
       {related.length > 0 ? (
-        <Section className="bg-paper text-center sm:text-left">
+        <Section className="text-center sm:text-left">
           <p className="text-xs uppercase tracking-wide text-muted">Pairs well with</p>
           <div className="mx-auto mt-6 grid max-w-md grid-cols-1 gap-8 sm:mx-0 sm:grid-cols-2">
             {related.map((item) => (

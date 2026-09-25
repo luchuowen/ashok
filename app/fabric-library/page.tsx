@@ -17,7 +17,7 @@ const filterTags = [
 export default function FabricLibraryPage() {
   return (
     <main>
-      <Section border={false} className="bg-white">
+      <Section border={false}>
         <TitleBand
           eyebrow="Sourcing"
           title="Every bolt, where it comes from and what it's for."
@@ -50,7 +50,7 @@ export default function FabricLibraryPage() {
         </div>
       </Section>
 
-      <Section className="bg-paper text-center sm:text-left">
+      <Section className="text-center sm:text-left">
         <h2 className="text-3xl">Choose Your Fabric</h2>
         <p className="mt-4 max-w-2xl text-base text-muted">
           Explore our fabric collection and select your preferred option before your consultation.

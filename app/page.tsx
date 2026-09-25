@@ -130,7 +130,7 @@ export default function Home() {
       </div>
 
       {/* Three-column intro */}
-      <Section className="bg-paper">
+      <Section>
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
           {introColumns.map((col) => (
             <div key={col.title} className="text-center sm:text-left">
@@ -162,7 +162,7 @@ export default function Home() {
       {/* Process — mobile gets a connected vertical timeline (Owen's chosen
           "Process A" direction); sm and up keep the original column grid
           untouched. */}
-      <Section className="bg-paper">
+      <Section>
         <h2 className="text-center text-3xl sm:text-left">The Process</h2>
 
         <ol className="mt-10 sm:hidden">
@@ -213,7 +213,7 @@ export default function Home() {
       </div>
 
       {/* Quote */}
-      <Section className="bg-paper">
+      <Section>
         <Quote attribution="A CLIENT, WEDDING SUIT, 2026">
           &ldquo;The fitting felt personal - he took his time and got every detail right.&rdquo;
         </Quote>
