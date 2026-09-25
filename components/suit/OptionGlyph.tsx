@@ -23,7 +23,6 @@ function Jacket({ closure = "sb2", lapel = "notch", pocket = "flap", ghost = fal
   const mand = closure === "mandarin";
   const topY = mand ? 14 : closure === "sb1" ? 40 : closure === "sb3" ? 30 : db ? 33 : 35; // lapel roll point
   const rx = db ? 38 : 32; // x where the fronts meet
-  const lw = lapel === "peak" ? 1 : 0;
   const body = (
     <>
       {/* shoulders, sides, hem */}
