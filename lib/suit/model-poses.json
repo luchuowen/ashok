@@ -2,203 +2,216 @@
   "tilePx": 150,
   "poses": {
     "front-sb2-notch": {
-      "width": 896,
-      "height": 1746,
+      "width": 1200,
+      "height": 2054,
       "refs": {
-        "suit": 147.7,
-        "skin": 122.6,
-        "tie": 81.5
+        "jacket": 80.7,
+        "trousers": 74.3,
+        "skin": 75.8,
+        "tie": 120.4
       },
       "skin": [
-        165,
-        108,
-        81
+        106,
+        64,
+        53
       ],
       "hasTie": true,
       "hasWaistcoat": false
     },
     "front-notie": {
-      "width": 896,
-      "height": 1746,
+      "width": 1200,
+      "height": 2054,
       "refs": {
-        "suit": 148.7,
-        "skin": 122.9
+        "jacket": 80.6,
+        "trousers": 74.1,
+        "skin": 77.8
       },
       "skin": [
-        169,
-        108,
-        77
+        110,
+        65,
+        54
       ],
       "hasTie": false,
       "hasWaistcoat": false
     },
     "front-bowtie": {
-      "width": 896,
-      "height": 1746,
+      "width": 1200,
+      "height": 2054,
       "refs": {
-        "suit": 148.6,
-        "skin": 121.7,
-        "tie": 59.5
+        "jacket": 80.2,
+        "trousers": 73.7,
+        "skin": 74.2,
+        "tie": 95.5
       },
       "skin": [
-        165,
-        107,
-        80
+        106,
+        62,
+        51
       ],
       "hasTie": true,
       "hasWaistcoat": false
     },
     "front-sb1-shawl": {
-      "width": 896,
-      "height": 1746,
+      "width": 1200,
+      "height": 2054,
       "refs": {
-        "suit": 148.4,
-        "skin": 121.8,
-        "tie": 78.7
+        "jacket": 79.9,
+        "trousers": 73.4,
+        "skin": 74.0,
+        "tie": 117.9
       },
       "skin": [
-        165,
-        107,
-        79
+        105,
+        62,
+        50
       ],
       "hasTie": true,
       "hasWaistcoat": false
     },
     "front-db6-peak": {
-      "width": 896,
-      "height": 1746,
+      "width": 1200,
+      "height": 2054,
       "refs": {
-        "suit": 147.9,
-        "skin": 121.1,
-        "tie": 79.6
+        "jacket": 81.7,
+        "trousers": 73.8,
+        "skin": 74.6,
+        "tie": 119.3
       },
       "skin": [
-        165,
-        106,
-        79
+        105,
+        62,
+        52
       ],
       "hasTie": true,
       "hasWaistcoat": false
     },
     "front-threepiece": {
-      "width": 896,
-      "height": 1746,
+      "width": 1200,
+      "height": 2054,
       "refs": {
-        "suit": 142.7,
-        "skin": 119.4,
-        "tie": 81.5
+        "jacket": 79.7,
+        "trousers": 74.3,
+        "waistcoat": 105.3,
+        "skin": 74.1,
+        "tie": 119.1
       },
       "skin": [
-        163,
-        105,
-        77
+        107,
+        61,
+        50
       ],
       "hasTie": true,
       "hasWaistcoat": true
     },
     "front-threepiece-notie": {
-      "width": 896,
-      "height": 1746,
+      "width": 1200,
+      "height": 2054,
       "refs": {
-        "suit": 144.7,
-        "skin": 122.2
+        "jacket": 81.1,
+        "trousers": 74.6,
+        "waistcoat": 105.6,
+        "skin": 78.1
       },
       "skin": [
-        171,
-        106,
-        77
+        109,
+        66,
+        55
       ],
       "hasTie": false,
       "hasWaistcoat": true
     },
     "front-db6-peak-notie": {
-      "width": 896,
-      "height": 1746,
+      "width": 1200,
+      "height": 2054,
       "refs": {
-        "suit": 149.5,
-        "skin": 120.6
+        "jacket": 81.7,
+        "trousers": 73.7,
+        "skin": 76.7
       },
       "skin": [
-        166,
-        106,
-        77
+        107,
+        64,
+        53
       ],
       "hasTie": false,
       "hasWaistcoat": false
     },
     "front-sb1-shawl-notie": {
-      "width": 896,
-      "height": 1746,
+      "width": 1200,
+      "height": 2054,
       "refs": {
-        "suit": 147.2,
-        "skin": 122.3
+        "jacket": 81.3,
+        "trousers": 73.7,
+        "skin": 76.6
       },
       "skin": [
-        169,
-        106,
-        78
+        108,
+        64,
+        53
       ],
       "hasTie": false,
       "hasWaistcoat": false
     },
     "front-waistcoat": {
-      "width": 896,
-      "height": 1746,
+      "width": 1200,
+      "height": 2054,
       "refs": {
-        "suit": 143.0,
-        "skin": 117.7,
-        "tie": 81.8
+        "trousers": 77.3,
+        "waistcoat": 102.7,
+        "skin": 74.7,
+        "tie": 121.8
       },
       "skin": [
-        162,
-        103,
-        74
+        105,
+        62,
+        52
       ],
       "hasTie": true,
       "hasWaistcoat": true
     },
     "front-mandarin": {
-      "width": 896,
-      "height": 1746,
+      "width": 1200,
+      "height": 2054,
       "refs": {
-        "suit": 147.9,
-        "skin": 117.0
+        "jacket": 82.5,
+        "trousers": 73.5,
+        "skin": 74.4
       },
       "skin": [
-        164,
-        101,
-        72
+        105,
+        62,
+        51
       ],
       "hasTie": false,
       "hasWaistcoat": false
     },
     "front-nojacket": {
-      "width": 896,
-      "height": 1746,
+      "width": 1200,
+      "height": 2054,
       "refs": {
-        "suit": 143.2,
-        "skin": 121.3,
-        "tie": 86.3
+        "trousers": 78.6,
+        "skin": 78.6
       },
       "skin": [
-        165,
-        107,
-        79
+        110,
+        66,
+        54
       ],
-      "hasTie": true,
+      "hasTie": false,
       "hasWaistcoat": false
     },
     "back": {
-      "width": 896,
-      "height": 1746,
+      "width": 1200,
+      "height": 2054,
       "refs": {
-        "suit": 157.9,
-        "skin": 110.3
+        "jacket": 86.1,
+        "trousers": 76.8,
+        "skin": 72.3
       },
       "skin": [
-        144,
-        97,
-        78
+        98,
+        61,
+        51
       ],
       "hasTie": false,
       "hasWaistcoat": false

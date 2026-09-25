@@ -15,6 +15,7 @@ prompts are in `prompts.json` (one entry per asset, self-contained). This file e
 | **Inside** | `inside` (emerald satin so the lining can be re-coloured) | lining colour |
 | **Waistcoat** | `waistcoat-sb5` | waistcoat style |
 | **Hero** | 3 on-model portraits (`public/photos/custom-suits/`) | landing carousel |
+| **On model** | 13 colour-coded poses (`design/model-src/`, prompts key `onModel`) | stage "On model" mode |
 
 Base look: an **invisible-mannequin** luxury suit (Super 120s worsted, neutral grey `#9A9A9A`,
 tonal satin lining, horn buttons) on a seamless light neutral backdrop. Every variant is an
@@ -54,3 +55,12 @@ into `public/photos/fabrics/`. The dye textures on the suit photos stay procedur
    stray colour, low detail or a non-neutral cloth. Regenerate until clean.
 4. Save as `design/nano-banana/out/<asset-id>.jpg`, then run
    `python3 scripts/build-suit-photos.py` → `public/suit-photos/**` + `lib/suit/photo-assets.json`.
+
+## On-model poses
+
+`design/model-src/<pose>.jpg` are Nano Banana Pro 2K photos (9:16) of one model, cropped at the chin,
+with the garments **colour-coded** so each part separates cleanly by hue: jacket blue `#4A6FA5`,
+trousers green `#4F8A55`, waistcoat purple `#7B5AA6`, tie magenta `#D0208F`. The first prompt makes
+`front-sb2-notch`; every other pose is an edit of that image in the same chat. `python3
+scripts/build-model-poses.py [pose ...]` turns them into `public/model/<pose>/` (grey-neutralised
+base, shade, masks) — only luminance is used, so the coding colours never reach the page.

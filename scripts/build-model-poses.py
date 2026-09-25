@@ -1,24 +1,30 @@
 #!/usr/bin/env python3
 """
-Build the on-model preview layers from the neutral-grey studio photos in
+Build the on-model preview layers from the colour-coded studio photos in
 design/model-src/ -> public/model/<pose>/ + lib/suit/model-poses.json.
 
-Each source photo shows the same model and pose wearing a plain light-grey suit,
-white shirt and an emerald-green tie on a white background. For every pose we
-write:
+The source photos (Nano Banana Pro, prompts in design/nano-banana/prompts.json,
+key "onModel") show one model and pose per file with the garments colour-coded so
+every part can be separated cleanly by hue:
 
-  base.jpg   the photo (cropped), used as-is for shirt, skin, shoes, background
-  shade.jpg  smoothed luminance normalised per region (128 = region median), so
-             the browser can re-dye cloth/skin/tie while keeping folds + light
+  jacket   medium blue    (#4A6FA5)
+  trousers medium green   (#4F8A55)
+  waistcoat medium purple (#7B5AA6)
+  tie      magenta        (#D0208F)
+
+Only the luminance of those regions is used (the browser multiplies the chosen
+cloth texture by it), so the coding colours never reach the page. For every pose:
+
+  base.jpg   the photo with every coded region neutralised to grey, so the soft
+             mask edges can never show a blue/green/purple fringe
+  shade.jpg  smoothed luminance normalised per region (128 = region median)
   mask.png   R = jacket, G = trousers, B = waistcoat   (soft 0-255)
   mask2.png  R = skin,   G = tie,      B = studio background (made transparent)
 
-The browser (components/suit/ModelPreview.tsx) multiplies the chosen fabric
-texture by the shade inside the masks. Re-run after adding or replacing a photo:
-
-    python3 scripts/build-model-poses.py
+    python3 scripts/build-model-poses.py [pose ...]
 """
 import json
+import sys
 from pathlib import Path
 
 import cv2
@@ -29,143 +35,168 @@ ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "design" / "model-src"
 OUT = ROOT / "public" / "model"
 MANIFEST = ROOT / "lib" / "suit" / "model-poses.json"
-CROP_TOP = 30  # hide the chin
+WIDTH = 1200  # delivered width
+CROP_TOP = 0.045  # fraction of the source height cut from the top (the face)
 
-# Trousers are the suit pixels below this polyline (x, y in source pixels); it rises
-# into the gap between the jacket fronts where the trousers show through.
-HEM_SB2 = [(0, 818), (385, 818), (400, 780), (425, 690), (446, 605), (456, 605), (470, 690), (495, 780), (520, 818), (896, 818)]
-POSES = {
-    "front-sb2-notch": {"hem": HEM_SB2},
-    "front-notie": {"hem": HEM_SB2},
-    "front-bowtie": {"hem": HEM_SB2},
-    "front-sb1-shawl": {"hem": [(0, 812), (390, 812), (410, 760), (432, 670), (446, 600), (456, 600), (470, 670), (492, 760), (512, 812), (896, 812)]},
-    "front-db6-peak": {"hem": [(0, 806), (896, 806)]},
-    "front-threepiece": {
-        "hem": [(0, 815), (335, 812), (352, 760), (360, 705), (452, 712), (528, 700), (540, 760), (560, 812), (896, 815)],
-        "waistcoat": [(385, 262), (515, 262), (528, 320), (528, 700), (452, 712), (358, 700), (362, 320)],
-    },
-    "front-threepiece-notie": {
-        "hem": [(0, 815), (300, 812), (330, 760), (352, 705), (445, 692), (498, 700), (520, 760), (545, 812), (896, 815)],
-        "waistcoat": [(385, 240), (470, 240), (495, 300), (495, 700), (445, 692), (355, 700), (352, 300)],
-    },
-    "front-db6-peak-notie": {"hem": [(0, 806), (896, 806)]},
-    "front-sb1-shawl-notie": {"hem": [(0, 812), (390, 812), (410, 760), (432, 670), (446, 600), (456, 600), (470, 670), (492, 760), (512, 812), (896, 812)]},
-    "front-waistcoat": {
-        "hem": [(0, 680), (330, 672), (445, 705), (565, 672), (896, 680)],
-        "allWaistcoat": True,
-        # shirt sleeves have grey fold shadows: only the waistcoat torso and the legs are cloth
-        "clothOnly": [[(290, 40), (634, 40), (634, 760), (290, 760)], [(0, 640), (896, 640), (896, 1776), (0, 1776)]],
-        "opaque": [(215, 0), (690, 0), (700, 790), (210, 790)],  # white sleeves are backdrop-bright: never key them
-    },
-    "front-mandarin": {"hem": [(0, 822), (400, 822), (425, 770), (445, 705), (455, 705), (470, 770), (495, 822), (896, 822)]},
-    "front-nojacket": {"hem": [(0, 0), (896, 0)], "clothOnly": [[(0, 515), (896, 515), (896, 1776), (0, 1776)]], "opaque": [(215, 0), (690, 0), (700, 790), (210, 790)]},
-    "back": {"hem": [(0, 802), (896, 802)]},
-}
+POSES = [
+    "front-sb2-notch", "front-notie", "front-bowtie", "front-sb1-shawl", "front-sb1-shawl-notie",
+    "front-db6-peak", "front-db6-peak-notie", "front-threepiece", "front-threepiece-notie",
+    "front-waistcoat", "front-mandarin", "front-nojacket", "back",
+]
+
+# OpenCV hue is 0-179. Centres of the coding colours.
+HUES = {"jacket": 108, "trousers": 63, "waistcoat": 134, "tie": 162}
 
 
-def below_polyline(h, w, pts):
-    xs = np.array([p[0] for p in pts], float)
-    ys = np.array([p[1] for p in pts], float)
-    hem = np.interp(np.arange(w), xs, ys)
-    return np.arange(h)[:, None] >= hem[None, :]
+def person_matte(im: Image.Image) -> np.ndarray:
+    from rembg import new_session, remove
+
+    global _S
+    try:
+        _S
+    except NameError:
+        _S = new_session("isnet-general-use")
+    return np.asarray(remove(im, session=_S, only_mask=True)).astype(np.float32) / 255.0
 
 
-def build(name, cfg):
-    a = np.asarray(Image.open(SRC / f"{name}.jpg").convert("RGB")).astype(np.float32)
-    h, w, _ = a.shape
+def hue_dist(h, c):
+    d = np.abs(h.astype(np.int16) - c)
+    return np.minimum(d, 180 - d)
+
+
+def clean(m, open_=3, min_area=1500):
+    m = cv2.morphologyEx(m.astype(np.uint8), cv2.MORPH_OPEN, np.ones((open_, open_), np.uint8))
+    n, lab, st, _ = cv2.connectedComponentsWithStats(m, 8)
+    keep = np.zeros(n, bool)
+    keep[1:] = st[1:, 4] >= min_area
+    m = keep[lab].astype(np.uint8)
+    return cv2.morphologyEx(m, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)).astype(bool)
+
+
+def build(name):
+    im = Image.open(SRC / f"{name}.jpg").convert("RGB")
+    im = im.crop((0, int(im.height * CROP_TOP), im.width, im.height))  # face out of frame, chin at the top edge
+    h = round(im.height * WIDTH / im.width)
+    im = im.resize((WIDTH, h), Image.LANCZOS)
+    a = np.asarray(im).astype(np.float32)
+    hsv = cv2.cvtColor(np.asarray(im), cv2.COLOR_RGB2HSV)
+    H, S, V = hsv[..., 0], hsv[..., 1].astype(np.float32), hsv[..., 2].astype(np.float32)
+    L = 0.299 * a[..., 0] + 0.587 * a[..., 1] + 0.114 * a[..., 2]
+
+    fg = person_matte(im)
+    # The matte sometimes drops the neck/chin at the cropped top edge; the studio
+    # backdrop is a pale neutral, so anything warm and saturated is the person.
+    R0, G0, B0 = a[..., 0], a[..., 1], a[..., 2]
+    warm0 = (R0 > B0 + 12) & (R0 >= G0) & (S > 30) & (L > 12)
+    warm0 = cv2.morphologyEx(warm0.astype(np.uint8), cv2.MORPH_OPEN, np.ones((3, 3), np.uint8)).astype(bool)
+    fg = np.maximum(fg, cv2.GaussianBlur(warm0.astype(np.float32), (0, 0), 0.8))
+    fgb = fg > 0.5
+
+    coded = (S > 38) & (V > 25) & fgb
+    parts = {}
+    for k, c in HUES.items():
+        tol = 14 if k != "tie" else 12
+        parts[k] = clean(coded & (hue_dist(H, c) < tol), min_area=300 if k == "tie" else 1500)
+    # Deep folds lose saturation: grow each cloth part into adjacent dark, low-sat pixels
+    # (never into the white shirt, black shoes are handled by the floor cut below).
+    for k in ("jacket", "trousers", "waistcoat"):
+        m = parts[k]
+        if not m.any():
+            continue
+        others = np.any([parts[o] for o in parts if o != k], axis=0)
+        for _ in range(3):
+            ring = cv2.dilate(m.astype(np.uint8), np.ones((7, 7), np.uint8)).astype(bool) & ~m
+            m = m | (ring & fgb & (L < 150) & (L > 12) & ~others & ~warm0)
+        parts[k] = m
+    # Shoes: the dark blob at the bottom is never trousers.
+    shoes = (L < 50) & fgb
+    shoes[: int(h * 0.82)] = False
+    shoes = clean(shoes, 3, 4000)  # only the big shoe blobs, never deep fold shadows
+    shoes = cv2.dilate(shoes.astype(np.uint8), np.ones((5, 5), np.uint8)).astype(bool)
+    parts["trousers"] &= ~shoes
+
+    cloth = parts["jacket"] | parts["trousers"] | parts["waistcoat"]
+    tie = parts["tie"]
+    # Skin: warm, foreground, not cloth/tie/white shirt/black shoes.
     R, G, B = a[..., 0], a[..., 1], a[..., 2]
-    L = 0.299 * R + 0.587 * G + 0.114 * B
-    sat = a.max(-1) - a.min(-1)
+    skin = fgb & ~cloth & ~tie & (R > B + 12) & (R >= G) & (L > 5) & (L < 225) & (S > 30)
+    skin = clean(skin, 3, 400)
+    # Close small gaps (deep shadow under the chin, lips at the top edge) and pad the top edge
+    # so a hole touching the crop line is filled too.
+    pad = 30
+    sk = cv2.copyMakeBorder(skin.astype(np.uint8), pad, 0, 0, 0, cv2.BORDER_CONSTANT, value=1)
+    sk = cv2.morphologyEx(sk, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (41, 41)))[pad:]
+    skin = sk.astype(bool) & ~cloth & ~tie & (L < 200)
+    skin = cv2.dilate(skin.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool) & ~cloth & ~tie
+    fg = np.maximum(fg, skin.astype(np.float32))
+    # White shirt collar against the pale backdrop: anything enclosed by the person is the person.
+    body = cv2.copyMakeBorder((fg > 0.5).astype(np.uint8), pad, 0, 0, 0, cv2.BORDER_CONSTANT, value=0)
+    body[:pad, :] = body[pad : pad + 1, :]  # extend the top row so the collar is enclosed
+    body = cv2.morphologyEx(body, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (31, 31)))[pad:]
+    body[int(h * 0.14) :] = 0  # collar area only: never bridge the arm/torso or leg gaps
+    fg = np.maximum(fg, cv2.GaussianBlur(cv2.erode(body, np.ones((3, 3), np.uint8)).astype(np.float32), (0, 0), 0.8))
 
-    tie = (G > R + 18) & (G > B + 4)
-    skin = (R > G + 6) & (G >= B - 4) & (R - B > 22) & (L < 215)
-    Lm = cv2.medianBlur(L.astype(np.uint8), 9).astype(np.float32)
-    suit = ((sat < 22) & (Lm < 214) & (Lm > 55) & ~tie & ~skin).astype(np.uint8)
-    suit = cv2.morphologyEx(suit, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
-    n, lab, st, _ = cv2.connectedComponentsWithStats(suit, 8)
-    keep = np.zeros_like(suit)
-    for i in range(1, n):
-        if st[i, 4] > 4000:
-            keep[lab == i] = 1
-    # Floor shadow round the shoes reads as grey cloth: cut below the shoe tops.
-    dark = (L < 45).astype(np.uint8)
-    dark[: int(h * 0.8)] = 0
-    ys = np.where(dark.any(1))[0]
-    if len(ys):
-        keep[ys.min() + 10 :] = 0
-    suit = keep.astype(bool)
-    if "clothOnly" in cfg:
-        zone = np.zeros((h, w), np.uint8)
-        for poly in cfg["clothOnly"]:
-            cv2.fillPoly(zone, [np.array(poly, np.int32)], 1)
-        suit &= zone.astype(bool)
-    # Grow skin into highlights/nails the colour test misses (but not onto cloth or the white shirt/background).
-    skin = cv2.dilate(skin.astype(np.uint8), np.ones((7, 7), np.uint8)).astype(bool) & ~suit & ~tie & (L < 232)
-
-    # Background: flood from the corners through the smooth studio backdrop, so the
-    # page behind shows through (the stage is not the photo's exact grey).
-    bg8 = cv2.GaussianBlur(a, (0, 0), 1.0).astype(np.uint8)
-    ff = np.zeros((h + 2, w + 2), np.uint8)
-    for seed in ((0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1), (w // 2, 2)):
-        cv2.floodFill(bg8, ff, seed, (0, 0, 0), (2, 2, 2), (2, 2, 2), cv2.FLOODFILL_MASK_ONLY | (255 << 8) | 8)
-    bg = ff[1:-1, 1:-1] > 0
-    bg = cv2.morphologyEx(bg.astype(np.uint8), cv2.MORPH_OPEN, np.ones((3, 3), np.uint8)).astype(bool) & ~suit & ~skin
-    if "opaque" in cfg:
-        keep_out = np.zeros((h, w), np.uint8)
-        cv2.fillPoly(keep_out, [np.array(cfg["opaque"], np.int32)], 1)
-        bg &= ~keep_out.astype(bool)
-    bg[: int(h * 0.52), w // 2 - 70 : w // 2 + 70] = False  # no backdrop inside the torso (small leaks at the waist)
-    tie = cv2.dilate(tie.astype(np.uint8), np.ones((5, 5), np.uint8)).astype(bool) & ~suit & ~skin
-
-    trousers = suit & below_polyline(h, w, cfg["hem"])
-    waist = np.zeros_like(suit)
-    if cfg.get("allWaistcoat"):
-        waist = suit & ~trousers
-    elif "waistcoat" in cfg:
-        poly = np.zeros((h, w), np.uint8)
-        cv2.fillPoly(poly, [np.array(cfg["waistcoat"], np.int32)], 1)
-        waist = suit & ~trousers & poly.astype(bool)
-    jacket = suit & ~trousers & ~waist
-
-    def soft(m, r=1.2):
-        return np.clip(cv2.GaussianBlur(m.astype(np.float32), (0, 0), r) * 255, 0, 255)
-
-    # Shade: remove the grey cloth's own weave (edge-preserving), keep folds.
+    # Shade: remove the weave, keep folds; normalise per region.
     Ls = cv2.bilateralFilter(L.astype(np.float32), 9, 18, 6)
     Ls = cv2.GaussianBlur(Ls, (0, 0), 0.8)
-    shade = np.full((h, w), 128.0, np.float32)
+    shade = np.full((h, w := WIDTH), 128.0, np.float32)
     refs = {}
-    for key, m in (("suit", suit), ("skin", skin), ("tie", tie)):
+    for key, m in (("jacket", parts["jacket"]), ("trousers", parts["trousers"]), ("waistcoat", parts["waistcoat"]), ("skin", skin), ("tie", tie)):
         if m.sum() < 50:
             continue
         ref = float(np.median(Ls[m]))
         refs[key] = round(ref, 1)
         grown = cv2.dilate(m.astype(np.uint8), np.ones((5, 5), np.uint8)).astype(bool)
         shade[grown] = np.clip(128 * Ls[grown] / ref, 0, 255)
+        edge = grown & ~m  # anti-aliased rim over the pale backdrop: never brighter than the cloth
+        shade[edge] = np.minimum(shade[edge], 112)
     skin_rgb = [int(round(float(np.median(a[..., c][skin])))) for c in range(3)] if skin.sum() > 50 else [150, 100, 70]
 
-    c = slice(CROP_TOP, None)
+    # Neutralise the coding colours in the base photo (and a few pixels around them).
+    warm = (R > B + 8) & (R >= G - 4) & ~cloth & ~tie  # chin, neck, hands: never greyed
+    zone = cv2.dilate((cloth | tie).astype(np.uint8), np.ones((7, 7), np.uint8)).astype(bool) & ~skin & ~warm
+    grey = np.repeat(L[..., None], 3, -1)
+    base = np.where(zone[..., None], grey, a)
+
+    def soft(m, r=1.0):
+        return np.clip(cv2.GaussianBlur(m.astype(np.float32), (0, 0), r) * 255, 0, 255)
+
+    # Parts share one soft outline (grown a pixel so the dye covers anti-aliased
+    # edges); the split between parts always sums to that outline -> no seams.
+    total = soft(cv2.dilate(cloth.astype(np.uint8), np.ones((3, 3), np.uint8)), 0.9)
+    stack = np.stack([cv2.GaussianBlur(parts[k].astype(np.float32), (0, 0), 1.2) for k in ("jacket", "trousers", "waistcoat")], -1)
+    stack = stack / np.maximum(stack.sum(-1, keepdims=True), 1e-4)
+    m1 = (stack * total[..., None]).astype(np.uint8)
+    bg = np.clip(1 - fg, 0, 1)
+    m2 = np.stack([soft(skin, 0.8), soft(tie, 0.7), bg * 255], -1).astype(np.uint8)
+
     d = OUT / name
     d.mkdir(parents=True, exist_ok=True)
-    Image.fromarray(a[c].astype(np.uint8)).save(d / "base.jpg", quality=88, optimize=True, progressive=True)
-    Image.fromarray(shade[c].astype(np.uint8), "L").save(d / "shade.jpg", quality=92, optimize=True)
-    # Parts share one soft outline (suit grown by a pixel so the dye covers the
-    # anti-aliased edge); the split between parts is feathered but always sums
-    # to the outline, so no grey seam shows between jacket, waistcoat and trousers.
-    total = soft(cv2.dilate(suit.astype(np.uint8), np.ones((3, 3), np.uint8)), 1.0)
-    parts = np.stack([cv2.GaussianBlur(m.astype(np.float32), (0, 0), 2.0) for m in (jacket, trousers, waist)], -1)
-    parts = parts / np.maximum(parts.sum(-1, keepdims=True), 1e-4)
-    m1 = (parts * total[..., None])[c].astype(np.uint8)
-    m2 = np.stack([soft(skin, 0.8), soft(tie, 0.8), soft(bg, 0.9)], -1)[c].astype(np.uint8)
+    Image.fromarray(base.clip(0, 255).astype(np.uint8)).save(d / "base.jpg", quality=90, optimize=True, progressive=True)
+    Image.fromarray(shade.astype(np.uint8), "L").save(d / "shade.jpg", quality=92, optimize=True)
     Image.fromarray(m1).save(d / "mask.png", optimize=True)
     Image.fromarray(m2).save(d / "mask2.png", optimize=True)
-    return {"width": w, "height": h - CROP_TOP, "refs": refs, "skin": skin_rgb, "hasTie": bool(tie.sum() > 50), "hasWaistcoat": bool(waist.sum() > 50)}
+    return {
+        "width": WIDTH,
+        "height": h,
+        "refs": refs,
+        "skin": skin_rgb,
+        "hasTie": bool(tie.sum() > 200),
+        "hasWaistcoat": bool(parts["waistcoat"].sum() > 200),
+    }
 
 
 def main():
-    manifest = {"tilePx": 150, "poses": {}}
-    for name, cfg in POSES.items():
-        manifest["poses"][name] = build(name, cfg)
+    only = sys.argv[1:]
+    manifest = json.loads(MANIFEST.read_text()) if MANIFEST.exists() else {"poses": {}}
+    manifest["tilePx"] = 150
+    for name in POSES:
+        if only and name not in only:
+            continue
+        if not (SRC / f"{name}.jpg").exists():
+            print("missing", name)
+            continue
+        manifest["poses"][name] = build(name)
         print(name, manifest["poses"][name])
     MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n")
 
