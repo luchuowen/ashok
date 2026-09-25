@@ -36,8 +36,9 @@ function readSkin(): SkinToneId {
 
 function Preview({ config, view, hideJacket, fit, title }: { config: SuitConfig; view: StageView; hideJacket: boolean; skin: SkinToneId; fit: "contain" | "width"; title: string }) {
   const flat = (v: PreviewView) => <SuitPreview config={config} view={v} hideJacket={hideJacket} className={fit === "width" ? "block h-auto w-full" : "h-full w-full"} title={title} />;
-  if (isPhoto(view) && !hideJacket) {
-    return <PhotoPreview config={config} fit={fit} className={fit === "width" ? "w-full" : "h-full w-full p-[3%]"} title={title} fallback={flat("front")} />;
+  if (!hideJacket && (isPhoto(view) || view === "back" || view === "lining" || view === "waistcoat")) {
+    const pv = isPhoto(view) ? "front" : (view as "back" | "lining" | "waistcoat");
+    return <PhotoPreview config={config} view={pv} fit={fit} className={fit === "width" ? "w-full" : "h-full w-full p-[3%]"} title={title} fallback={flat(pv)} />;
   }
   return flat(view === "model" ? "front" : view === "modelBack" ? "back" : (view as PreviewView));
 }
@@ -257,7 +258,7 @@ function ZoomOverlay({
   const on = `${tool} border-ink bg-ink text-cream`;
 
   return (
-    <div className={`fixed inset-0 z-[70] ${isPhoto(view) ? "bg-[#eeeeee]" : "bg-white"}`} role="dialog" aria-modal="true" aria-label="Close-up of your suit">
+    <div className={`fixed inset-0 z-[70] ${view !== "front" ? "bg-[#eeeeee]" : "bg-white"}`} role="dialog" aria-modal="true" aria-label="Close-up of your suit">
       <div ref={scroller} onScroll={measure} className="h-full w-full overflow-auto overscroll-contain">
         <div className="mx-auto" style={{ width: widths[level] }}>
           <Preview config={config} view={view} hideJacket={hideJacket} skin={skin} fit="width" title={`Close-up, ${VIEW_LABELS[view].toLowerCase()} view${hideJacket ? " without the jacket" : ""}`} />

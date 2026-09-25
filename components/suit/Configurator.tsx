@@ -347,7 +347,7 @@ export function Configurator() {
       {/* ---------------- Stage ---------------- */}
       <section
         className={`relative flex h-[40%] flex-none flex-col border-b border-line transition-colors duration-300 lg:h-full lg:flex-1 lg:border-b-0 lg:border-l ${
-          view === "model" ? "bg-[#eeeeee]" : "bg-[radial-gradient(ellipse_at_50%_35%,rgb(var(--paper))_0%,rgb(var(--cream))_70%)]"
+          view !== "front" ? "bg-[#eeeeee]" : "bg-[radial-gradient(ellipse_at_50%_35%,rgb(var(--paper))_0%,rgb(var(--cream))_70%)]"
         }`}
         aria-label="Suit preview"
       >

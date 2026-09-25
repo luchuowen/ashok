@@ -1,5 +1,9 @@
 {
   "assets": {
+    "back-none": {
+      "height": 1789,
+      "width": 1200
+    },
     "front-db6-peak": {
       "height": 1789,
       "width": 1200
@@ -8,11 +12,27 @@
       "height": 1789,
       "width": 1200
     },
+    "front-sb1-notch": {
+      "height": 1789,
+      "width": 1200
+    },
+    "front-sb1-peak": {
+      "height": 1789,
+      "width": 1200
+    },
     "front-sb1-shawl": {
       "height": 1789,
       "width": 1200
     },
+    "front-sb2-jetted": {
+      "height": 1789,
+      "width": 1200
+    },
     "front-sb2-notch": {
+      "height": 1789,
+      "width": 1200
+    },
+    "front-sb2-patch": {
       "height": 1789,
       "width": 1200
     },

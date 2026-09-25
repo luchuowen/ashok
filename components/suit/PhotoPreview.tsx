@@ -17,14 +17,19 @@ type Assets = Record<string, { width: number; height: number }>;
 const ASSETS = (manifest as { assets: Assets; tilePx: number }).assets;
 const TILE = (manifest as { tilePx: number }).tilePx ?? 180;
 
-export function choosePhoto(config: SuitConfig): string | null {
+export type PhotoView = "front" | "back" | "lining" | "waistcoat";
+
+export function choosePhoto(config: SuitConfig, view: PhotoView = "front"): string | null {
   const o = config.options;
   const has = (k: string) => (k in ASSETS ? k : null);
+  if (view === "back") return has(`back-${o["jacket.vents"] ?? "side"}`);
+  if (view === "lining") return has("inside");
+  if (view === "waistcoat") return o["waistcoat.style"] === "db6" ? has("waistcoat-db6") : has("waistcoat-sb5");
   const closure = o["jacket.closure"] ?? "sb2";
   const lapel = o["jacket.lapel"] ?? "notch";
   const pockets = o["jacket.pockets"] ?? "flap";
   if (closure === "mandarin") return has("front-mandarin");
-  if (closure === "db4") return has("front-db4-peak") ?? has("front-db6-peak");
+  if (closure === "db4") return has("front-db4-peak");
   if (closure === "db6") return has("front-db6-peak");
   if (lapel === "shawl") return has("front-sb1-shawl");
   if (closure === "sb1") return has(`front-sb1-${lapel}`) ?? has(`front-sb2-${lapel}`);
@@ -107,11 +112,11 @@ async function render(asset: string, fabricId: string): Promise<ImageData> {
   return out;
 }
 
-export function PhotoPreview({ config, className = "", title, fit = "contain", fallback }: { config: SuitConfig; className?: string; title?: string; fit?: "contain" | "width"; fallback: React.ReactNode }) {
-  const asset = choosePhoto(config);
+export function PhotoPreview({ config, view = "front", className = "", title, fit = "contain", fallback }: { config: SuitConfig; view?: PhotoView; className?: string; title?: string; fit?: "contain" | "width"; fallback: React.ReactNode }) {
+  const asset = choosePhoto(config, view);
   const ref = useRef<HTMLCanvasElement>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
-  const fabric = config.fabric;
+  const fabric = view === "waistcoat" ? (config.waistcoatFabric ?? config.fabric) : config.fabric;
 
   useEffect(() => {
     if (!asset) return;
