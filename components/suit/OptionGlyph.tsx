@@ -1,160 +1,240 @@
 /**
- * Line-drawn icons for option tiles (the Hockerty-style "pictogram" grid),
- * drawn in the house's hairline style. Unknown keys render nothing and the
- * tile falls back to its label alone.
+ * Option-tile illustrations: fine technical line drawings of the garment
+ * (a tailor's flat sketch), one per choice. Original artwork drawn for Ashok in
+ * the house's hairline style: dark outer lines, soft grey construction lines.
+ * Unknown keys render nothing and the tile falls back to its label alone.
  */
-const S = { fill: "none", stroke: "currentColor", strokeWidth: 1.3, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+import type React from "react";
 
-function Jacket({ children, db = false, mandarin = false }: { children?: React.ReactNode; db?: boolean; mandarin?: boolean }) {
+const INK = "currentColor";
+const SOFT = "#a3a09a";
+const L = { fill: "none", stroke: INK, strokeWidth: 1.05, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+const G = { ...L, stroke: SOFT, strokeWidth: 0.8 };
+
+type Closure = "sb1" | "sb2" | "sb3" | "db4" | "db6" | "mandarin";
+type Lapel = "notch" | "peak" | "shawl";
+type Pocket = "flap" | "jetted" | "patch" | "none";
+
+const btn = (x: number, y: number, r = 1.25) => <circle key={`${x}:${y}`} cx={x} cy={y} r={r} fill="#fff" stroke={INK} strokeWidth={0.9} />;
+
+/** Front view of a jacket in a 64 x 72 box. */
+function Jacket({ closure = "sb2", lapel = "notch", pocket = "flap", ghost = false }: { closure?: Closure; lapel?: Lapel; pocket?: Pocket; ghost?: boolean }) {
+  const db = closure === "db4" || closure === "db6";
+  const mand = closure === "mandarin";
+  const topY = mand ? 14 : closure === "sb1" ? 40 : closure === "sb3" ? 30 : db ? 33 : 35; // lapel roll point
+  const rx = db ? 38 : 32; // x where the fronts meet
+  const lw = lapel === "peak" ? 1 : 0;
+  const body = (
+    <>
+      {/* shoulders, sides, hem */}
+      <path {...L} d={`M24 9 Q17 11 12 13 Q9 15 9 19 L9 22 M40 9 Q47 11 52 13 Q55 15 55 19 L55 22`} />
+      <path {...L} d={`M13 23 L14 58 Q22 61 ${db ? 26 : 30} 61 M51 23 L50 58 Q42 61 ${db ? 38 : 34} 61`} />
+      {/* sleeves */}
+      <path {...L} d="M9 19 Q7 38 8 61 L14 61 L15 30 M55 19 Q57 38 56 61 L50 61 L49 30" />
+      <path {...G} d="M8.4 56 L14 56 M55.6 56 L50 56" />
+      {[0, 1, 2].map((i) => (
+        <g key={i}>
+          {btn(12.6 - i * 0.2, 58.6 - i * 1.9, 0.55)}
+          {btn(51.4 + i * 0.2, 58.6 - i * 1.9, 0.55)}
+        </g>
+      ))}
+      {/* back collar seen inside */}
+      <path {...G} d="M24 9 Q32 12 40 9" />
+    </>
+  );
+
+  let front: React.ReactNode;
+  if (mand) {
+    front = (
+      <>
+        <path {...L} d="M24 9 L24 5.5 Q32 3.5 40 5.5 L40 9 Q32 11.5 24 9 Z" />
+        <path {...L} d="M32 11 L32 60" />
+        {[18, 26, 34, 42, 50].map((y) => btn(32, y))}
+      </>
+    );
+  } else {
+    const noteL =
+      lapel === "shawl"
+        ? `M24 9 Q18 18 20 ${topY - 8} Q24 ${topY - 2} ${rx} ${topY}`
+        : lapel === "peak"
+          ? `M24 9 L22 15 L15 13 L18 19 Q21 ${topY - 10} ${rx} ${topY}`
+          : `M24 9 L22 16 L17 16.5 L19 20 Q22 ${topY - 10} ${rx} ${topY}`;
+    const noteR =
+      lapel === "shawl"
+        ? `M40 9 Q46 18 44 ${topY - 8} Q40 ${topY - 2} ${db ? 26 : 32} ${topY + (db ? 0 : 0)}`
+        : lapel === "peak"
+          ? `M40 9 L42 15 L49 13 L46 19 Q43 ${topY - 10} ${db ? 26 : 32} ${topY}`
+          : `M40 9 L42 16 L47 16.5 L45 20 Q42 ${topY - 10} ${db ? 26 : 32} ${topY}`;
+    front = (
+      <>
+        <path {...L} d={noteL} />
+        <path {...L} d={noteR} />
+        {/* gorge / collar */}
+        {lapel !== "shawl" ? <path {...G} d={`M22 ${lapel === "peak" ? 15 : 16} L24 9 M42 ${lapel === "peak" ? 15 : 16} L40 9`} /> : null}
+        {/* shirt V */}
+        <path {...G} d={`M26 10 L32 ${Math.min(topY, 26)} L38 10`} />
+        {/* front edge + cutaway */}
+        {db ? (
+          <path {...L} d={`M${rx} ${topY} L${rx} 61`} />
+        ) : (
+          <path {...L} d={`M${rx} ${topY} L${rx} 52 Q31 58 28 61 M32 52 Q33 58 36 61`} />
+        )}
+        {/* buttons */}
+        {closure === "sb1" ? btn(33.4, 44) : null}
+        {closure === "sb2" ? [btn(33.4, 40), btn(33.4, 48)] : null}
+        {closure === "sb3" ? [btn(33.4, 33), btn(33.4, 41), btn(33.4, 49)] : null}
+        {closure === "db4" ? [btn(27, 40), btn(37, 40), btn(27, 49), btn(37, 49)] : null}
+        {closure === "db6" ? [btn(25, 32), btn(39, 32), btn(27, 40), btn(37, 40), btn(27, 49), btn(37, 49)] : null}
+      </>
+    );
+  }
+
+  const pk = (x: number, w: number) => {
+    const y = 47;
+    if (pocket === "none") return null;
+    if (pocket === "jetted") return <path key={x} {...L} d={`M${x} ${y} L${x + w} ${y} M${x} ${y + 1.4} L${x + w} ${y + 1.4}`} strokeWidth={0.8} />;
+    if (pocket === "patch") return <path key={x} {...L} d={`M${x} ${y - 1} L${x + w} ${y - 1} L${x + w} ${y + 8} Q${x + w} ${y + 9.5} ${x + w - 1.5} ${y + 9.5} L${x + 1.5} ${y + 9.5} Q${x} ${y + 9.5} ${x} ${y + 8} Z`} />;
+    return <path key={x} {...L} d={`M${x - 0.3} ${y} L${x + w + 0.3} ${y} L${x + w} ${y + 4} L${x} ${y + 4} Z`} />;
+  };
+
   return (
-    <g {...S}>
-      <path d="M22 8 L14 11 L9 18 L8 50 L25 52 M34 8 L42 11 L47 18 L48 50 L31 52" />
-      <path d="M14 11 L10 46 M42 11 L46 46" opacity="0.5" />
-      {mandarin ? <path d="M22 8 Q28 5 34 8 L34 5 Q28 2 22 5 Z M28 8 L28 52" /> : db ? <path d="M22 8 L24 30 L34 8 M24 30 L24 52" /> : <path d="M22 8 L28 30 L34 8 M28 30 L28 44 Q27 50 22 52 M28 44 Q29 50 34 52" />}
-      {children}
+    <g opacity={ghost ? 0.4 : 1}>
+      {body}
+      {front}
+      {pk(16, 9)}
+      {pk(39, 9)}
+      {/* breast pocket */}
+      {!mand ? <path {...(pocket === "patch" ? L : G)} d="M40 25 L47 24.4 L47 26.2 L40 26.8 Z" /> : null}
     </g>
   );
 }
 
-const dot = (x: number, y: number) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.3" fill="currentColor" stroke="none" />;
+function Trousers({ y = 0, x = 0, scale = 1, hatch = false, pleats = 0 }: { y?: number; x?: number; scale?: number; hatch?: boolean; pleats?: number }) {
+  return (
+    <g transform={`translate(${x} ${y}) scale(${scale})`}>
+      {hatch ? (
+        <>
+          <defs>
+            <pattern id="og-hatch" width="2.4" height="2.4" patternUnits="userSpaceOnUse" patternTransform="rotate(90)">
+              <path d="M0 0 L0 2.4" stroke={SOFT} strokeWidth="0.7" />
+            </pattern>
+          </defs>
+          <path d="M20 4 L44 4 L47 66 L35 66 L32 24 L29 66 L17 66 Z" fill="url(#og-hatch)" />
+        </>
+      ) : null}
+      <path {...L} d="M20 4 L44 4 L47 66 L35 66 L32 24 L29 66 L17 66 Z" />
+      <path {...L} d="M20 4 L20 9 L44 9 L44 4" />
+      <path {...G} d="M32 9 L32 22 M24.5 10 L24.5 66 M39.5 10 L39.5 66" />
+      <path {...G} d="M21 12 L25 18 M43 12 L39 18" />
+      {pleats >= 1 ? <path {...L} d="M27 9 L27 17 M37 9 L37 17" strokeWidth={0.8} /> : null}
+      {pleats >= 2 ? <path {...L} d="M29 9 L29 14 M35 9 L35 14" strokeWidth={0.8} /> : null}
+      {btn(32, 6.5, 0.9)}
+    </g>
+  );
+}
 
-const GLYPHS: Record<string, React.ReactNode> = {
-  "pieces-two": (
-    <g {...S}>
-      <path d="M10 8 L20 6 L28 12 L36 6 L46 8 L48 30 L8 30 Z" />
-      <path d="M16 34 L40 34 L42 52 L31 52 L28 40 L25 52 L14 52 Z" />
+function Waistcoat({ db = false, six = false }: { db?: boolean; six?: boolean }) {
+  const ys = db ? [30, 38, 46] : six ? [24, 30, 36, 42, 48, 54] : [26, 33, 40, 47, 54];
+  return (
+    <g>
+      <path {...L} d="M22 8 Q17 11 16 16 Q18 26 13 30 L13 58 L26 64 L32 60 L38 64 L51 58 L51 30 Q46 26 48 16 Q47 11 42 8" />
+      <path {...L} d={db ? "M22 8 L28 26 L38 30 M42 8 L38 30 L38 62" : "M22 8 L32 22 L42 8 M32 22 L32 60"} />
+      <path {...G} d="M16 16 Q22 12 22 8 M48 16 Q42 12 42 8" />
+      <path {...G} d="M18 44 L27 43 M37 43 L46 44 M19 28 L26 27 M38 27 L45 28" />
+      {db ? ys.flatMap((y) => [btn(28, y), btn(42, y)]) : ys.map((y) => btn(32, y))}
     </g>
-  ),
-  "pieces-three": (
-    <g {...S}>
-      <path d="M8 8 L18 6 L24 12 L30 6 L40 8 L42 30 L6 30 Z" opacity="0.5" />
-      <path d="M22 10 L28 20 L34 10 L44 14 L46 32 L28 36 L10 32 L12 14 Z" />
-      {dot(28, 24)}
-      {dot(28, 29)}
-      <path d="M16 38 L40 38 L42 54 L31 54 L28 44 L25 54 L14 54 Z" />
+  );
+}
+
+function JacketBack({ vent }: { vent: "none" | "centre" | "side" }) {
+  return (
+    <g>
+      <path {...L} d="M24 9 Q17 11 12 13 Q9 15 9 19 Q7 38 8 61 L14 61 L15 30 M40 9 Q47 11 52 13 Q55 15 55 19 Q57 38 56 61 L50 61 L49 30" />
+      <path {...L} d="M13 23 L14 60 L50 60 L51 23" />
+      <path {...L} d="M24 9 Q32 6 40 9 L40 12 Q32 10 24 12 Z" />
+      <path {...G} d="M32 12 L32 60 M22 22 Q20 40 20 60 M42 22 Q44 40 44 60" />
+      {vent === "centre" ? <path {...L} d="M32 44 L32 60 M32 44 L33.6 46 L33.6 60" /> : null}
+      {vent === "side" ? <path {...L} d="M20 45 L20 60 M44 45 L44 60 M20 45 L21.6 47 L21.6 60 M44 45 L42.4 47 L42.4 60" /> : null}
     </g>
+  );
+}
+
+const V = (children: React.ReactNode, vb = "0 0 64 72") => ({ vb, children });
+
+const GLYPHS: Record<string, { vb: string; children: React.ReactNode }> = {
+  "pieces-two": V(
+    <>
+      <g transform="translate(-6 0) scale(0.78)">
+        <Jacket />
+      </g>
+      <g transform="translate(26 16) scale(0.62)">
+        <Trousers />
+      </g>
+    </>,
   ),
-  "fabric-same": (
-    <g {...S}>
-      <rect x="10" y="10" width="16" height="36" />
-      <rect x="30" y="10" width="16" height="36" />
-      <path d="M10 20 L26 20 M10 30 L26 30 M30 20 L46 20 M30 30 L46 30" opacity="0.4" />
-    </g>
+  "pieces-three": V(
+    <>
+      <g transform="translate(-8 0) scale(0.72)">
+        <Jacket ghost />
+      </g>
+      <g transform="translate(6 6) scale(0.6)">
+        <Waistcoat />
+      </g>
+      <g transform="translate(30 18) scale(0.58)">
+        <Trousers />
+      </g>
+    </>,
   ),
-  "fabric-mixed": (
-    <g {...S}>
-      <rect x="10" y="10" width="16" height="36" />
-      <rect x="30" y="10" width="16" height="36" />
-      <path d="M10 20 L26 20 M10 30 L26 30" opacity="0.4" />
-      <path d="M34 10 L34 46 M38 10 L38 46 M42 10 L42 46" opacity="0.4" />
-    </g>
+  "fabric-same": V(
+    <>
+      <g transform="translate(-4 2) scale(0.74)">
+        <Jacket />
+      </g>
+      <g transform="translate(28 16) scale(0.6)">
+        <Trousers />
+      </g>
+    </>,
   ),
-  "closure-sb1": <Jacket>{dot(28, 34)}</Jacket>,
-  "closure-sb2": <Jacket>{[dot(28, 32), dot(28, 40)]}</Jacket>,
-  "closure-sb3": <Jacket>{[dot(28, 26), dot(28, 33), dot(28, 40)]}</Jacket>,
-  "closure-db4": <Jacket db>{[dot(24, 34), dot(32, 34), dot(24, 42), dot(32, 42)]}</Jacket>,
-  "closure-db6": <Jacket db>{[dot(22, 26), dot(34, 26), dot(24, 34), dot(32, 34), dot(24, 42), dot(32, 42)]}</Jacket>,
-  "closure-mandarin": <Jacket mandarin>{[dot(28, 16), dot(28, 24), dot(28, 32), dot(28, 40)]}</Jacket>,
-  "lapel-notch": (
-    <g {...S}>
-      <path d="M20 6 L30 44 L36 22 L30 20 L34 14 L26 8" />
-      <path d="M30 20 L27 12" opacity="0.5" />
-    </g>
+  "fabric-mixed": V(
+    <>
+      <g transform="translate(-4 2) scale(0.74)">
+        <Jacket />
+      </g>
+      <g transform="translate(28 16) scale(0.6)">
+        <Trousers hatch />
+      </g>
+    </>,
   ),
-  "lapel-peak": (
-    <g {...S}>
-      <path d="M20 6 L30 44 L38 16 L32 20 L30 16 L26 8" />
-    </g>
-  ),
-  "lapel-shawl": (
-    <g {...S}>
-      <path d="M20 6 L30 44 Q40 28 34 14 Q30 8 24 6" />
-    </g>
-  ),
-  "pocket-flap": (
-    <g {...S}>
-      <path d="M10 22 L46 22 L46 32 Q46 34 44 34 L12 34 Q10 34 10 32 Z" />
-      <path d="M10 20 L46 20" opacity="0.5" />
-    </g>
-  ),
-  "pocket-jetted": (
-    <g {...S}>
-      <rect x="10" y="25" width="36" height="6" />
-      <path d="M10 28 L46 28" />
-    </g>
-  ),
-  "pocket-patch": (
-    <g {...S}>
-      <path d="M12 14 L44 14 L44 40 Q44 44 40 44 L16 44 Q12 44 12 40 Z" />
-      <path d="M14 18 L42 18" strokeDasharray="2 2" opacity="0.6" />
-    </g>
-  ),
-  "pocket-none": (
-    <g {...S} opacity="0.5">
-      <path d="M12 28 L44 28" strokeDasharray="3 3" />
-    </g>
-  ),
-  "vent-none": (
-    <g {...S}>
-      <path d="M14 8 L42 8 L46 48 L10 48 Z" />
-      <path d="M28 8 L28 48" opacity="0.4" />
-    </g>
-  ),
-  "vent-centre": (
-    <g {...S}>
-      <path d="M14 8 L42 8 L46 48 L10 48 Z" />
-      <path d="M28 8 L28 48 M30 34 L30 48 M28 34 L30 32" />
-    </g>
-  ),
-  "vent-side": (
-    <g {...S}>
-      <path d="M14 8 L42 8 L46 48 L10 48 Z" />
-      <path d="M28 8 L28 48" opacity="0.4" />
-      <path d="M14 34 L14 48 M42 34 L42 48" />
-    </g>
-  ),
-  "pleat-none": (
-    <g {...S}>
-      <path d="M12 8 L44 8 L46 50 L33 50 L28 24 L23 50 L10 50 Z" />
-    </g>
-  ),
-  "pleat-single": (
-    <g {...S}>
-      <path d="M12 8 L44 8 L46 50 L33 50 L28 24 L23 50 L10 50 Z" />
-      <path d="M19 8 L19 20 M37 8 L37 20" />
-    </g>
-  ),
-  "pleat-double": (
-    <g {...S}>
-      <path d="M12 8 L44 8 L46 50 L33 50 L28 24 L23 50 L10 50 Z" />
-      <path d="M18 8 L18 20 M22 8 L22 16 M38 8 L38 20 M34 8 L34 16" />
-    </g>
-  ),
-  "vest-sb5": (
-    <g {...S}>
-      <path d="M20 6 L28 22 L36 6 L44 10 L46 44 L34 48 L28 44 L22 48 L10 44 L12 10 Z" />
-      {[dot(28, 26), dot(28, 31), dot(28, 36), dot(28, 41)]}
-    </g>
-  ),
-  "vest-sb6": (
-    <g {...S}>
-      <path d="M20 6 L28 18 L36 6 L44 10 L46 44 L34 48 L28 44 L22 48 L10 44 L12 10 Z" />
-      {[dot(28, 21), dot(28, 25.5), dot(28, 30), dot(28, 34.5), dot(28, 39)]}
-    </g>
-  ),
-  "vest-db6": (
-    <g {...S}>
-      <path d="M20 6 L25 22 L36 6 L44 10 L46 44 L10 44 L12 10 Z" />
-      {[dot(23, 26), dot(33, 26), dot(23, 32), dot(33, 32), dot(23, 38), dot(33, 38)]}
-    </g>
-  ),
+  "closure-sb1": V(<Jacket closure="sb1" />),
+  "closure-sb2": V(<Jacket closure="sb2" />),
+  "closure-sb3": V(<Jacket closure="sb3" />),
+  "closure-db4": V(<Jacket closure="db4" lapel="peak" />),
+  "closure-db6": V(<Jacket closure="db6" lapel="peak" />),
+  "closure-mandarin": V(<Jacket closure="mandarin" />),
+  "lapel-notch": V(<Jacket lapel="notch" />),
+  "lapel-peak": V(<Jacket lapel="peak" />),
+  "lapel-shawl": V(<Jacket closure="sb1" lapel="shawl" />),
+  "pocket-flap": V(<Jacket pocket="flap" />),
+  "pocket-jetted": V(<Jacket pocket="jetted" />),
+  "pocket-patch": V(<Jacket pocket="patch" />),
+  "pocket-none": V(<Jacket pocket="none" />),
+  "vent-none": V(<JacketBack vent="none" />),
+  "vent-centre": V(<JacketBack vent="centre" />),
+  "vent-side": V(<JacketBack vent="side" />),
+  "pleat-none": V(<Trousers x={0} y={2} pleats={0} />),
+  "pleat-single": V(<Trousers x={0} y={2} pleats={1} />),
+  "pleat-double": V(<Trousers x={0} y={2} pleats={2} />),
+  "vest-sb5": V(<Waistcoat />),
+  "vest-sb6": V(<Waistcoat six />),
+  "vest-db6": V(<Waistcoat db />),
 };
 
 export function OptionGlyph({ name, className = "" }: { name?: string; className?: string }) {
-  if (!name || !GLYPHS[name]) return null;
+  const g = name ? GLYPHS[name] : undefined;
+  if (!g) return null;
   return (
-    <svg viewBox="0 0 56 56" className={className} aria-hidden="true">
-      {GLYPHS[name]}
+    <svg viewBox={g.vb} className={className} aria-hidden="true">
+      {g.children}
     </svg>
   );
 }
