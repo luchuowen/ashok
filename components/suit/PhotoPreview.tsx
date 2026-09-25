@@ -24,7 +24,11 @@ export function choosePhoto(config: SuitConfig, view: PhotoView = "front"): stri
   const has = (k: string) => (k in ASSETS ? k : null);
   if (view === "back") return has(`back-${o["jacket.vents"] ?? "side"}`);
   if (view === "lining") return has("inside");
-  if (view === "waistcoat") return o["waistcoat.style"] === "db6" ? has("waistcoat-db6") : has("waistcoat-sb5");
+  if (view === "waistcoat") {
+    if ((o["waistcoat.lapel"] ?? "none") !== "none") return null; // lapelled waistcoats: the detail drawing
+    if (o["waistcoat.style"] === "db6") return has("waistcoat-db6");
+    return o["waistcoat.style"] === "sb5" && (o["waistcoat.edge"] ?? "pointed") === "pointed" ? has("waistcoat-sb5") : null;
+  }
   const closure = o["jacket.closure"] ?? "sb2";
   const lapel = o["jacket.lapel"] ?? "notch";
   const pockets = o["jacket.pockets"] ?? "flap";
