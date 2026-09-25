@@ -3,14 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SuitConfig } from "@/lib/suit/types";
 import { SuitDrawing, type PreviewView } from "./SuitPreview";
-import { SKIN_TONES, type SkinToneId } from "./ModelPreview";
+import { choosePose, ModelPreview, SKIN_TONES, type SkinToneId } from "./ModelPreview";
 import { DETAIL_CROP, hasPhoto, PhotoPreview } from "./PhotoPreview";
 import { DETAIL_FALLBACK, detailPhotoFor, waistcoatPhotoFor } from "@/lib/suit/detail-photos";
 
 /** Stage views: the photographic on-model views plus the flat technical drawings. */
-export type StageView = "model" | "modelBack" | PreviewView;
+export type StageView = "body" | "model" | "modelBack" | PreviewView;
 
 const VIEW_LABELS: Record<StageView, string> = {
+  body: "Front",
   model: "Front",
   modelBack: "Back",
   front: "Detail",
@@ -20,12 +21,14 @@ const VIEW_LABELS: Record<StageView, string> = {
 };
 
 const isPhoto = (v: StageView) => v === "model";
+const SKIN_SWATCH: Record<SkinToneId, string> = { deep: "#4a2c1d", brown: "#7a4a2e", tan: "#be8c69", light: "#e2b99a" };
 
 /** Close-up widths for the full-screen zoom, smallest first. Photos top out lower (source resolution). */
 const ZOOM_WIDTHS = ["min(170vw, 1000px)", "min(260vw, 1700px)", "min(380vw, 2500px)"];
 const MODEL_ZOOM_WIDTHS = ["min(100vw, 900px)", "min(170vw, 1300px)", "min(240vw, 1700px)"];
 
 const SKIN_KEY = "ashok.suit.skinTone";
+const MODE_KEY = "ashok.suit.stageMode";
 function readSkin(): SkinToneId {
   try {
     const v = window.localStorage.getItem(SKIN_KEY);
@@ -35,10 +38,12 @@ function readSkin(): SkinToneId {
   }
 }
 
-function Preview({ config, view, hideJacket, fit, title, lastGroup = null }: { config: SuitConfig; view: StageView; hideJacket: boolean; skin: SkinToneId; fit: "contain" | "width"; title: string; lastGroup?: string | null }) {
+function Preview({ config, view, hideJacket, fit, title, skin, lastGroup = null }: { config: SuitConfig; view: StageView; hideJacket: boolean; skin: SkinToneId; fit: "contain" | "width"; title: string; lastGroup?: string | null }) {
   const cls = fit === "width" ? "w-full" : "h-full w-full p-[3%]";
+  if (view === "body" || view === "modelBack")
+    return <ModelPreview config={config} view={view === "modelBack" ? "back" : "front"} hideJacket={hideJacket} skin={skin} fit={fit} className={fit === "width" ? "w-full" : "h-full w-full pt-[2%]"} title={title} />;
   const drawing = (v: PreviewView) => <SuitDrawing config={config} view={v} hideJacket={hideJacket} className={fit === "width" ? "block h-auto w-full" : "h-full w-full"} title={title} />;
-  if (hideJacket && (view === "back" || view === "modelBack")) {
+  if (hideJacket && view === "back") {
     const back = `wc-back-${config.options["waistcoat.back"] === "fabric" ? "fabric" : "lining"}`;
     return <PhotoPreview config={config} view="waistcoat" asset={back} fit={fit} className={cls} title={title} fallback={drawing("back")} />;
   }
@@ -60,7 +65,7 @@ function Preview({ config, view, hideJacket, fit, title, lastGroup = null }: { c
     const shirt = o["suit.pieces"] === "three" ? "front-3pc-notch" : "front-shirt-notch";
     return <PhotoPreview config={config} view="front" asset={shirt} fit={fit} className={cls} title={title} fallback={drawing("front")} />;
   }
-  const pv = isPhoto(view) ? "front" : view === "modelBack" ? "back" : (view as "back" | "lining");
+  const pv = isPhoto(view) ? "front" : (view as "back" | "lining");
   return <PhotoPreview config={config} view={pv} fit={fit} className={cls} title={title} fallback={drawing(pv)} />;
 }
 
@@ -94,15 +99,50 @@ export function Stage({
 }) {
   const three = config.options["suit.pieces"] === "three";
   const [hideJacket, setHideJacket] = useState(false);
-  // Without the jacket: front, plus the waistcoat's back on a three-piece (there is no shirt-back photo).
-  const views: StageView[] = hideJacket
+  // Two ways to look at the suit, as on the reference: on a model (front/back, any skin tone) or as the garment.
+  const [mode, setModeState] = useState<"model" | "product">("model");
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem(MODE_KEY) === "product") setModeState("product");
+    } catch {
+      // per-viewer convenience only
+    }
+  }, []);
+  const setMode = useCallback((m: "model" | "product") => {
+    setModeState(m);
+    try {
+      window.localStorage.setItem(MODE_KEY, m);
+    } catch {
+      // ignore
+    }
+  }, []);
+  // A change that only the garment views can show (inside, detail, waistcoat, vents) switches to them.
+  useEffect(() => {
+    if (view === "back" || view === "lining" || view === "front" || view === "waistcoat") setModeState("product");
+  }, [view]);
+  // An option the model photographs can't show (e.g. closure on a three-piece, pockets, fit) switches to
+  // the garment, so every click visibly changes the preview.
+  const pose = choosePose(config, "front", hideJacket);
+  const optsKey = JSON.stringify(config.options);
+  const prev = useRef<{ pose: string | null; opts: string }>({ pose, opts: optsKey });
+  useEffect(() => {
+    const changed = prev.current.opts !== optsKey;
+    const samePose = prev.current.pose === pose;
+    prev.current = { pose, opts: optsKey };
+    if (!changed || !lastGroup) return;
+    const invisible = ["suit.fabricMode", "suit.extraTrousers", "suit.service", "accents.necktie", "accents.bowtie", "suit.pieces"];
+    if (samePose && !invisible.includes(lastGroup)) setModeState("product");
+  }, [pose, optsKey, lastGroup]);
+  const productViews: StageView[] = hideJacket
     ? three
       ? ["model", "back"]
       : ["model"]
     : three
       ? ["model", "back", "lining", "waistcoat", "front"]
       : ["model", "back", "lining", "front"];
-  const current = views.includes(view) ? view : "model";
+  const views: StageView[] = mode === "model" ? ["body", "modelBack"] : productViews;
+  const mapped: StageView = mode === "model" ? (view === "modelBack" ? "modelBack" : "body") : view === "body" ? "model" : view === "modelBack" ? "back" : view;
+  const current = views.includes(mapped) ? mapped : views[0]!;
   const [zoomOpen, setZoomOpen] = useState(false);
   const [skin, setSkinState] = useState<SkinToneId>("brown");
   useEffect(() => setSkinState(readSkin()), []);
@@ -165,6 +205,42 @@ export function Stage({
         <button type="button" onClick={() => step(1)} className="flex h-9 w-9 flex-none items-center justify-center border border-line bg-paper text-lg text-ink hover:border-ink" aria-label="Next view">
           ›
         </button>
+      </div>
+      {/* On model / garment toggle and skin tones */}
+      <div className="absolute left-3 top-[46px] z-10 flex flex-col items-start gap-2 lg:left-6 lg:top-[64px]" onClick={(e) => e.stopPropagation()}>
+        <div className="flex border border-line bg-paper text-[10px] uppercase tracking-[0.15em]" role="group" aria-label="Preview mode">
+          {(["model", "product"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              aria-pressed={mode === m}
+              onClick={() => {
+                setMode(m);
+                onViewChange(m === "model" ? "body" : "model");
+              }}
+              className={`px-2 py-1 transition-colors sm:px-3 sm:py-1.5 ${mode === m ? "bg-ink text-cream" : "text-muted hover:text-ink"}`}
+            >
+              {m === "model" ? "On model" : "Garment"}
+            </button>
+          ))}
+        </div>
+        {mode === "model" ? (
+          <div className="flex gap-1.5" role="radiogroup" aria-label="Skin tone">
+            {SKIN_TONES.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="radio"
+                aria-checked={skin === t.id}
+                aria-label={`${t.label} skin tone`}
+                title={t.label}
+                onClick={() => setSkin(t.id)}
+                className={`h-5 w-5 rounded-full border-2 transition-transform ${skin === t.id ? "scale-110 border-ink" : "border-paper hover:scale-110"}`}
+                style={{ background: SKIN_SWATCH[t.id] }}
+              />
+            ))}
+          </div>
+        ) : null}
       </div>
       {/* Phone: compact icon controls over the preview */}
       <div className="absolute right-2 top-2 flex flex-col gap-1 sm:hidden">

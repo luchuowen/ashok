@@ -101,3 +101,12 @@ Approved and exact. Do not invent alternatives.
 - Promo codes & gift cards: `lib/promo-shared.ts` (maths, client-safe), `lib/promo.ts` (server),
   `/admin/promo-codes`. Discounts come off goods before delivery; checkout re-validates.
 - Local dev without credentials: `.env.local` with `TAIFAPAY_ENV=mock`, `ASHOK_FAKE_FIRESTORE=1`.
+
+## Ownership
+
+- Developer and copyright owner: see `NOTICE` and `package.json` → `author`. This is developer
+  metadata only — never render it in the UI, page `<head>`/metadata, footer or anything under
+  `public/`.
+- The stage has two modes: **On model** (`ModelPreview`, `design/model-src/` via
+  `scripts/build-model-poses.py`, four skin tones) and **Garment** (`PhotoPreview`). Changes only the
+  garment photos can show (inside, detail, waistcoat, vents) switch the stage to Garment.

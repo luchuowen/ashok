@@ -1,8 +1,8 @@
 {
   "name": "ashok",
   "version": "0.1.0",
-  "private": true,
   "author": "Owen Luchu <luchuowen@gmail.com>",
+  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
