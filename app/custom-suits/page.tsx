@@ -3,9 +3,9 @@ import Link from "next/link";
 import { Section } from "@/components/ui/Section";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { PriceChip } from "@/components/ui/PriceChip";
-import { Photo } from "@/components/ui/Photo";
 import { SuitPreview } from "@/components/suit/SuitPreview";
 import { DesignerShowcase } from "@/components/suit/DesignerShowcase";
+import { HeroCarousel } from "@/components/suit/HeroCarousel";
 import { COLLECTION_LABELS, SUIT_FABRICS, SUIT_PRESETS, presetConfig } from "@/lib/suit/catalogue";
 import { priceSuit } from "@/lib/suit/pricing";
 import { normalizeConfig } from "@/lib/suit/rules";
@@ -90,11 +90,14 @@ export default function CustomSuitsPage() {
               </Link>
             </div>
           </div>
-          <div className="grid grid-cols-[1fr_0.8fr] items-end gap-4">
-            <div className="border border-line bg-[radial-gradient(ellipse_at_50%_35%,rgb(var(--paper))_0%,rgb(var(--cream))_75%)] p-4">
-              <SuitPreview config={presets[1]!.config} className="h-auto w-full" title="Example: a charcoal three-piece" />
-            </div>
-            <Photo src="/photos/portfolio/charcoal-three-piece.jpg" label="IMG-30 · charcoal three-piece" alt="A client in a charcoal three-piece made at the atelier" aspectRatio="3 / 4" sizes="(min-width: 1024px) 20vw, 40vw" priority />
+          <div className="mx-auto w-full max-w-[520px] lg:max-w-none">
+            <HeroCarousel
+              slides={[
+                { src: "/photos/custom-suits/hero-1-navy-three-piece.jpg", alt: "A client in a midnight navy three-piece suit with a burgundy tie", caption: "Midnight navy three-piece · Super 120s wool", focus: "50% 25%" },
+                { src: "/photos/custom-suits/hero-2-charcoal-double-breasted.jpg", alt: "A client in a charcoal double-breasted suit with peak lapels", caption: "Charcoal double-breasted · worsted wool", focus: "50% 25%" },
+                { src: "/photos/custom-suits/hero-3-sand-linen.jpg", alt: "A client in a sand wool-and-linen suit worn with an open-collar shirt", caption: "Sand wool & linen · half-lined, patch pockets", focus: "50% 25%" },
+              ]}
+            />
           </div>
         </div>
       </Section>
