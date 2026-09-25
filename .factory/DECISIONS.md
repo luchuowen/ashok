@@ -107,3 +107,13 @@ drawing stands in), fabric "looks" photos, body-profile photo upload (would need
   the flat drawings ("Flat", "Flat back", "Inside", "Waistcoat"), which still render every option.
   Swapping in a real photoshoot later = same poses, same file names, re-run the script.
 - Bag, checkout, admin and saved-design thumbnails keep the flat drawing (no canvas work in lists).
+
+## 2026-09-25 — Photographic configurator (Nano Banana Pro)
+
+- The on-model re-dye (ModelPreview) was rejected by the owner (low resolution, bleeding, cheap-looking
+  suits). The stage now shows **Nano Banana Pro invisible-mannequin product photos** of a luxury grey
+  suit, re-dyed per fabric in the browser (`PhotoPreview`). Front / Back / Inside / Waistcoat views use
+  photos; "Detail" is the technical drawing. Prompts + workflow: `design/nano-banana/`.
+- Review step has a direct **Checkout** (measurements → checkout → TaifaPay: M-Pesa, card, bank;
+  full or 50% deposit). Payment copy no longer claims KES-only (owner is enabling USD card payments).
+- Site-wide alternating white/cream section backgrounds (`app/globals.css`).

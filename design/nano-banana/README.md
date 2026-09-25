@@ -4,28 +4,29 @@ Every photograph used by the custom-suit experience is generated with **Nano Ban
 (`gemini-3-pro-image`) in Google AI Studio, then processed by scripts in this repo. The exact
 prompts are in `prompts.json` (one entry per asset, self-contained). This file explains the system.
 
-## 1. What the customizer needs
+## 1. What the customizer needs (and what is live)
 
-| View | Assets (one base photo each) | Driven by |
+| View | Photo assets (`design/nano-banana/out/`) | Driven by |
 |---|---|---|
-| **Front** (jacket + folded trousers, flat-lay) | sb2-notch, sb1-notch, sb1-peak, sb1-shawl, sb2-peak, sb3-notch, db4-peak, db6-peak, mandarin; pocket variants (jetted, patch) | `jacket.closure`, `jacket.lapel`, `jacket.pockets` |
-| **Back** (jacket back + trousers) | vents none / centre / side | `jacket.vents` |
-| **Inside** (jacket laid open) | full lining, half lining, unlined | `accents.liningStyle`, lining colour |
-| **Waistcoat** | single-breasted 5-button, double-breasted 6-button | `waistcoat.style` |
-| **Hero / marketing** | 3 editorial on-model portraits | landing page carousel |
+| **Front** | `front-sb2-notch` (base), `front-sb1-notch`, `front-sb1-peak`, `front-sb1-shawl`, `front-sb2-peak`, `front-sb3-notch`, `front-db6-peak`, `front-mandarin`, `front-sb2-jetted`, `front-sb2-patch` | closure, lapel, pockets |
+| **Back** | `back-none`, `back-centre`, `back-side` | vents |
+| **Inside** | `inside` (emerald satin so the lining can be re-coloured) | lining colour |
+| **Waistcoat** | `waistcoat-sb5` | waistcoat style |
+| **Hero** | 3 on-model portraits (`public/photos/custom-suits/`) | landing carousel |
 
-Details that are too small to photograph per combination (lapel width, buttonhole thread, pick
-stitching, monogram) stay on the technical drawings (the "Flat" tab).
+Base look: an **invisible-mannequin** luxury suit (Super 120s worsted, neutral grey `#9A9A9A`,
+tonal satin lining, horn buttons) on a seamless light neutral backdrop. Every variant is an
+**edit of the base image in the same chat** ("keep everything identical, change only …") so all
+states are the same garment, same scale, same light.
 
-Every base photo shares one **style block**: overhead orthographic flat-lay, seamless neutral grey
-`#EEEEEE` backdrop, soft even light, **neutral mid-grey plain worsted** (`#A3A3A3`), **emerald satin
-lining** (`#1E9E4A`), **matte black horn buttons**. Neutral cloth + a saturated lining make the
-photos re-colourable without bleeding:
+Options without a production-quality photo (double-breasted 4-button, double-breasted
+waistcoat, lapelled waistcoats, trousers details, monogram, buttonholes, lapel width) switch the
+stage to the **Detail** drawing, which renders every option exactly.
 
-- `rembg` ISNet produces the garment cut-out (excludes the contact shadow),
-- the emerald chroma isolates the lining,
-- dark round blobs isolate buttons,
-- the rest is cloth, whose luminance (folds, seams, pressing) multiplies the chosen fabric texture.
+Re-colouring (`scripts/build-suit-photos.py` → `components/suit/PhotoPreview.tsx`):
+`rembg` ISNet matte for the garment outline (the backdrop and contact shadow are never dyed),
+Hough-circle detection for horn buttons (kept as photographed), emerald chroma for the inside
+lining, and the grey cloth's smoothed luminance multiplied by the chosen fabric texture.
 
 ## 2. Fabrics — established, commercially popular options only
 

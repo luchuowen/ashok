@@ -1,11 +1,96 @@
 {
-  "style": "STYLE (identical for every flat-lay asset): High-end e-commerce product photograph for a luxury bespoke tailoring house. Perfectly straight top-down flat-lay, camera directly overhead, orthographic look with no perspective distortion, centred and symmetrical. Seamless flat neutral light grey background (#EEEEEE), no colour cast. Soft, even, diffused overhead studio lighting with only a very light natural contact shadow; no harsh shadows, no vignette, no reflections. Tack-sharp focus across the whole garment, true-to-life tailoring proportions, crisp pressed edges, accurate hand-finished stitching, no creases or wrinkles. No text, logos, props, hangers, mannequins or people. CLOTH: plain solid medium-light grey smooth worsted wool, neutral grey (#A3A3A3) with no colour cast, no pattern, no stripe, no check, no heather, matte, only the faintest fine weave visible up close. LINING: glossy satin in solid bright emerald green (#1E9E4A). BUTTONS: matte black horn, four holes.",
+  "model": "Nano Banana Pro (gemini-3-pro-image), Google AI Studio",
+  "notes": "Assets not listed (db4, db6 waistcoat) did not reach production quality after 2-3 attempts; the customizer shows the detail drawing for those options.",
   "assets": {
-    "front/base-sb2-notch": {
+    "front-sb2-notch": {
       "mode": "generate",
       "aspect": "2:3",
       "resolution": "2K",
-      "prompt": "STYLE (identical for every flat-lay asset): High-end e-commerce product photograph for a luxury bespoke tailoring house. Perfectly straight top-down flat-lay, camera directly overhead, orthographic look with no perspective distortion, centred and symmetrical. Pure seamless white background (#FFFFFF). Soft, even, diffused overhead studio lighting with only a very light natural contact shadow; no harsh shadows, no vignette, no reflections. Tack-sharp focus across the whole garment, true-to-life tailoring proportions, crisp pressed edges, accurate hand-finished stitching, no creases or wrinkles. No text, logos, props, hangers, mannequins or people. CLOTH: plain solid medium-light grey smooth worsted wool, neutral grey (#A3A3A3) with no colour cast, no pattern, no stripe, no check, no heather, matte, only the faintest fine weave visible up close. LINING: glossy satin in solid bright emerald green (#1E9E4A). BUTTONS: matte black horn, four holes.\n\nSUBJECT: One men's single-breasted two-button suit jacket laid flat and neatly pressed, fastened at the top button, notch lapels of standard 8 cm width that roll softly to the top button, a welt breast pocket on the wearer's left chest, two straight flap hip pockets, four non-working cuff buttons on each sleeve, natural shoulders, sleeves lying straight down alongside the body, jacket long enough to cover the seat. Below the button the fronts open in a clean rounded cutaway. Inside the V-opening show the jacket interior: the inside back collar with a small hanger loop and the emerald green satin lining. Directly below the jacket, with a clear white gap, the matching trousers folded once lengthwise and laid horizontally, waistband to the right: show the outside of one leg with belt loops, a waistband button with extension, a slanted front side pocket, one jetted back pocket with a button, a sharp pressed crease running the full length, and plain finished hems with NO turn-ups. The jacket fills the upper 62% of the frame, the trousers the lower 30%, generous even white margins all round."
+      "prompt": "Ultra-premium product photograph of a luxury bespoke suit for a high-end international tailoring house (Savile Row / Neapolitan quality), in the style of the best online made-to-measure configurators. Invisible-mannequin (ghost mannequin) presentation: the jacket is shown as if worn by an invisible athletic body, with real three-dimensional volume - softly padded natural shoulders with a clean roped sleeve-head, a full chest, the lapels rolling in a gentle unpressed curve, the waist suppressed, the skirt of the jacket flaring slightly over the hips, the sleeves hanging naturally slightly forward with a gentle bend at the elbow. The neck opening shows the inside back collar and the lining in the SAME colour as the suit cloth (tonal satin lining). Straight-on front view, camera at chest height, orthographic feel, perfectly centred and symmetrical. Below the jacket, the matching trousers are folded in half lengthwise and laid at a very slight angle, waistband to the right, the hem folded back at the left, showing a flat front with a sharp crease, belt loops, a side pocket and one jetted back pocket with a button. CLOTH: a fine Italian Super 120s worsted wool in a plain neutral mid grey (#9A9A9A) with a subtle, visible fine twill weave and a soft natural lustre - rich and expensive, never flat, plasticky or cheap. Hand-finished details: pick-stitched lapel edges, a lapel buttonhole, real horn buttons with depth and sheen, clean welt breast pocket. BACKGROUND: seamless very light neutral warm-grey (#F2F1EE), no gradient, no vignette. LIGHTING: soft, large diffused studio light from the front-top, gentle natural shading that reveals the cloth's volume and drape, a faint soft contact shadow only. Tack-sharp, photorealistic, 2K detail, no text, no logos, no hanger, no visible mannequin, no person, no props. STYLE DETAILS: single-breasted two-button jacket, fastened on the top button, notch lapels 8.5 cm wide, two straight flap hip pockets, four kissing cuff buttons on each sleeve. The jacket occupies the upper 62% of the frame and the folded trousers the lower 30%."
+    },
+    "front-sb1-notch": {
+      "mode": "edit (same chat as front-sb2-notch)",
+      "aspect": "2:3",
+      "resolution": "2K",
+      "prompt": "Edit the FIRST image in this conversation (the grey invisible-mannequin suit). Keep everything else exactly the same - same camera, framing, scale and position of jacket and folded trousers, same background, same grey Super 120s cloth and weave, same lighting and shading, same tonal lining, sleeves, cuff buttons, breast pocket and trousers - and change ONLY the following: make it a ONE-BUTTON jacket: REMOVE the lower front button and its buttonhole completely so there is exactly ONE button on the jacket front, placed at the natural waist where the lapels meet; keep notch lapels, rolling down to that single button. Exactly one front button - verify. The tailoring must be correct, symmetrical and realistic, luxury quality. Output the complete image at the same size."
+    },
+    "front-sb1-peak": {
+      "mode": "edit (same chat as front-sb2-notch)",
+      "aspect": "2:3",
+      "resolution": "2K",
+      "prompt": "Edit the FIRST image in this conversation (the grey invisible-mannequin suit). Keep everything else exactly the same - same camera, framing, scale and position of jacket and folded trousers, same background, same grey Super 120s cloth and weave, same lighting and shading, same tonal lining, sleeves, cuff buttons, breast pocket and trousers - and change ONLY the following: make it a ONE-BUTTON jacket with PEAK lapels: REMOVE the lower front button and its buttonhole completely so there is exactly ONE button on the jacket front at the natural waist, and change the notch lapels into sharply pointed PEAK lapels whose points sweep upward toward the shoulders. Exactly one front button - verify. The tailoring must be correct, symmetrical and realistic, luxury quality. Output the complete image at the same size."
+    },
+    "front-sb1-shawl": {
+      "mode": "edit (same chat as front-sb2-notch)",
+      "aspect": "2:3",
+      "resolution": "2K",
+      "prompt": "Edit the FIRST image in this conversation (the grey invisible-mannequin suit). Keep everything else exactly the same - same camera, framing, scale and position of jacket and folded trousers, same background, same grey Super 120s cloth and weave, same lighting and shading, same tonal lining, sleeves, cuff buttons, breast pocket and trousers - and change ONLY the following: make the jacket single-breasted with ONE button at the natural waist and a SHAWL collar: one continuous smoothly rounded lapel with no notch, rolling to that single button. Keep the flap hip pockets. The tailoring must be correct, symmetrical and realistic, luxury quality. Output the complete image at the same size."
+    },
+    "front-sb2-peak": {
+      "mode": "edit (same chat as front-sb2-notch)",
+      "aspect": "2:3",
+      "resolution": "2K",
+      "prompt": "Edit the FIRST image in this conversation (the grey invisible-mannequin suit). Keep everything else exactly the same - same camera, framing, scale and position of jacket and folded trousers, same background, same grey Super 120s cloth and weave, same lighting and shading, same tonal lining, sleeves, cuff buttons, breast pocket and trousers - and change ONLY the following: replace the notch lapels with PEAK lapels (pointed, upward-sweeping lapel tips), still two buttons, fastened on the top button. The tailoring must be correct, symmetrical and realistic, luxury quality. Output the complete image at the same size."
+    },
+    "front-sb3-notch": {
+      "mode": "edit (same chat as front-sb2-notch)",
+      "aspect": "2:3",
+      "resolution": "2K",
+      "prompt": "Edit the FIRST image in this conversation (the grey invisible-mannequin suit). Keep everything else exactly the same - same camera, framing, scale and position of jacket and folded trousers, same background, same grey Super 120s cloth and weave, same lighting and shading, same tonal lining, sleeves, cuff buttons, breast pocket and trousers - and change ONLY the following: make the jacket single-breasted with THREE buttons, fastened on the middle button, the notch lapels rolling to just above the top button (a three-roll-two front). The tailoring must be correct, symmetrical and realistic, luxury quality. Output the complete image at the same size."
+    },
+    "front-db6-peak": {
+      "mode": "edit (same chat as front-sb2-notch)",
+      "aspect": "2:3",
+      "resolution": "2K",
+      "prompt": "Edit the FIRST image in this conversation (the grey invisible-mannequin suit). Keep everything else exactly the same - same camera, framing, scale and position of jacket and folded trousers, same background, same grey Super 120s cloth and weave, same lighting and shading, same tonal lining, sleeves, cuff buttons, breast pocket and trousers - and change ONLY the following: make the jacket DOUBLE-BREASTED with SIX buttons in two vertical rows of three, the right front overlapping the left and fastened, wide PEAK lapels, a straight hem with squared front edges, flap hip pockets. The tailoring must be correct, symmetrical and realistic, luxury quality. Output the complete image at the same size."
+    },
+    "front-mandarin": {
+      "mode": "edit (same chat as front-sb2-notch)",
+      "aspect": "2:3",
+      "resolution": "2K",
+      "prompt": "Edit the FIRST image in this conversation (the grey invisible-mannequin suit). Keep everything else exactly the same - same camera, framing, scale and position of jacket and folded trousers, same background, same grey Super 120s cloth and weave, same lighting and shading, same tonal lining, sleeves, cuff buttons, breast pocket and trousers - and change ONLY the following: replace the lapels and collar with a MANDARIN collar: a short 3.5 cm standing band collar with no lapels, the jacket fronts meeting edge to edge and closing with FIVE horn buttons from the collar down to the waist, a straight front edge, flap hip pockets, no breast pocket welt. The tailoring must be correct, symmetrical and realistic, luxury quality. Output the complete image at the same size."
+    },
+    "front-sb2-jetted": {
+      "mode": "edit (same chat as front-sb2-notch)",
+      "aspect": "2:3",
+      "resolution": "2K",
+      "prompt": "Edit the FIRST image in this conversation (the grey invisible-mannequin suit). Keep everything else exactly the same - same camera, framing, scale and position of jacket and folded trousers, same background, same grey Super 120s cloth and weave, same lighting and shading, same tonal lining, sleeves, cuff buttons, breast pocket and trousers - and change ONLY the following: replace the two flap hip pockets with JETTED (besom) pockets - two narrow piped welts with no flaps - at exactly the same height and width. The tailoring must be correct, symmetrical and realistic, luxury quality. Output the complete image at the same size."
+    },
+    "front-sb2-patch": {
+      "mode": "edit (same chat as front-sb2-notch)",
+      "aspect": "2:3",
+      "resolution": "2K",
+      "prompt": "Edit the FIRST image in this conversation (the grey invisible-mannequin suit). Keep everything else exactly the same - same camera, framing, scale and position of jacket and folded trousers, same background, same grey Super 120s cloth and weave, same lighting and shading, same tonal lining, sleeves, cuff buttons, breast pocket and trousers - and change ONLY the following: replace the two flap hip pockets and the welt breast pocket with PATCH pockets - rounded-corner patch pockets sewn onto the outside of the jacket with visible edge stitching - at the same positions. The tailoring must be correct, symmetrical and realistic, luxury quality. Output the complete image at the same size."
+    },
+    "back-none": {
+      "mode": "edit (same chat as front-sb2-notch)",
+      "aspect": "2:3",
+      "resolution": "2K",
+      "prompt": "Edit the FIRST image in this conversation (the grey invisible-mannequin suit). Keep everything else exactly the same - same camera, framing, scale and position of jacket and folded trousers, same background, same grey Super 120s cloth and weave, same lighting and shading, same tonal lining, sleeves, cuff buttons, breast pocket and trousers - and change ONLY the following: show the SAME suit from the BACK: the jacket seen from behind as if worn by an invisible body, with the back collar, the centre back seam, smooth back panels and NO vent; below it the same folded trousers seen from the back side showing one jetted back pocket with a button. Same scale, framing, background and lighting. The tailoring must be correct, symmetrical and realistic, luxury quality. Output the complete image at the same size."
+    },
+    "back-centre": {
+      "mode": "edit (same chat as front-sb2-notch)",
+      "aspect": "2:3",
+      "resolution": "2K",
+      "prompt": "Edit the FIRST image in this conversation (the grey invisible-mannequin suit). Keep everything else exactly the same - same camera, framing, scale and position of jacket and folded trousers, same background, same grey Super 120s cloth and weave, same lighting and shading, same tonal lining, sleeves, cuff buttons, breast pocket and trousers - and change ONLY the following: show the SAME suit from the BACK: the jacket seen from behind as if worn by an invisible body, with the back collar, the centre back seam ending in a single CENTRE VENT at the hem (about 25 cm long); below it the same folded trousers seen from the back side showing one jetted back pocket with a button. Same scale, framing, background and lighting. The tailoring must be correct, symmetrical and realistic, luxury quality. Output the complete image at the same size."
+    },
+    "back-side": {
+      "mode": "edit (same chat as front-sb2-notch)",
+      "aspect": "2:3",
+      "resolution": "2K",
+      "prompt": "Edit the FIRST image in this conversation (the grey invisible-mannequin suit). Keep everything else exactly the same - same camera, framing, scale and position of jacket and folded trousers, same background, same grey Super 120s cloth and weave, same lighting and shading, same tonal lining, sleeves, cuff buttons, breast pocket and trousers - and change ONLY the following: show the SAME suit from the BACK: the jacket seen from behind as if worn by an invisible body, with the back collar, the centre back seam and TWO SIDE VENTS (one at each side seam at the hem, about 25 cm long); below it the same folded trousers seen from the back side showing one jetted back pocket with a button. Same scale, framing, background and lighting. The tailoring must be correct, symmetrical and realistic, luxury quality. Output the complete image at the same size."
+    },
+    "inside": {
+      "mode": "edit (same chat as front-sb2-notch)",
+      "aspect": "2:3",
+      "resolution": "2K",
+      "prompt": "Edit the open-jacket INTERIOR image generated earlier in this conversation (the jacket laid open showing its lining and inside pockets). Keep EVERYTHING identical - same composition, pixel positions, cloth, facings, pockets, collar, lighting and background - and change ONLY the colour of the satin lining (the body lining and sleeve linings, including the piping of the inside pockets) to a solid bright emerald green satin (#1E9E4A) with the same sheen and folds. The grey wool facings stay grey. Output the complete image at the same size."
+    },
+    "waistcoat-sb5": {
+      "mode": "edit (same chat as front-sb2-notch)",
+      "aspect": "2:3",
+      "resolution": "2K",
+      "prompt": "Edit the FIRST image in this conversation (the grey invisible-mannequin suit). Keep everything else exactly the same - same camera, framing, scale and position of jacket and folded trousers, same background, same grey Super 120s cloth and weave, same lighting and shading, same tonal lining, sleeves, cuff buttons, breast pocket and trousers - and change ONLY the following: show ONLY the matching WAISTCOAT (vest) in the same grey cloth, as if worn by an invisible body: single-breasted with FIVE horn buttons, pointed front hem, two welt pockets at the waist, a V-neck opening showing the tonal back lining; no jacket, no trousers. Centred, filling the upper two thirds of the frame. The tailoring must be correct, symmetrical and realistic, luxury quality. Output the complete image at the same size."
     },
     "hero/slide-1": {
       "mode": "generate",
@@ -23,7 +108,7 @@
       "mode": "generate",
       "aspect": "4:5",
       "resolution": "2K",
-      "prompt": "Premium editorial fashion photograph for a luxury bespoke tailoring house's website hero. Vertical 4:5 frame. Plain seamless studio backdrop in a clean, flat, neutral light grey (#EEEEEE) with no colour cast, no warmth, no beige, no gradient, no vignette. Large soft key light from the front-left with an even fill, bright and clean like a premium e-commerce studio, only a faint soft shadow beside the model, no harsh shadows. Shot on a full-frame camera with an 85mm lens at f/4, eye level, tack-sharp on the suit and face, true-to-life skin texture, natural colour, no retouching artefacts. The model stands centred in the frame, framed from the top of the head to mid-thigh, with at least 8% empty backdrop above the head and on both sides so the image can be cropped to a square without cutting the head or the suit. The suit fits impeccably: clean shoulder line, lapels lying flat, sleeves showing a quarter inch of shirt cuff, jacket skimming the waist, trousers with a crisp crease. Calm, confident, understated expression; relaxed natural pose. No text, no logos, no props, no jewellery except a simple watch. Photorealistic, high-end, not illustrative. MODEL: a man in his late twenties of South Asian heritage, light olive-brown skin, black hair styled short. SUIT: a light sand-beige wool-and-linen single-breasted two-button suit with notch lapels and patch pockets, jacket open, crisp white shirt open at the collar with no tie. Standing facing the camera with a relaxed smile, one hand adjusting his jacket cuff."
+      "prompt": "Premium editorial fashion photograph for a luxury bespoke tailoring house's website hero. Vertical 4:5 frame. Plain seamless studio backdrop in a clean, flat, neutral light grey (#EEEEEE) with no colour cast, no warmth, no beige, no gradient, no vignette. Large soft key light from the front-left with an even fill, bright and clean like a premium e-commerce studio, only a faint soft shadow beside the model, no harsh shadows. Shot on a full-frame camera with an 85mm lens at f/4, eye level, tack-sharp on the suit and face, true-to-life skin texture, natural colour, no retouching artefacts. The model stands centred in the frame, framed from the top of the head to mid-thigh, with at least 8% empty backdrop above the head and on both sides so the image can be cropped to a square without cutting the head or the suit. The suit fits impeccably: clean shoulder line, lapels lying flat, sleeves showing a quarter inch of shirt cuff, jacket skimming the waist, trousers with a crisp crease. Calm, confident, understated expression; relaxed natural pose. No text, no logos, no props, no jewellery except a simple watch. Photorealistic, high-end, not illustrative. MODEL: a light-skinned man in his late twenties of mixed East African and Asian heritage, light golden-brown skin, short dark curly hair neatly cut, clean-shaven. SUIT: a light sand-beige wool-and-linen single-breasted two-button suit with notch lapels and patch pockets, jacket open, crisp white shirt open at the collar with no tie. Standing facing the camera with a relaxed half-smile, one hand adjusting his jacket cuff."
     }
   }
 }
