@@ -1,5 +1,9 @@
 {
   "assets": {
+    "back-centre": {
+      "height": 1789,
+      "width": 1200
+    },
     "back-none": {
       "height": 1789,
       "width": 1200
@@ -41,6 +45,10 @@
       "width": 1200
     },
     "front-sb3-notch": {
+      "height": 1789,
+      "width": 1200
+    },
+    "inside": {
       "height": 1789,
       "width": 1200
     }

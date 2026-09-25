@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import manifest from "@/lib/suit/photo-assets.json";
-import { getFabric } from "@/lib/suit/catalogue";
+import { getFabric, LINING_COLOURS } from "@/lib/suit/catalogue";
 import type { SuitConfig } from "@/lib/suit/types";
 
 /**
@@ -38,6 +38,12 @@ export function choosePhoto(config: SuitConfig, view: PhotoView = "front"): stri
   return has(`front-sb2-${lapel}`) ?? has("front-sb2-notch");
 }
 
+function shadeHex(hex: string, k: number) {
+  const n = parseInt(hex.slice(1), 16);
+  const f = (v: number) => Math.max(0, Math.min(255, Math.round(v * (1 + k))));
+  return `#${[(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => f(v).toString(16).padStart(2, "0")).join("")}`;
+}
+
 const cache = new Map<string, Promise<ImageData>>();
 function load(src: string, w?: number, h?: number) {
   const key = `${src}@${w ?? ""}`;
@@ -69,8 +75,10 @@ function load(src: string, w?: number, h?: number) {
 }
 
 const done = new Map<string, ImageData>();
-async function render(asset: string, fabricId: string): Promise<ImageData> {
-  const key = `${asset}|${fabricId}`;
+async function render(asset: string, fabricId: string, linHex: string): Promise<ImageData> {
+  const key = `${asset}|${fabricId}|${linHex}`;
+  const ln = parseInt(linHex.slice(1), 16);
+  const LR = (ln >> 16) & 255, LG = (ln >> 8) & 255, LB = ln & 255;
   const hit = done.get(key);
   if (hit) return hit;
   const f = getFabric(fabricId) ?? getFabric("house-navy-stretch")!;
@@ -101,6 +109,13 @@ async function render(asset: string, fabricId: string): Promise<ImageData> {
         g = g * (1 - c) + t[k + 1]! * sh * c;
         bl = bl * (1 - c) + t[k + 2]! * sh * c;
       }
+      const lm = m[i + 1]! / 255;
+      if (lm > 0.002) {
+        const sh = s[i]! / 128;
+        r = r * (1 - lm) + LR * sh * lm;
+        g = g * (1 - lm) + LG * sh * lm;
+        bl = bl * (1 - lm) + LB * sh * lm;
+      }
       o[i] = r;
       o[i + 1] = g;
       o[i + 2] = bl;
@@ -117,11 +132,13 @@ export function PhotoPreview({ config, view = "front", className = "", title, fi
   const ref = useRef<HTMLCanvasElement>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const fabric = view === "waistcoat" ? (config.waistcoatFabric ?? config.fabric) : config.fabric;
+  const custom = config.options["accents.liningColour"] === "custom" && config.options["accents.liningStyle"] !== "unlined";
+  const linHex = (custom ? LINING_COLOURS.find((l) => l.id === config.lining)?.hex : null) ?? shadeHex(getFabric(config.fabric)?.hex ?? "#1a2440", -0.3);
 
   useEffect(() => {
     if (!asset) return;
     let off = false;
-    render(asset, fabric)
+    render(asset, fabric, linHex)
       .then((d) => {
         const c = ref.current;
         if (off || !c) return;
@@ -134,7 +151,7 @@ export function PhotoPreview({ config, view = "front", className = "", title, fi
     return () => {
       off = true;
     };
-  }, [asset, fabric]);
+  }, [asset, fabric, linHex]);
 
   if (!asset || state === "error") return <>{fallback}</>;
   const meta = ASSETS[asset]!;
