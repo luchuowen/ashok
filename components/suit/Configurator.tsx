@@ -245,7 +245,7 @@ export function Configurator() {
     panelRef.current?.scrollTo({ top: 0 });
   };
 
-  async function addToBag() {
+  async function addToBag(checkout = false) {
     const checked = validateConfigStrict(config);
     if ("error" in checked) {
       flash(checked.error);
@@ -259,7 +259,8 @@ export function Configurator() {
       router.push(`/cart?updated=${encodeURIComponent(editLineId)}`);
     } else {
       const lineId = cart.addSuit(checked.config, qty);
-      router.push(`/cart?added=${encodeURIComponent(lineId)}`);
+      // Straight to payment: the measurements step (skippable when already on file) hands over to checkout.
+      router.push(checkout ? "/custom-suits/measurements?next=/checkout" : `/cart?added=${encodeURIComponent(lineId)}`);
     }
   }
 
@@ -327,8 +328,8 @@ export function Configurator() {
   ];
 
   const primaryLabel =
-    step === "review" ? (editLineId ? "Update bag" : "Add to bag") : `Next: ${STEPS[stepIndex + 1]?.label}`;
-  const onPrimary = () => (step === "review" ? addToBag() : goStep(STEPS[stepIndex + 1]!.id));
+    step === "review" ? (editLineId ? "Update bag" : "Checkout") : `Next: ${STEPS[stepIndex + 1]?.label}`;
+  const onPrimary = () => (step === "review" ? addToBag(!editLineId) : goStep(STEPS[stepIndex + 1]!.id));
 
   if (!ready) {
     return (
@@ -564,7 +565,24 @@ export function Configurator() {
                 ))}
               </ol>
 
-              <div className="mt-8 grid grid-cols-2 gap-2">
+              <div className="mt-8 border border-ink p-4">
+                <button type="button" onClick={() => addToBag(true)} disabled={adding} className="cta w-full disabled:opacity-60">
+                  {adding ? "Preparing checkout…" : `Checkout · ${formatMoney(price.unitTotal * qty, currency)}`}
+                </button>
+                <p className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] uppercase tracking-wide text-muted">
+                  <span>M-Pesa</span>
+                  <span aria-hidden="true">·</span>
+                  <span>Visa / Mastercard (KES or USD)</span>
+                  <span aria-hidden="true">·</span>
+                  <span>Bank</span>
+                </p>
+                <p className="mt-1 text-center text-[11px] text-muted">Pay in full or a 50% deposit on our secure payment page.</p>
+                <button type="button" onClick={() => addToBag(false)} disabled={adding} className="mt-3 w-full text-xs uppercase tracking-wide underline underline-offset-4 hover:text-oxblood">
+                  {editLineId ? "Update bag" : "Add to bag and keep shopping"}
+                </button>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-2">
                 <button type="button" onClick={saveDesign} disabled={saveState.status === "saving"} className="cta ghost !px-3 text-xs">
                   {saveState.status === "saving" ? "Saving…" : "Save design"}
                 </button>

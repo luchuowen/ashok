@@ -59,13 +59,19 @@ def build(asset: str) -> dict:
     # Lining: strongly green pixels (emerald satin) inside the garment.
     lining = np.clip((G - (R + B) / 2 - 10) / 25, 0, 1) * alpha
     # Buttons: small, compact, dark blobs.
-    dark = ((L < 70) & fg).astype(np.uint8)
-    n, lab, st, _ = cv2.connectedComponentsWithStats(dark, 8)
-    btn = np.zeros(L.shape, bool)
-    for i in range(1, n):
-        x, y, bw, bh, ar = st[i]
-        if 40 < ar < 3500 and 0.55 < bw / max(bh, 1) < 1.8 and ar > 0.45 * bw * bh:
-            btn |= lab == i
+    # Buttons: compact dark discs. Hough circles on the luminance find them even
+    # where they touch the dark shadow of the front opening.
+    btn = np.zeros(L.shape, np.uint8)
+    blur = cv2.GaussianBlur(L.astype(np.uint8), (0, 0), 1.5)
+    circles = cv2.HoughCircles(blur, cv2.HOUGH_GRADIENT, dp=1.2, minDist=14, param1=70, param2=13, minRadius=4, maxRadius=16)
+    if circles is not None:
+        for cx, cy, r in np.round(circles[0]).astype(int):
+            if 0 <= cy < L.shape[0] and 0 <= cx < L.shape[1] and fg[cy, cx]:
+                ring = L[max(cy - r, 0) : cy + r, max(cx - r, 0) : cx + r]
+                disc = a[max(cy - r + 2, 0) : cy + r - 1, max(cx - r + 2, 0) : cx + r - 1]
+                warm = float(np.median(disc[..., 0] - disc[..., 2])) if disc.size else 0
+                if ring.size and np.median(ring) < 90 and lining[cy, cx] < 0.2 and (warm > 5 or np.median(ring) < 40):
+                    cv2.circle(btn, (cx, cy), r + 1, 1, -1)
     btn = cv2.dilate(btn.astype(np.uint8), np.ones((3, 3), np.uint8))
     mbtn = cv2.GaussianBlur(btn.astype(np.float32), (0, 0), 0.8) * alpha
     cloth = np.clip(alpha - lining - mbtn, 0, 1)
