@@ -3,21 +3,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SuitConfig } from "@/lib/suit/types";
 import { SuitPreview, type PreviewView } from "./SuitPreview";
-import { ModelPreview, SKIN_TONES, type SkinToneId } from "./ModelPreview";
+import { SKIN_TONES, type SkinToneId } from "./ModelPreview";
+import { PhotoPreview } from "./PhotoPreview";
 
 /** Stage views: the photographic on-model views plus the flat technical drawings. */
 export type StageView = "model" | "modelBack" | PreviewView;
 
 const VIEW_LABELS: Record<StageView, string> = {
-  model: "On model",
+  model: "Front",
   modelBack: "Back",
-  front: "Flat",
-  back: "Flat back",
+  front: "Detail",
+  back: "Back",
   lining: "Inside",
   waistcoat: "Waistcoat",
 };
 
-const isModel = (v: StageView) => v === "model" || v === "modelBack";
+const isPhoto = (v: StageView) => v === "model";
 
 /** Close-up widths for the full-screen zoom, smallest first. Photos top out lower (source resolution). */
 const ZOOM_WIDTHS = ["min(170vw, 1000px)", "min(260vw, 1700px)", "min(380vw, 2500px)"];
@@ -33,35 +34,12 @@ function readSkin(): SkinToneId {
   }
 }
 
-function SkinSwatches({ skin, onSkin, compact = false }: { skin: SkinToneId; onSkin: (s: SkinToneId) => void; compact?: boolean }) {
-  return (
-    <div className={`flex items-center ${compact ? "gap-1" : "gap-1.5"}`} role="radiogroup" aria-label="Skin tone">
-      {!compact ? <span className="mr-1 text-[11px] uppercase tracking-wide text-muted">Skin</span> : null}
-      {SKIN_TONES.map((t) => {
-        const rgb = t.rgb ?? [164, 108, 81];
-        return (
-          <button
-            key={t.id}
-            type="button"
-            role="radio"
-            aria-checked={skin === t.id}
-            aria-label={`${t.label} skin tone`}
-            title={t.label}
-            onClick={() => onSkin(t.id)}
-            className={`h-6 w-6 rounded-full border ${skin === t.id ? "border-ink ring-1 ring-ink ring-offset-1" : "border-line"}`}
-            style={{ background: `rgb(${rgb.join(",")})` }}
-          />
-        );
-      })}
-    </div>
-  );
-}
-
-function Preview({ config, view, hideJacket, skin, fit, title }: { config: SuitConfig; view: StageView; hideJacket: boolean; skin: SkinToneId; fit: "contain" | "width"; title: string }) {
-  if (isModel(view)) {
-    return <ModelPreview config={config} view={view === "modelBack" ? "back" : "front"} hideJacket={hideJacket} skin={skin} fit={fit} className={fit === "width" ? "w-full" : "h-full w-full"} title={title} />;
+function Preview({ config, view, hideJacket, fit, title }: { config: SuitConfig; view: StageView; hideJacket: boolean; skin: SkinToneId; fit: "contain" | "width"; title: string }) {
+  const flat = (v: PreviewView) => <SuitPreview config={config} view={v} hideJacket={hideJacket} className={fit === "width" ? "block h-auto w-full" : "h-full w-full"} title={title} />;
+  if (isPhoto(view) && !hideJacket) {
+    return <PhotoPreview config={config} fit={fit} className={fit === "width" ? "w-full" : "h-full w-full p-[3%]"} title={title} fallback={flat("front")} />;
   }
-  return <SuitPreview config={config} view={view as PreviewView} hideJacket={hideJacket} className={fit === "width" ? "block h-auto w-full" : "h-full w-full"} title={title} />;
+  return flat(view === "model" ? "front" : view === "modelBack" ? "back" : (view as PreviewView));
 }
 
 function JacketIcon({ hidden }: { hidden: boolean }) {
@@ -92,10 +70,10 @@ export function Stage({
   const three = config.options["suit.pieces"] === "three";
   const [hideJacket, setHideJacket] = useState(false);
   const views: StageView[] = hideJacket
-    ? ["model", "modelBack", "front", "back"]
+    ? ["model", "back"]
     : three
-      ? ["model", "modelBack", "front", "back", "lining", "waistcoat"]
-      : ["model", "modelBack", "front", "back", "lining"];
+      ? ["model", "back", "lining", "waistcoat", "front"]
+      : ["model", "back", "lining", "front"];
   const current = views.includes(view) ? view : "model";
   const [zoomOpen, setZoomOpen] = useState(false);
   const [skin, setSkinState] = useState<SkinToneId>("brown");
@@ -174,19 +152,8 @@ export function Stage({
         <button type="button" onClick={() => setZoomOpen(true)} aria-label="Zoom" className="flex h-9 w-9 items-center justify-center border border-line bg-paper text-lg leading-none text-ink">
           +
         </button>
-        {isModel(current) ? (
-          <button
-            type="button"
-            onClick={() => setSkin(SKIN_TONES[(SKIN_TONES.findIndex((t) => t.id === skin) + 1) % SKIN_TONES.length]!.id)}
-            aria-label="Change skin tone"
-            className="flex h-9 w-9 items-center justify-center border border-line bg-paper"
-          >
-            <span className="h-5 w-5 rounded-full border border-line" style={{ background: `rgb(${(SKIN_TONES.find((t) => t.id === skin)?.rgb ?? [164, 108, 81]).join(",")})` }} />
-          </button>
-        ) : null}
       </div>
       <div className="hidden items-center justify-center gap-2 px-2 pb-3 sm:flex sm:px-4">
-        {isModel(current) ? <SkinSwatches skin={skin} onSkin={setSkin} /> : null}
         <button
           type="button"
           onClick={() => setHideJacket((h) => !h)}
@@ -231,7 +198,6 @@ function ZoomOverlay({
   hideJacket,
   onHideJacket,
   skin,
-  onSkin,
   onClose,
 }: {
   config: SuitConfig;
@@ -244,7 +210,7 @@ function ZoomOverlay({
   onSkin: (s: SkinToneId) => void;
   onClose: () => void;
 }) {
-  const widths = isModel(view) ? MODEL_ZOOM_WIDTHS : ZOOM_WIDTHS;
+  const widths = isPhoto(view) ? MODEL_ZOOM_WIDTHS : ZOOM_WIDTHS;
   const [level, setLevel] = useState(0);
   const [progress, setProgress] = useState({ top: 0, size: 1 });
   const scroller = useRef<HTMLDivElement>(null);
@@ -291,7 +257,7 @@ function ZoomOverlay({
   const on = `${tool} border-ink bg-ink text-cream`;
 
   return (
-    <div className={`fixed inset-0 z-[70] ${isModel(view) ? "bg-[#eeeeee]" : "bg-white"}`} role="dialog" aria-modal="true" aria-label="Close-up of your suit">
+    <div className={`fixed inset-0 z-[70] ${isPhoto(view) ? "bg-[#eeeeee]" : "bg-white"}`} role="dialog" aria-modal="true" aria-label="Close-up of your suit">
       <div ref={scroller} onScroll={measure} className="h-full w-full overflow-auto overscroll-contain">
         <div className="mx-auto" style={{ width: widths[level] }}>
           <Preview config={config} view={view} hideJacket={hideJacket} skin={skin} fit="width" title={`Close-up, ${VIEW_LABELS[view].toLowerCase()} view${hideJacket ? " without the jacket" : ""}`} />
@@ -327,12 +293,6 @@ function ZoomOverlay({
           <JacketIcon hidden={hideJacket} />
         </button>
       </div>
-
-      {isModel(view) ? (
-        <div className="fixed bottom-7 left-3 border border-line bg-white/90 px-2 py-1.5 backdrop-blur sm:left-5">
-          <SkinSwatches skin={skin} onSkin={onSkin} compact />
-        </div>
-      ) : null}
 
       {/* Scroll position indicator */}
       <div className="pointer-events-none fixed bottom-3 left-1/2 h-1 w-24 -translate-x-1/2 bg-line" aria-hidden="true">

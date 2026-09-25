@@ -61,7 +61,7 @@ const MODEL_GROUPS = new Set(["suit.pieces", "suit.fabricMode", "jacket.closure"
 
 /** Which preview view best shows the option that was just changed. */
 function viewFor(groupId: string, current: StageView): StageView {
-  if (MODEL_GROUPS.has(groupId)) return current === "modelBack" ? current : "model";
+  if (MODEL_GROUPS.has(groupId) || groupId === "jacket.pockets") return "model";
   if (groupId.startsWith("waistcoat.")) return "waistcoat";
   if (groupId === "jacket.vents" || groupId === "trousers.backPockets" || groupId === "accents.elbowPatches") return "back";
   if (groupId.startsWith("accents.lining") || groupId === "accents.underCollar") return "lining";
@@ -346,7 +346,7 @@ export function Configurator() {
       {/* ---------------- Stage ---------------- */}
       <section
         className={`relative flex h-[40%] flex-none flex-col border-b border-line transition-colors duration-300 lg:h-full lg:flex-1 lg:border-b-0 lg:border-l ${
-          view === "model" || view === "modelBack" ? "bg-[#eeeeee]" : "bg-[radial-gradient(ellipse_at_50%_35%,rgb(var(--paper))_0%,rgb(var(--cream))_70%)]"
+          view === "model" ? "bg-[#eeeeee]" : "bg-[radial-gradient(ellipse_at_50%_35%,rgb(var(--paper))_0%,rgb(var(--cream))_70%)]"
         }`}
         aria-label="Suit preview"
       >

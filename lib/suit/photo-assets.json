@@ -1,0 +1,29 @@
+{
+  "assets": {
+    "front-db6-peak": {
+      "height": 1789,
+      "width": 1200
+    },
+    "front-mandarin": {
+      "height": 1789,
+      "width": 1200
+    },
+    "front-sb1-shawl": {
+      "height": 1789,
+      "width": 1200
+    },
+    "front-sb2-notch": {
+      "height": 1789,
+      "width": 1200
+    },
+    "front-sb2-peak": {
+      "height": 1789,
+      "width": 1200
+    },
+    "front-sb3-notch": {
+      "height": 1789,
+      "width": 1200
+    }
+  },
+  "tilePx": 180
+}
