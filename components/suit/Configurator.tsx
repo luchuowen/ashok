@@ -71,18 +71,21 @@ function writeJson(key: string, value: unknown) {
 const MODEL_GROUPS = new Set(["suit.pieces", "suit.fabricMode", "jacket.closure", "jacket.lapel", "accents.necktie", "accents.bowtie"]);
 
 /** Which preview view best shows the option that was just changed. */
+const DETAIL_GROUPS = new Set([
+  "jacket.lapelWidth", "jacket.lapelFacing", "accents.pickStitch", "jacket.shoulder", "jacket.pocketSlant", "jacket.ticketPocket",
+  "jacket.breastPocket", "jacket.sleeveButtons", "jacket.cuffs", "trousers.waist", "trousers.fastening", "trousers.braces",
+  "trousers.pleats", "trousers.sidePockets", "trousers.backPockets", "trousers.hem", "trousers.break",
+]);
 function viewFor(groupId: string, current: StageView): StageView {
-  if (MODEL_GROUPS.has(groupId) || groupId === "jacket.pockets") return "model";
+  if (DETAIL_GROUPS.has(groupId)) return "front";
   if (groupId.startsWith("waistcoat.")) return "waistcoat";
-  if (groupId === "jacket.vents" || groupId === "trousers.backPockets" || groupId === "accents.elbowPatches") return "back";
-  if (groupId.startsWith("accents.lining") || groupId === "accents.underCollar") return "lining";
-  if (groupId.startsWith("trousers.") || groupId === "accents.belt" || groupId === "accents.braces") return current === "waistcoat" ? current : "model";
+  if (groupId === "jacket.vents" || groupId === "accents.elbowPatches") return "back";
+  if (groupId.startsWith("accents.lining") || groupId === "accents.monogram" || groupId === "accents.underCollar") return "lining";
   if (
-    groupId.startsWith("jacket.") ||
-    ["accents.buttons", "accents.buttonholes", "accents.pocketSquare", "accents.pickStitch", "accents.belt", "accents.braces"].includes(groupId)
-  ) {
-    return "front";
-  }
+    MODEL_GROUPS.has(groupId) ||
+    ["jacket.pockets", "jacket.fit", "trousers.fit", "accents.pocketSquare", "accents.necktie", "accents.bowtie", "accents.buttonholes", "accents.buttons"].includes(groupId)
+  )
+    return "model";
   return current;
 }
 
@@ -96,6 +99,7 @@ export function Configurator() {
   const [config, setConfig] = useState<SuitConfig>(() => defaultConfig());
   const [ready, setReady] = useState(false);
   const [step, setStep] = useState<Step>("fabric");
+  const [lastGroup, setLastGroup] = useState<string | null>(null);
   const fabricTarget: "jacket" | "trousers" | "waistcoat" = step === "trouserFabric" ? "trousers" : step === "waistcoatFabric" ? "waistcoat" : "jacket";
   const [view, setView] = useState<StageView>("model");
   const advanced = true; // every option shown, as on the reference configurator
@@ -197,6 +201,7 @@ export function Configurator() {
         return normalized;
       });
       setView((v) => viewFor(groupId, v));
+      setLastGroup(groupId);
       if ((groupId === "suit.fabricMode" && valueId === "same") || (groupId === "suit.pieces" && valueId === "two")) {
         setStep((st) => (st === "waistcoatFabric" || (groupId === "suit.fabricMode" && st === "trouserFabric") ? "fabric" : st));
       }
@@ -365,7 +370,7 @@ export function Configurator() {
         aria-label="Suit preview"
       >
         <div className="min-h-0 flex-1">
-          <Stage config={config} view={view} onViewChange={setView} />
+          <Stage config={config} view={view} onViewChange={setView} lastGroup={lastGroup} />
         </div>
         <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5 lg:left-6 lg:top-6">
           <CurrencyToggle value={currency} onChange={setCurrency} />

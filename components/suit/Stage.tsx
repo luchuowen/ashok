@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { SuitConfig } from "@/lib/suit/types";
 import { SuitDrawing, type PreviewView } from "./SuitPreview";
 import { SKIN_TONES, type SkinToneId } from "./ModelPreview";
-import { DETAIL_CROP, PhotoPreview } from "./PhotoPreview";
+import { DETAIL_CROP, hasPhoto, PhotoPreview } from "./PhotoPreview";
+import { DETAIL_FALLBACK, detailPhotoFor, waistcoatPhotoFor } from "@/lib/suit/detail-photos";
 
 /** Stage views: the photographic on-model views plus the flat technical drawings. */
 export type StageView = "model" | "modelBack" | PreviewView;
@@ -34,12 +35,21 @@ function readSkin(): SkinToneId {
   }
 }
 
-function Preview({ config, view, hideJacket, fit, title }: { config: SuitConfig; view: StageView; hideJacket: boolean; skin: SkinToneId; fit: "contain" | "width"; title: string }) {
+function Preview({ config, view, hideJacket, fit, title, lastGroup = null }: { config: SuitConfig; view: StageView; hideJacket: boolean; skin: SkinToneId; fit: "contain" | "width"; title: string; lastGroup?: string | null }) {
   const cls = fit === "width" ? "w-full" : "h-full w-full p-[3%]";
   const drawing = (v: PreviewView) => <SuitDrawing config={config} view={v} hideJacket={hideJacket} className={fit === "width" ? "block h-auto w-full" : "h-full w-full"} title={title} />;
   if (hideJacket) return <PhotoPreview config={config} view="nojacket" fit={fit} className={cls} title={title} fallback={drawing("front")} />;
-  if (view === "front") return <PhotoPreview config={config} view="front" crop={DETAIL_CROP} fit={fit} className={fit === "width" ? cls : "h-full w-full px-[14%] py-[4%]"} title={title} fallback={drawing("front")} />;
-  const pv = isPhoto(view) ? "front" : view === "modelBack" ? "back" : (view as "back" | "lining" | "waistcoat");
+  if (view === "front") {
+    const want = detailPhotoFor(lastGroup, config);
+    const close = want && !hasPhoto(want) ? (DETAIL_FALLBACK[want] ?? null) : want;
+    if (close && hasPhoto(close)) return <PhotoPreview config={config} view="front" asset={close} fit={fit} className={fit === "width" ? cls : "h-full w-full p-[4%]"} title={title} fallback={drawing("front")} />;
+    return <PhotoPreview config={config} view="front" crop={DETAIL_CROP} fit={fit} className={fit === "width" ? cls : "h-full w-full px-[14%] py-[4%]"} title={title} fallback={drawing("front")} />;
+  }
+  if (view === "waistcoat") {
+    const wc = waistcoatPhotoFor(lastGroup, config);
+    return <PhotoPreview config={config} view="waistcoat" asset={wc} fit={fit} className={cls} title={title} fallback={drawing("waistcoat")} />;
+  }
+  const pv = isPhoto(view) ? "front" : view === "modelBack" ? "back" : (view as "back" | "lining");
   return <PhotoPreview config={config} view={pv} fit={fit} className={cls} title={title} fallback={drawing(pv)} />;
 }
 
@@ -62,11 +72,14 @@ export function Stage({
   view,
   onViewChange,
   caption,
+  lastGroup = null,
 }: {
   config: SuitConfig;
   view: StageView;
   onViewChange: (v: StageView) => void;
   caption?: string;
+  /** Last option group changed: picks the Detail close-up and the waistcoat photo. */
+  lastGroup?: string | null;
 }) {
   const three = config.options["suit.pieces"] === "three";
   const [hideJacket, setHideJacket] = useState(false);
@@ -113,7 +126,7 @@ export function Stage({
         }}
       >
         <div className="absolute inset-0">
-          <Preview config={config} view={current} hideJacket={hideJacket} skin={skin} fit="contain" title={label} />
+          <Preview config={config} view={current} hideJacket={hideJacket} skin={skin} fit="contain" title={label} lastGroup={lastGroup} />
         </div>
       </div>
 
@@ -185,6 +198,7 @@ export function Stage({
           skin={skin}
           onSkin={setSkin}
           onClose={() => setZoomOpen(false)}
+          lastGroup={lastGroup}
         />
       ) : null}
     </div>
@@ -200,7 +214,9 @@ function ZoomOverlay({
   onHideJacket,
   skin,
   onClose,
+  lastGroup = null,
 }: {
+  lastGroup?: string | null;
   config: SuitConfig;
   views: StageView[];
   view: StageView;
@@ -261,7 +277,7 @@ function ZoomOverlay({
     <div className={`fixed inset-0 z-[70] bg-[#eeeeee]`} role="dialog" aria-modal="true" aria-label="Close-up of your suit">
       <div ref={scroller} onScroll={measure} className="h-full w-full overflow-auto overscroll-contain">
         <div className="mx-auto" style={{ width: widths[level] }}>
-          <Preview config={config} view={view} hideJacket={hideJacket} skin={skin} fit="width" title={`Close-up, ${VIEW_LABELS[view].toLowerCase()} view${hideJacket ? " without the jacket" : ""}`} />
+          <Preview config={config} view={view} hideJacket={hideJacket} skin={skin} fit="width" lastGroup={lastGroup} title={`Close-up, ${VIEW_LABELS[view].toLowerCase()} view${hideJacket ? " without the jacket" : ""}`} />
         </div>
       </div>
 

@@ -52,7 +52,18 @@ def build(asset: str) -> dict:
     R, G, B = a[..., 0], a[..., 1], a[..., 2]
     L = 0.299 * R + 0.587 * G + 0.114 * B
 
-    alpha = matte(im)
+    close = asset.startswith(("detail-", "wc-"))
+    if close:
+        # Close-ups touch the frame edges: pad with the studio colour so the matte sees
+        # a whole object, then crop the matte back.
+        border = np.concatenate([a[:6].reshape(-1, 3), a[-6:].reshape(-1, 3), a[:, :6].reshape(-1, 3), a[:, -6:].reshape(-1, 3)])
+        bgc = tuple(int(v) for v in np.percentile(border, 90, axis=0))
+        P = WIDTH // 3
+        big = Image.new("RGB", (WIDTH + 2 * P, h + 2 * P), bgc)
+        big.paste(im, (P, P))
+        alpha = matte(big)[P : P + h, P : P + WIDTH]
+    else:
+        alpha = matte(im)
     alpha = np.where(alpha < 0.04, 0, alpha)
     fg = alpha > 0.5
 
@@ -63,21 +74,27 @@ def build(asset: str) -> dict:
     # where they touch the dark shadow of the front opening.
     btn = np.zeros(L.shape, np.uint8)
     blur = cv2.GaussianBlur(L.astype(np.uint8), (0, 0), 1.5)
-    circles = cv2.HoughCircles(blur, cv2.HOUGH_GRADIENT, dp=1.2, minDist=14, param1=70, param2=13, minRadius=4, maxRadius=16)
-    if circles is not None:
+    close = asset.startswith(("detail-", "wc-"))
+    circles = cv2.HoughCircles(blur, cv2.HOUGH_GRADIENT, dp=1.2, minDist=20 if close else 12, param1=60, param2=16 if close else 11, minRadius=8 if close else 4, maxRadius=36 if close else 16)
+    if circles is not None and not asset.startswith("detail-pick"):
         for cx, cy, r in np.round(circles[0]).astype(int):
             if 0 <= cy < L.shape[0] and 0 <= cx < L.shape[1] and fg[cy, cx]:
                 ring = L[max(cy - r, 0) : cy + r, max(cx - r, 0) : cx + r]
                 disc = a[max(cy - r + 2, 0) : cy + r - 1, max(cx - r + 2, 0) : cx + r - 1]
                 warm = float(np.median(disc[..., 0] - disc[..., 2])) if disc.size else 0
-                if ring.size and np.median(ring) < 90 and lining[cy, cx] < 0.2 and (warm > 5 or np.median(ring) < 40):
-                    cv2.circle(btn, (cx, cy), r + 1, 1, -1)
-    btn = cv2.dilate(btn.astype(np.uint8), np.ones((3, 3), np.uint8))
-    mbtn = cv2.GaussianBlur(btn.astype(np.float32), (0, 0), 0.8) * alpha
+                y0, y1, x0, x1 = max(cy - 2 * r, 0), cy + 2 * r, max(cx - 2 * r, 0), cx + 2 * r
+                annulus = L[y0:y1, x0:x1].copy()
+                yy, xx = np.ogrid[y0 - cy : y1 - cy, x0 - cx : x1 - cx]
+                ann = annulus[(yy**2 + xx**2 > (1.4 * r) ** 2)[: annulus.shape[0], : annulus.shape[1]]]
+                contrast = (np.median(ann) - np.median(ring)) if ann.size else 0
+                if ring.size and np.median(ring) < 95 and lining[cy, cx] < 0.2 and (warm > 3 or np.median(ring) < 40) and contrast > (38 if close else 22) and (not close or (np.median(ring) < 80 and np.median(ann) - np.median(ring) > 18 and (L[max(cy - r // 2, 0) : cy + r // 2, max(cx - r // 2, 0) : cx + r // 2] < 95).mean() > 0.7 and L[max(cy - r // 2, 0) : cy + r // 2, max(cx - r // 2, 0) : cx + r // 2].std() > 9 and cy > 0.12 * h and cx > 0.04 * WIDTH and cx < 0.96 * WIDTH)):
+                    cv2.circle(btn, (cx, cy), max(r - 1, 3), 1, -1)
+    # Tight discs: the cloth is dyed underneath, the photographed button is laid back on top.
+    mbtn = cv2.GaussianBlur(btn.astype(np.float32), (0, 0), 0.7) * alpha
     # Shirt (three-piece / no-jacket shots): flood-fill from bright neutral seeds
     # through smooth shading, stopping at the sharp edges where the cloth begins.
     sat = a.max(axis=2) - a.min(axis=2)
-    seeds = (L > 212) & (sat < 16) & fg
+    seeds = (L > 222) & (sat < 22) & fg & (not close)
     seeds = cv2.morphologyEx(seeds.astype(np.uint8), cv2.MORPH_OPEN, np.ones((5, 5), np.uint8))
     shirt_m = np.zeros(L.shape, np.uint8)
     if seeds.sum() > 400:
@@ -85,11 +102,11 @@ def build(asset: str) -> dict:
         img8 = np.clip(Lb, 0, 255).astype(np.uint8)
         ff = np.zeros((L.shape[0] + 2, L.shape[1] + 2), np.uint8)
         ys, xs = np.nonzero(seeds)
-        for y, x in zip(ys[::97], xs[::97]):
+        for y, x in zip(ys[::41], xs[::41]):
             if ff[y + 1, x + 1] == 0:
                 cv2.floodFill(img8, ff, (int(x), int(y)), 0, loDiff=3, upDiff=3, flags=4 | cv2.FLOODFILL_MASK_ONLY | (255 << 8))
         shirt_m = (ff[1:-1, 1:-1] > 0).astype(np.uint8)
-        shirt_m &= ((sat < 26) & (L > 120)).astype(np.uint8)
+        shirt_m &= ((sat < (42 if close else 26)) & (L > (175 if close else 120))).astype(np.uint8)
         # keep only components that contain a seed (drop leaks into grey cloth)
         n, lab = cv2.connectedComponents(shirt_m)
         keep = np.zeros(n, bool)
@@ -97,8 +114,15 @@ def build(asset: str) -> dict:
         keep[0] = False
         shirt_m = keep[lab].astype(np.uint8)
         shirt_m = cv2.morphologyEx(shirt_m, cv2.MORPH_CLOSE, np.ones((7, 7), np.uint8))
+    # Grow the shirt a little so no dyed fringe is left on its edge.
+    shirt_m = cv2.dilate(shirt_m, np.ones((7, 7), np.uint8))
     shirt = cv2.GaussianBlur(shirt_m.astype(np.float32), (0, 0), 0.8) * alpha
-    cloth = np.clip(alpha - lining - mbtn - shirt, 0, 1)
+    cloth = np.clip(alpha - lining - shirt, 0, 1)
+
+    if asset.startswith("detail-break"):
+        # the black shoe is not cloth
+        shoe = cv2.GaussianBlur(((L < 45) & fg).astype(np.float32), (0, 0), 1.5)
+        cloth = np.clip(cloth - shoe * 1.5, 0, 1)
 
     # Shade: cloth luminance with the grey weave smoothed out, highlights not
     # inflated near the outline (the matte edge can catch the backdrop).
@@ -122,9 +146,11 @@ def build(asset: str) -> dict:
     m = np.dstack([cloth, lining, mbtn]) * 255
     Image.fromarray(m.astype(np.uint8), "RGB").save(d / "mask.png", optimize=True)
     meta = {"width": WIDTH, "height": h}
+    n, lab, st, cen = cv2.connectedComponentsWithStats((btn > 0).astype(np.uint8))
+    meta["buttons"] = [[int(c[0]), int(c[1]), int(max(s[2], s[3]) // 2)] for c, s in zip(cen[1:], st[1:]) if s[4] > 20]
     # Where the jacket ends and the folded trousers begin (an empty band of rows
     # in the lower half): the browser dyes rows below it in the trouser cloth.
-    rows = (alpha > 0.5).sum(axis=1)
+    rows = (alpha > 0.5).sum(axis=1) if asset.startswith(("front-", "back-", "nojacket")) else np.zeros(h)
     lo = int(h * 0.45)
     empty = np.where(rows[lo:] < 3)[0]
     if len(empty):

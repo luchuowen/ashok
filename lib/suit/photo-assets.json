@@ -1,91 +1,927 @@
 {
   "assets": {
     "back-centre": {
+      "buttons": [
+        [
+          385,
+          617,
+          6
+        ],
+        [
+          794,
+          1234,
+          8
+        ]
+      ],
       "height": 1789,
       "split": 1116,
       "width": 1200
     },
     "back-none": {
+      "buttons": [
+        [
+          794,
+          1233,
+          9
+        ]
+      ],
       "height": 1789,
       "split": 1116,
       "width": 1200
     },
     "back-side": {
+      "buttons": [
+        [
+          835,
+          1045,
+          14
+        ]
+      ],
       "height": 1789,
       "split": 1115,
       "width": 1200
     },
+    "detail-back-flap2": {
+      "buttons": [
+        [
+          859,
+          403,
+          20
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-back-jetted1": {
+      "buttons": [
+        [
+          409,
+          361,
+          40
+        ],
+        [
+          646,
+          475,
+          34
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-back-jetted2": {
+      "buttons": [],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-back-none": {
+      "buttons": [
+        [
+          814,
+          379,
+          16
+        ],
+        [
+          611,
+          797,
+          18
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-braces-yes": {
+      "buttons": [
+        [
+          801,
+          346,
+          38
+        ],
+        [
+          725,
+          364,
+          31
+        ],
+        [
+          647,
+          379,
+          32
+        ],
+        [
+          145,
+          419,
+          48
+        ],
+        [
+          593,
+          657,
+          19
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-break-half": {
+      "buttons": [
+        [
+          661,
+          805,
+          26
+        ],
+        [
+          1015,
+          984,
+          45
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-breast-none": {
+      "buttons": [
+        [
+          875,
+          383,
+          14
+        ],
+        [
+          252,
+          1019,
+          42
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-breast-patch": {
+      "buttons": [
+        [
+          164,
+          669,
+          42
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-breast-welt": {
+      "buttons": [
+        [
+          159,
+          176,
+          43
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-cuff-0": {
+      "buttons": [],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-cuff-2-dec": {
+      "buttons": [
+        [
+          563,
+          647,
+          36
+        ],
+        [
+          622,
+          710,
+          35
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-cuff-2-work": {
+      "buttons": [
+        [
+          653,
+          675,
+          64
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-cuff-3-dec": {
+      "buttons": [
+        [
+          517,
+          579,
+          42
+        ],
+        [
+          643,
+          696,
+          52
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-cuff-4-dec": {
+      "buttons": [
+        [
+          463,
+          511,
+          41
+        ],
+        [
+          496,
+          575,
+          34
+        ],
+        [
+          567,
+          654,
+          58
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-fastening-extended": {
+      "buttons": [
+        [
+          421,
+          286,
+          32
+        ],
+        [
+          413,
+          338,
+          8
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-fastening-hidden": {
+      "buttons": [
+        [
+          459,
+          382,
+          23
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-hem-plain": {
+      "buttons": [],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-lapel-satin": {
+      "buttons": [
+        [
+          1113,
+          259,
+          34
+        ],
+        [
+          616,
+          1082,
+          32
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-lapel-slim": {
+      "buttons": [
+        [
+          597,
+          899,
+          24
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-lapel-standard": {
+      "buttons": [
+        [
+          572,
+          1165,
+          16
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-lapel-wide": {
+      "buttons": [
+        [
+          602,
+          643,
+          13
+        ],
+        [
+          823,
+          821,
+          10
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-pick-none": {
+      "buttons": [],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-pick-yes": {
+      "buttons": [],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-pleats-double": {
+      "buttons": [],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-pleats-none": {
+      "buttons": [],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-pleats-single": {
+      "buttons": [
+        [
+          493,
+          148,
+          21
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-pocket-slanted-none": {
+      "buttons": [
+        [
+          1067,
+          598,
+          20
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-pocket-slanted-ticket": {
+      "buttons": [
+        [
+          1065,
+          235,
+          83
+        ],
+        [
+          1079,
+          409,
+          81
+        ],
+        [
+          1060,
+          622,
+          58
+        ],
+        [
+          1057,
+          748,
+          34
+        ],
+        [
+          1065,
+          886,
+          99
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-pocket-straight-none": {
+      "buttons": [
+        [
+          730,
+          345,
+          13
+        ],
+        [
+          1009,
+          834,
+          27
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-pocket-straight-ticket": {
+      "buttons": [
+        [
+          1017,
+          850,
+          15
+        ],
+        [
+          1019,
+          877,
+          9
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-shoulder-natural": {
+      "buttons": [
+        [
+          376,
+          641,
+          14
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-shoulder-roped": {
+      "buttons": [
+        [
+          293,
+          1108,
+          54
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-shoulder-structured": {
+      "buttons": [],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-side-seam": {
+      "buttons": [],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-side-slanted": {
+      "buttons": [
+        [
+          578,
+          159,
+          22
+        ],
+        [
+          665,
+          165,
+          29
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-waist-active": {
+      "buttons": [
+        [
+          482,
+          307,
+          34
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-waist-adjusters": {
+      "buttons": [
+        [
+          528,
+          271,
+          48
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "detail-waist-loops": {
+      "buttons": [
+        [
+          607,
+          362,
+          31
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
     "front-3pc-notch": {
+      "buttons": [
+        [
+          794,
+          1231,
+          11
+        ]
+      ],
       "height": 1789,
       "split": 1115,
       "width": 1200
     },
     "front-db4-peak": {
+      "buttons": [
+        [
+          794,
+          1234,
+          8
+        ]
+      ],
       "height": 1789,
       "split": 1118,
       "width": 1200
     },
     "front-db6-peak": {
+      "buttons": [
+        [
+          490,
+          546,
+          11
+        ],
+        [
+          794,
+          1234,
+          8
+        ]
+      ],
       "height": 1789,
       "split": 1118,
       "width": 1200
     },
     "front-mandarin": {
+      "buttons": [
+        [
+          605,
+          433,
+          9
+        ],
+        [
+          587,
+          808,
+          9
+        ],
+        [
+          794,
+          1233,
+          8
+        ]
+      ],
       "height": 1789,
       "split": 1115,
       "width": 1200
     },
     "front-sb1-notch": {
+      "buttons": [
+        [
+          790,
+          1234,
+          6
+        ]
+      ],
       "height": 1789,
       "split": 1115,
       "width": 1200
     },
     "front-sb1-peak": {
+      "buttons": [
+        [
+          794,
+          1234,
+          8
+        ]
+      ],
       "height": 1789,
       "split": 1115,
       "width": 1200
     },
     "front-sb1-shawl": {
+      "buttons": [
+        [
+          607,
+          683,
+          13
+        ],
+        [
+          793,
+          1234,
+          8
+        ]
+      ],
       "height": 1789,
       "split": 1115,
       "width": 1200
     },
     "front-sb2-jetted": {
+      "buttons": [
+        [
+          796,
+          1232,
+          11
+        ]
+      ],
       "height": 1789,
       "split": 1115,
       "width": 1200
     },
     "front-sb2-notch": {
+      "buttons": [
+        [
+          585,
+          807,
+          7
+        ],
+        [
+          793,
+          1233,
+          9
+        ]
+      ],
       "height": 1789,
       "split": 1115,
       "width": 1200
     },
     "front-sb2-patch": {
+      "buttons": [
+        [
+          590,
+          806,
+          7
+        ],
+        [
+          794,
+          1234,
+          9
+        ]
+      ],
       "height": 1789,
       "split": 1115,
       "width": 1200
     },
     "front-sb2-peak": {
+      "buttons": [
+        [
+          385,
+          591,
+          14
+        ],
+        [
+          793,
+          1233,
+          9
+        ]
+      ],
       "height": 1789,
       "split": 1115,
       "width": 1200
     },
     "front-sb3-notch": {
+      "buttons": [
+        [
+          585,
+          807,
+          7
+        ],
+        [
+          794,
+          1233,
+          9
+        ]
+      ],
       "height": 1789,
       "split": 1115,
       "width": 1200
     },
     "inside": {
+      "buttons": [
+        [
+          796,
+          395,
+          4
+        ]
+      ],
       "height": 1789,
       "width": 1200
     },
     "nojacket-vest": {
+      "buttons": [
+        [
+          607,
+          527,
+          9
+        ],
+        [
+          793,
+          1234,
+          8
+        ],
+        [
+          598,
+          1652,
+          11
+        ]
+      ],
       "height": 1789,
       "split": 1112,
       "width": 1200
     },
     "waistcoat-sb5": {
+      "buttons": [],
       "height": 1789,
+      "width": 1200
+    },
+    "wc-db6": {
+      "buttons": [
+        [
+          529,
+          682,
+          14
+        ],
+        [
+          679,
+          685,
+          13
+        ],
+        [
+          529,
+          823,
+          13
+        ],
+        [
+          674,
+          824,
+          14
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "wc-jetted": {
+      "buttons": [
+        [
+          605,
+          532,
+          12
+        ],
+        [
+          605,
+          628,
+          13
+        ],
+        [
+          603,
+          723,
+          12
+        ],
+        [
+          603,
+          820,
+          15
+        ],
+        [
+          580,
+          940,
+          8
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "wc-notch": {
+      "buttons": [
+        [
+          591,
+          519,
+          16
+        ],
+        [
+          607,
+          785,
+          13
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "wc-peak": {
+      "buttons": [
+        [
+          599,
+          637,
+          13
+        ],
+        [
+          598,
+          737,
+          13
+        ],
+        [
+          598,
+          838,
+          14
+        ],
+        [
+          602,
+          940,
+          11
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "wc-sb6": {
+      "buttons": [
+        [
+          661,
+          188,
+          37
+        ],
+        [
+          577,
+          382,
+          55
+        ],
+        [
+          601,
+          613,
+          12
+        ],
+        [
+          603,
+          706,
+          16
+        ],
+        [
+          603,
+          808,
+          13
+        ],
+        [
+          574,
+          935,
+          8
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "wc-shawl": {
+      "buttons": [
+        [
+          671,
+          169,
+          26
+        ],
+        [
+          597,
+          703,
+          12
+        ],
+        [
+          597,
+          805,
+          12
+        ],
+        [
+          574,
+          933,
+          11
+        ]
+      ],
+      "height": 1200,
+      "width": 1200
+    },
+    "wc-straight": {
+      "buttons": [
+        [
+          604,
+          533,
+          10
+        ],
+        [
+          601,
+          622,
+          10
+        ],
+        [
+          604,
+          716,
+          12
+        ],
+        [
+          603,
+          807,
+          11
+        ]
+      ],
+      "height": 1200,
       "width": 1200
     }
   },

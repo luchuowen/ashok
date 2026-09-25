@@ -208,10 +208,16 @@ export function FabricPicker({
             return (
               <li key={f.id}>
                 <div className="group relative">
-                  <button type="button" onClick={() => onSelect(f.id)} aria-pressed={selected} className="block w-full text-left">
+                  <button type="button" onClick={() => (selected ? setSheet(f) : onSelect(f.id))} aria-pressed={selected} aria-label={selected ? `More about ${f.name}` : `Choose ${f.name}`} className="block w-full text-left">
                     <div className={`relative aspect-[3/2] overflow-hidden outline outline-1 outline-offset-2 transition-[outline-color] ${selected ? "outline-ink" : "outline-transparent group-hover:outline-line"}`}>
                       <FabricSwatch fabric={f} className="transition-transform duration-500 group-hover:scale-105" />
-                      {f.badge ? (
+                      {selected ? (
+                        <span className="absolute inset-0 flex flex-col items-center justify-center bg-ink/45 text-center text-cream transition-opacity" aria-hidden="true">
+                          <span className="px-2 font-display text-[15px] leading-tight">{f.name}</span>
+                          <span className="mt-1 text-[10px] uppercase tracking-[0.18em] text-cream/80">more info</span>
+                        </span>
+                      ) : null}
+                      {f.badge && !selected ? (
                         <span className="absolute left-2 top-2 rounded-tag bg-oxblood px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-cream">{f.badge}</span>
                       ) : null}
                     </div>
@@ -223,14 +229,7 @@ export function FabricPicker({
                       </div>
                     </div>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setSheet(f)}
-                    className="absolute left-1/2 top-[33%] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap bg-ink/55 px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] text-cream opacity-0 transition-opacity focus:opacity-100 group-hover:opacity-100"
-                    aria-label={`More about ${f.name}`}
-                  >
-                    more info
-                  </button>
+
                 </div>
               </li>
             );
