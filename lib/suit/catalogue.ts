@@ -454,6 +454,26 @@ export const SUIT_FABRICS: SuitFabric[] = [
     description: "The same luxury merino in charcoal — soft, light and very quiet.",
     available: true,
   },
+  {
+    id: "luxury-grey-s150",
+    name: "Mid Grey Super 150s",
+    collection: "luxury",
+    price: 78000,
+    composition: "100% extra-fine merino wool",
+    origin: "Italy",
+    weightGsm: 240,
+    superNumber: 150,
+    pattern: "solid",
+    hex: "#6e7075",
+    colourName: "Mid grey",
+    colourFamily: "grey",
+    season: "year-round",
+    occasions: ["business", "wedding", "celebration"],
+    features: ["Extra-fine merino", "Lustre", "Lightweight"],
+    stretch: false,
+    description: "Extra-fine merino in the most versatile of greys — a day-to-evening suit with a soft sheen.",
+    available: true,
+  },
 
   // ---- Seasonal ----
   {
