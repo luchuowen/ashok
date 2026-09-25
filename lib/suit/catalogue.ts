@@ -41,6 +41,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   // ---- House (everyday, easy-care, comfort stretch) ----
   {
     id: "house-navy-stretch",
+    image: "/photos/fabrics/house-navy-stretch.jpg",
     name: "House Navy Stretch",
     collection: "house",
     price: 32000,
@@ -61,6 +62,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   },
   {
     id: "house-charcoal-stretch",
+    image: "/photos/fabrics/house-charcoal-stretch.jpg",
     name: "House Charcoal Stretch",
     collection: "house",
     price: 32000,
@@ -80,6 +82,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   },
   {
     id: "house-grey-melange",
+    image: "/photos/fabrics/house-grey-melange.jpg",
     name: "House Grey Melange",
     collection: "house",
     price: 32000,
@@ -100,6 +103,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   },
   {
     id: "house-black",
+    image: "/photos/fabrics/house-black.jpg",
     name: "House Black",
     collection: "house",
     price: 32000,
@@ -121,6 +125,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   // ---- Classic (worsted wools) ----
   {
     id: "classic-navy-s110",
+    image: "/photos/fabrics/classic-navy-s110.jpg",
     name: "Navy Super 110s",
     collection: "classic",
     price: 42000,
@@ -142,6 +147,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   },
   {
     id: "classic-grey-s110",
+    image: "/photos/fabrics/classic-grey-s110.jpg",
     name: "Mid Grey Super 110s",
     collection: "classic",
     price: 42000,
@@ -182,6 +188,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   },
   {
     id: "classic-olive-twill",
+    image: "/photos/fabrics/classic-olive-twill.jpg",
     name: "Olive Twill Super 100s",
     collection: "classic",
     price: 44000,
@@ -203,6 +210,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   },
   {
     id: "classic-navy-pinstripe",
+    image: "/photos/fabrics/classic-navy-pinstripe.jpg",
     name: "Navy Pinstripe",
     collection: "classic",
     price: 46000,
@@ -224,6 +232,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   },
   {
     id: "classic-charcoal-chalkstripe",
+    image: "/photos/fabrics/classic-charcoal-chalkstripe.jpg",
     name: "Charcoal Chalk Stripe",
     collection: "classic",
     price: 48000,
@@ -244,6 +253,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   },
   {
     id: "classic-brown-herringbone",
+    image: "/photos/fabrics/classic-brown-herringbone.jpg",
     name: "Brown Herringbone",
     collection: "classic",
     price: 46000,
@@ -352,6 +362,7 @@ export const SUIT_FABRICS: SuitFabric[] = [
   },
   {
     id: "premium-glencheck",
+    image: "/photos/fabrics/premium-glencheck.jpg",
     name: "Grey Prince of Wales Check",
     collection: "premium",
     price: 58000,

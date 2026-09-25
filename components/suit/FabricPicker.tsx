@@ -116,9 +116,12 @@ export function FabricPicker({
         >
           Filters{activeCount ? ` · ${activeCount}` : ""}
         </button>
+        <span className="hidden flex-none text-xs tabular-nums text-muted sm:inline">
+          {results.length}/{available.length}
+        </span>
       </div>
-      <p className="mt-2 text-xs text-muted" aria-live="polite">
-        {results.length} of {available.length} fabrics{target ? ` · choosing for the ${target}` : ""}
+      <p className="sr-only" aria-live="polite">
+        {results.length} of {available.length} fabrics{target ? ` for the ${target}` : ""}
       </p>
 
       {showFilters ? (
@@ -199,44 +202,34 @@ export function FabricPicker({
           </button>
         </div>
       ) : (
-        <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
+        <ul className="mt-5 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
           {results.map((f) => {
             const selected = f.id === selectedId;
             return (
               <li key={f.id}>
-                <div className={`group relative border bg-paper transition-colors ${selected ? "border-ink ring-1 ring-ink" : "border-line hover:border-ink/50"}`}>
+                <div className="group relative">
                   <button type="button" onClick={() => onSelect(f.id)} aria-pressed={selected} className="block w-full text-left">
-                    <div className="relative aspect-[5/4] overflow-hidden">
+                    <div className={`relative aspect-[3/2] overflow-hidden outline outline-1 outline-offset-2 transition-[outline-color] ${selected ? "outline-ink" : "outline-transparent group-hover:outline-line"}`}>
                       <FabricSwatch fabric={f} className="transition-transform duration-500 group-hover:scale-105" />
                       {f.badge ? (
-                        <span className="absolute left-2 top-2 rounded-tag bg-ink px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-cream">{f.badge}</span>
-                      ) : null}
-                      {selected ? (
-                        <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-cream text-ink" aria-hidden="true">
-                          <svg viewBox="0 0 12 12" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M2.5 6.5l2.2 2L9.5 3.5" />
-                          </svg>
-                        </span>
+                        <span className="absolute left-2 top-2 rounded-tag bg-oxblood px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-cream">{f.badge}</span>
                       ) : null}
                     </div>
-                    <div className="p-2.5">
-                      <div className="flex items-baseline justify-between gap-2">
-                        <span className="truncate text-sm font-medium">{f.name}</span>
+                    <div className="pt-2">
+                      <p className={`truncate text-[13px] ${selected ? "text-ink" : "text-ink/85"}`}>{f.name}</p>
+                      <div className="mt-0.5 flex items-baseline justify-between gap-2 text-[11px] text-muted">
+                        <span className="truncate">{f.superNumber ? `Super ${f.superNumber}s` : `${f.weightGsm}g`}</span>
+                        <span className="flex-none">{formatMoney(f.price, currency)}</span>
                       </div>
-                      <p className="mt-0.5 truncate text-[11px] text-muted">
-                        {COLLECTION_LABELS[f.collection]} · {f.superNumber ? `Super ${f.superNumber}s · ` : ""}
-                        {f.weightGsm}g
-                      </p>
-                      <p className="mt-1 text-xs text-ink">{formatMoney(f.price, currency)}</p>
                     </div>
                   </button>
                   <button
                     type="button"
                     onClick={() => setSheet(f)}
-                    className="absolute bottom-2 right-2 flex h-7 w-7 items-center justify-center border border-line bg-cream text-[11px] text-muted hover:border-ink hover:text-ink"
+                    className="absolute left-1/2 top-[33%] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap bg-ink/55 px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] text-cream opacity-0 transition-opacity focus:opacity-100 group-hover:opacity-100"
                     aria-label={`More about ${f.name}`}
                   >
-                    i
+                    more info
                   </button>
                 </div>
               </li>

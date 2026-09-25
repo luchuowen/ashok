@@ -21,16 +21,27 @@ import { SuitPreview } from "./SuitPreview";
 import { useDisplayCurrency } from "./stores";
 import { CurrencyToggle } from "./CurrencyToggle";
 
-type Step = "fabric" | "style" | "details" | "review";
-const STEPS: { id: Step; label: string }[] = [
+type Step = "fabric" | "trouserFabric" | "waistcoatFabric" | "style" | "details" | "review";
+type StepDef = { id: Step; label: string; sub?: string };
+const STEPS: StepDef[] = [
   { id: "fabric", label: "Fabric" },
   { id: "style", label: "Style" },
   { id: "details", label: "Details" },
   { id: "review", label: "Review" },
 ];
+/** With "Different fabrics", the fabric step splits into one step per piece (jacket, trousers, waistcoat). */
+function stepsFor(mixed: boolean, three: boolean): StepDef[] {
+  if (!mixed) return STEPS;
+  return [
+    { id: "fabric", label: "Jacket", sub: "fabric" },
+    { id: "trouserFabric", label: "Trousers", sub: "fabric" },
+    ...(three ? [{ id: "waistcoatFabric" as Step, label: "Waistcoat", sub: "fabric" }] : []),
+    ...STEPS.slice(1),
+  ];
+}
+const isFabricStep = (s: Step) => s === "fabric" || s === "trouserFabric" || s === "waistcoatFabric";
 
 const DRAFT_KEY = "ashok-suit-draft";
-const ADVANCED_KEY = "ashok-suit-advanced";
 const LOCAL_DESIGNS_KEY = "ashok-saved-designs";
 
 interface LocalDesign {
@@ -65,12 +76,12 @@ function viewFor(groupId: string, current: StageView): StageView {
   if (groupId.startsWith("waistcoat.")) return "waistcoat";
   if (groupId === "jacket.vents" || groupId === "trousers.backPockets" || groupId === "accents.elbowPatches") return "back";
   if (groupId.startsWith("accents.lining") || groupId === "accents.underCollar") return "lining";
+  if (groupId.startsWith("trousers.") || groupId === "accents.belt" || groupId === "accents.braces") return current === "waistcoat" ? current : "model";
   if (
     groupId.startsWith("jacket.") ||
-    groupId.startsWith("trousers.") ||
     ["accents.buttons", "accents.buttonholes", "accents.pocketSquare", "accents.pickStitch", "accents.belt", "accents.braces"].includes(groupId)
   ) {
-    return current === "waistcoat" && groupId.startsWith("trousers.") ? current : "front";
+    return "front";
   }
   return current;
 }
@@ -85,9 +96,9 @@ export function Configurator() {
   const [config, setConfig] = useState<SuitConfig>(() => defaultConfig());
   const [ready, setReady] = useState(false);
   const [step, setStep] = useState<Step>("fabric");
-  const [fabricTarget, setFabricTarget] = useState<"jacket" | "trousers" | "waistcoat">("jacket");
+  const fabricTarget: "jacket" | "trousers" | "waistcoat" = step === "trouserFabric" ? "trousers" : step === "waistcoatFabric" ? "waistcoat" : "jacket";
   const [view, setView] = useState<StageView>("model");
-  const [advanced, setAdvanced] = useState(false);
+  const advanced = true; // every option shown, as on the reference configurator
   const [notice, setNotice] = useState<string | null>(null);
   const [editLineId, setEditLineId] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
@@ -146,8 +157,7 @@ export function Configurator() {
     if (fabric && getFabric(fabric)?.available) initial = { ...(initial ?? defaultConfig()), fabric };
     if (initial) setConfig(normalizeConfig(initial).config);
     const s = params.get("step") as Step | null;
-    if (s && STEPS.some((x) => x.id === s)) setStep(s);
-    setAdvanced(readJson<boolean>(ADVANCED_KEY) ?? false);
+    if (s && (STEPS.some((x) => x.id === s) || isFabricStep(s))) setStep(s);
     setReady(true);
   }, [ready, cart.hydrated, cart.items, params]);
 
@@ -188,7 +198,7 @@ export function Configurator() {
       });
       setView((v) => viewFor(groupId, v));
       if ((groupId === "suit.fabricMode" && valueId === "same") || (groupId === "suit.pieces" && valueId === "two")) {
-        setFabricTarget((t) => (groupId === "suit.pieces" && t !== "waistcoat" ? t : "jacket"));
+        setStep((st) => (st === "waistcoatFabric" || (groupId === "suit.fabricMode" && st === "trouserFabric") ? "fabric" : st));
       }
       if (groupId === "accents.monogram" && valueId === "yes") setView("lining");
     },
@@ -215,7 +225,7 @@ export function Configurator() {
         return normalizeConfig({ ...prev, waistcoatFabric: id }).config;
       });
       if (fabricTarget === "waistcoat") setView("waistcoat");
-      else if (view === "waistcoat") setView("model");
+      else if (view !== "model") setView("model");
     },
     [fabricTarget, view],
   );
@@ -227,7 +237,8 @@ export function Configurator() {
   const mixed = config.options["suit.fabricMode"] === "mixed";
   const three = config.options["suit.pieces"] === "three";
   const monogramInvalid = config.options["accents.monogram"] === "yes" && !config.monogram?.text;
-  const stepIndex = STEPS.findIndex((s) => s.id === step);
+  const steps = stepsFor(mixed, three);
+  const stepIndex = Math.max(0, steps.findIndex((s) => s.id === step));
   const readyDate = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() + leadTimeDays(config));
@@ -242,6 +253,8 @@ export function Configurator() {
     }
     setNotice(null);
     setStep(s);
+    if (s === "waistcoatFabric") setView("waistcoat");
+    else if (s === "trouserFabric" || s === "fabric") setView((v) => (v === "waistcoat" ? "model" : v));
     panelRef.current?.scrollTo({ top: 0 });
   };
 
@@ -328,8 +341,8 @@ export function Configurator() {
   ];
 
   const primaryLabel =
-    step === "review" ? (editLineId ? "Update bag" : "Checkout") : `Next: ${STEPS[stepIndex + 1]?.label}`;
-  const onPrimary = () => (step === "review" ? addToBag(!editLineId) : goStep(STEPS[stepIndex + 1]!.id));
+    step === "review" ? (editLineId ? "Update bag" : "Checkout") : "Next";
+  const onPrimary = () => (step === "review" ? addToBag(!editLineId) : goStep(steps[stepIndex + 1]!.id));
 
   if (!ready) {
     return (
@@ -347,7 +360,7 @@ export function Configurator() {
       {/* ---------------- Stage ---------------- */}
       <section
         className={`relative flex h-[40%] flex-none flex-col border-b border-line transition-colors duration-300 lg:h-full lg:flex-1 lg:border-b-0 lg:border-l ${
-          view !== "front" ? "bg-[#eeeeee]" : "bg-[radial-gradient(ellipse_at_50%_35%,rgb(var(--paper))_0%,rgb(var(--cream))_70%)]"
+          "bg-[#eeeeee]"
         }`}
         aria-label="Suit preview"
       >
@@ -356,8 +369,26 @@ export function Configurator() {
         </div>
         <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5 lg:left-6 lg:top-6">
           <CurrencyToggle value={currency} onChange={setCurrency} />
-          <p className="hidden max-w-[40vw] truncate text-[10px] uppercase tracking-wide text-muted sm:block lg:text-[11px]">{jacketFabric?.name}</p>
         </div>
+
+        {/* Desktop step rail */}
+        <nav className="absolute left-6 top-1/2 hidden -translate-y-1/2 flex-col items-center gap-7 lg:flex" aria-label="Design steps">
+          {steps.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => goStep(s.id)}
+              aria-current={s.id === step ? "step" : undefined}
+              className={`flex w-20 flex-col items-center gap-1.5 text-[10px] uppercase leading-tight tracking-[0.18em] transition-colors ${s.id === step ? "text-ink" : "text-muted hover:text-ink"}`}
+            >
+              <StepIcon id={s.id} />
+              <span>
+                {s.label}
+                {s.sub ? <span className="block">{s.sub}</span> : null}
+              </span>
+            </button>
+          ))}
+        </nav>
 
         {/* Desktop price card */}
         <div className="pointer-events-none absolute right-6 top-6 hidden w-64 text-right lg:block">
@@ -365,28 +396,28 @@ export function Configurator() {
           <p className="mt-3 font-display text-3xl" aria-live="polite">
             {formatMoney(price.unitTotal * qty, currency)}
           </p>
-          {currency === "USD" ? <p className="text-[11px] text-muted">Approx. at KES {KES_PER_USD}/USD · {formatKes(price.unitTotal * qty)}</p> : <p className="text-[11px] text-muted">{qty > 1 ? `${qty} suits · ` : ""}Made in Nairobi</p>}
+          {qty > 1 ? <p className="text-[11px] text-muted">{qty} suits</p> : null}
           <button type="button" onClick={onPrimary} disabled={adding} className="cta pointer-events-auto mt-5 w-full disabled:opacity-60">
             {adding ? "Adding…" : primaryLabel}
           </button>
-          <p className="mt-4 text-xs text-ink">Ready around {readyDate}</p>
-          <p className="text-xs text-muted">Fitting at our Ridgeways atelier included</p>
+          <p className="mt-5 text-sm text-muted">Ready around {readyDate}</p>
         </div>
       </section>
 
       {/* ---------------- Panel ---------------- */}
       <section className="flex min-h-0 flex-1 flex-col bg-paper lg:w-[440px] lg:flex-none xl:w-[480px]" aria-label="Design options">
-        <nav className="flex flex-none border-b border-line bg-paper" aria-label="Design steps">
-          {STEPS.map((s, i) => (
+        <nav className="flex flex-none overflow-x-auto border-b border-line bg-paper lg:hidden" aria-label="Design steps (mobile)">
+          {steps.map((s, i) => (
             <button
               key={s.id}
               type="button"
               onClick={() => goStep(s.id)}
               aria-current={s.id === step ? "step" : undefined}
-              className={`relative flex-1 px-1 py-3 text-[11px] uppercase tracking-[0.15em] transition-colors ${s.id === step ? "text-ink" : i < stepIndex ? "text-ink/70 hover:text-ink" : "text-muted hover:text-ink"}`}
+              className={`relative min-w-[4.75rem] flex-1 whitespace-nowrap px-1 py-3 text-[11px] uppercase tracking-[0.15em] transition-colors ${s.id === step ? "text-ink" : i < stepIndex ? "text-ink/70 hover:text-ink" : "text-muted hover:text-ink"}`}
             >
               <span className="mr-1 text-muted">{i + 1}</span>
               {s.label}
+              {s.sub ? <span className="block text-[9px] tracking-[0.2em] text-muted">{s.sub}</span> : null}
               {s.id === step ? <span className="absolute inset-x-3 bottom-0 h-0.5 bg-oxblood" /> : null}
             </button>
           ))}
@@ -409,35 +440,9 @@ export function Configurator() {
             </p>
           ) : null}
 
-          {step === "fabric" ? (
+          {isFabricStep(step) ? (
             <div>
-              <header className="mb-4">
-                <h2 className="text-2xl">Choose your cloth</h2>
-                <p className="mt-1 text-sm text-muted">Every suit is cut for you in our Ridgeways workroom. The price shown is the two-piece price in that cloth.</p>
-              </header>
-              {mixed ? (
-                <div className="mb-4 flex border border-line" role="tablist" aria-label="Which piece you're choosing fabric for">
-                  {(["jacket", "trousers", ...(three ? ["waistcoat"] : [])] as const).map((t) => {
-                    const id = t === "jacket" ? config.fabric : t === "trousers" ? config.trouserFabric : config.waistcoatFabric;
-                    return (
-                      <button
-                        key={t}
-                        type="button"
-                        role="tab"
-                        aria-selected={fabricTarget === t}
-                        onClick={() => {
-                          setFabricTarget(t as typeof fabricTarget);
-                          if (t === "waistcoat") setView("waistcoat");
-                        }}
-                        className={`flex-1 px-2 py-2 text-left text-xs ${fabricTarget === t ? "bg-ink text-cream" : "hover:bg-paper"}`}
-                      >
-                        <span className="block uppercase tracking-wide">{t}</span>
-                        <span className={`block truncate text-[11px] ${fabricTarget === t ? "text-cream/70" : "text-muted"}`}>{getFabric(id)?.name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : null}
+              {mixed ? <p className="mb-3 text-[11px] uppercase tracking-[0.18em] text-muted">{fabricTarget} fabric</p> : null}
               <FabricPicker
                 selectedId={(fabricTarget === "trousers" ? config.trouserFabric : fabricTarget === "waistcoat" ? config.waistcoatFabric : config.fabric) ?? config.fabric}
                 onSelect={onFabric}
@@ -449,63 +454,23 @@ export function Configurator() {
 
           {step === "style" ? (
             <div>
-              <header className="mb-2 flex items-end justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl">Style it</h2>
-                  <p className="mt-1 text-sm text-muted">The preview updates as you choose.</p>
-                </div>
-                <AdvancedToggle
-                  value={advanced}
-                  onChange={(v) => {
-                    setAdvanced(v);
-                    writeJson(ADVANCED_KEY, v);
-                  }}
-                />
-              </header>
               {sections.map((sec) => {
                 const groups = OPTION_GROUPS.filter((g) => g.section === sec.id && (advanced || !g.advanced) && isGroupApplicable(g.id, config));
                 if (!groups.length) return null;
                 return (
-                  <div key={sec.id} className="mt-4">
-                    <h3 className="border-b border-ink pb-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-oxblood">{sec.title}</h3>
+                  <div key={sec.id} className="mt-4 [&>fieldset:first-of-type]:border-t-0">
+                    <h3 className="pt-2 font-body text-[11px] uppercase tracking-[0.22em] text-muted">{sec.title}</h3>
                     {groups.map((g) => (
                       <OptionTiles key={g.id} group={g} config={config} onChange={onOption} currency={currency} />
                     ))}
                   </div>
                 );
               })}
-              {mixed ? (
-                <p className="mt-2 border border-line bg-paper px-3 py-2 text-xs text-muted">
-                  Different fabrics selected — choose each piece&rsquo;s cloth on the{" "}
-                  <button type="button" className="underline hover:text-oxblood" onClick={() => goStep("fabric")}>
-                    Fabric
-                  </button>{" "}
-                  step.
-                </p>
-              ) : null}
-              {!advanced ? (
-                <button type="button" onClick={() => { setAdvanced(true); writeJson(ADVANCED_KEY, true); }} className="mt-4 w-full border border-dashed border-line py-3 text-xs uppercase tracking-wide text-muted hover:border-ink hover:text-ink">
-                  Show every option — shoulder, cuffs, fastening, pockets & more
-                </button>
-              ) : null}
             </div>
           ) : null}
 
           {step === "details" ? (
             <div>
-              <header className="mb-1 flex items-end justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl">The details</h2>
-                  <p className="mt-1 text-sm text-muted">Linings, buttons, threads and the things only you will know are there.</p>
-                </div>
-                <AdvancedToggle
-                  value={advanced}
-                  onChange={(v) => {
-                    setAdvanced(v);
-                    writeJson(ADVANCED_KEY, v);
-                  }}
-                />
-              </header>
               <DetailsPanel config={config} onOption={onOption} onPatch={onPatch} currency={currency} advanced={advanced} />
             </div>
           ) : null}
@@ -513,8 +478,7 @@ export function Configurator() {
           {step === "review" ? (
             <div>
               <header className="mb-5">
-                <h2 className="text-2xl">Review your suit</h2>
-                <p className="mt-1 text-sm text-muted">Check every detail. You&rsquo;ll add your measurements — or book a fitting — from your bag.</p>
+                <h2 className="text-2xl">Review</h2>
               </header>
               <SpecList
                 groups={spec}
@@ -576,7 +540,7 @@ export function Configurator() {
                   <span aria-hidden="true">·</span>
                   <span>Bank</span>
                 </p>
-                <p className="mt-1 text-center text-[11px] text-muted">Pay in full or a 50% deposit on our secure payment page.</p>
+                <p className="mt-1 text-center text-[11px] text-muted">Pay in full or 50% deposit</p>
                 <button type="button" onClick={() => addToBag(false)} disabled={adding} className="mt-3 w-full text-xs uppercase tracking-wide underline underline-offset-4 hover:text-oxblood">
                   {editLineId ? "Update bag" : "Add to bag and keep shopping"}
                 </button>
@@ -618,7 +582,7 @@ export function Configurator() {
       {/* ---------------- Mobile / tablet action bar ---------------- */}
       <div className="fixed inset-x-0 bottom-0 z-40 flex h-[68px] items-center gap-3 border-t border-line bg-cream px-4 lg:hidden">
         {stepIndex > 0 ? (
-          <button type="button" onClick={() => goStep(STEPS[stepIndex - 1]!.id)} className="flex h-11 w-11 flex-none items-center justify-center border border-line text-lg" aria-label="Previous step">
+          <button type="button" onClick={() => goStep(steps[stepIndex - 1]!.id)} className="flex h-11 w-11 flex-none items-center justify-center border border-line text-lg" aria-label="Previous step">
             ‹
           </button>
         ) : null}
@@ -652,22 +616,6 @@ export function Configurator() {
 
 
 
-function AdvancedToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <label className="flex flex-none cursor-pointer items-center gap-2 text-[11px] uppercase tracking-wide text-muted">
-      <span>{value ? "All options" : "Essentials"}</span>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={value}
-        onClick={() => onChange(!value)}
-        className={`relative h-5 w-9 rounded-full border transition-colors ${value ? "border-ink bg-ink" : "border-line bg-paper"}`}
-      >
-        <span className={`absolute top-0.5 h-3.5 w-3.5 rounded-full transition-all ${value ? "left-[18px] bg-cream" : "left-0.5 bg-muted"}`} />
-      </button>
-    </label>
-  );
-}
 
 interface ServerDesign {
   id: string;
@@ -827,5 +775,36 @@ function EmailDesign({ code }: { code: string }) {
       </label>
       {state.status === "error" ? <p className="text-xs text-oxblood">{state.message}</p> : null}
     </form>
+  );
+}
+
+function StepIcon({ id }: { id: Step }) {
+  const c = { fill: "none", stroke: "currentColor", strokeWidth: 1, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  if (id === "style")
+    return (
+      <svg viewBox="0 0 28 28" className="h-7 w-7" aria-hidden="true">
+        <circle cx="8" cy="20" r="3" {...c} />
+        <circle cx="8" cy="8" r="3" {...c} />
+        <path d="M10.4 9.6 23 19 M10.4 18.4 23 9 M15.5 14h.01" {...c} />
+      </svg>
+    );
+  if (id === "details")
+    return (
+      <svg viewBox="0 0 28 28" className="h-7 w-7" aria-hidden="true">
+        <path d="M22 4 12.5 15.5 M12.5 15.5c-2-.8-4 .2-4.6 2.3-.4 1.6-1.2 3.4-3.4 4.2 3.8 1 7.6.3 8.7-2.6.6-1.6.4-3-.7-3.9Z" {...c} />
+      </svg>
+    );
+  if (id === "review")
+    return (
+      <svg viewBox="0 0 28 28" className="h-7 w-7" aria-hidden="true">
+        <path d="M8 9h12l-1.2 14H9.2L8 9Z M11 9V7.5a3 3 0 0 1 6 0V9" {...c} />
+      </svg>
+    );
+  // fabric swatch with pinked edge
+  return (
+    <svg viewBox="0 0 28 28" className="h-7 w-7" aria-hidden="true">
+      <path d="M5 7 L7 6 L9 7 L11 6 L13 7 L15 6 L17 7 L19 6 L21 7 L23 6 L22 8 L23 10 L22 12 L23 14 L22 16 L23 18 L22 20 L23 22 L21 21 L19 22 L17 21 L15 22 L13 21 L11 22 L9 21 L7 22 L5 21 L6 19 L5 17 L6 15 L5 13 L6 11 L5 9 Z" {...c} />
+      <path d="M9 10 19 18 M9 14 15 19 M13 10 19 14" {...c} strokeWidth={0.6} opacity={0.6} />
+    </svg>
   );
 }

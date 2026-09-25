@@ -81,7 +81,6 @@ export function DetailsPanel({
       {isGroupApplicable("accents.liningColour", config) && o["accents.liningColour"] === "custom" ? (
         <div className="pb-5">
           <PaletteGrid colours={LINING_COLOURS} selected={config.lining} onSelect={(id) => onPatch({ lining: id })} currency={currency} label="Lining colour" />
-          <p className="mt-2 text-[11px] text-muted">Prints — paisley, kitenge and geometric — add a small surcharge shown on hover.</p>
         </div>
       ) : null}
 

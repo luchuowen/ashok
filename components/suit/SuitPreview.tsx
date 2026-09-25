@@ -5,6 +5,7 @@ import { BUTTON_HEX, FELT_COLOURS, LINING_COLOURS, MONOGRAM_FONTS, THREAD_COLOUR
 import type { SuitConfig, SuitFabric } from "@/lib/suit/types";
 import { luminance, mix, shade } from "./color";
 import { LiningPattern } from "./patterns";
+import { PhotoPreview } from "./PhotoPreview";
 
 export type PreviewView = "front" | "back" | "lining" | "waistcoat";
 
@@ -18,7 +19,7 @@ export type PreviewView = "front" | "back" | "lining" | "waistcoat";
  * than a technical flat. Pure function of props: the stage, the zoom view,
  * bag thumbnails and saved designs all render the same component.
  */
-export function SuitPreview({
+export function SuitDrawing({
   config,
   view = "front",
   className = "",
@@ -1236,4 +1237,17 @@ function FoldedTrousers({ ctx, back }: { ctx: Ctx; back: boolean }) {
       ) : null}
     </g>
   );
+}
+
+/**
+ * The suit as a photograph (Nano Banana Pro product shots re-dyed in the chosen
+ * cloth, see PhotoPreview). The parametric drawing is kept only as the
+ * fallback if a photo cannot load.
+ */
+export function SuitPreview(props: Parameters<typeof SuitDrawing>[0]) {
+  const { config, view = "front", className = "", title, hideJacket = false } = props;
+  const three = config.options["suit.pieces"] === "three";
+  const pv = hideJacket ? "nojacket" : view === "waistcoat" && !three ? "front" : view;
+  const fit = /\bh-auto\b/.test(className) ? "width" : "contain";
+  return <PhotoPreview config={config} view={pv} fit={fit} className={className} title={title} fallback={<SuitDrawing {...props} />} />;
 }

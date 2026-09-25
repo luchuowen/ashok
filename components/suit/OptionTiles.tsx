@@ -23,18 +23,12 @@ export function OptionTiles({
   currency: DisplayCurrency;
 }) {
   const current = config.options[group.id];
-  const currentValue = group.values.find((v) => v.id === current);
   const reasons = group.values.map((v) => disabledReason(group.id, v.id, config));
-  const firstReason = reasons.find(Boolean);
 
   return (
     <fieldset className="border-t border-line py-5 first:border-t-0">
       <legend className="sr-only">{group.label}</legend>
-      <div className="mb-3 flex items-baseline justify-between gap-3">
-        <p className="text-sm font-medium">{group.label}</p>
-        <p className="truncate text-xs text-muted">{currentValue?.label}</p>
-      </div>
-      {group.help ? <p className="-mt-1 mb-3 text-xs text-muted">{group.help}</p> : null}
+      <p className="mb-3 text-[15px] text-ink">{group.label}</p>
 
       {group.display === "glyph" ? (
         <div className={`grid gap-x-3 gap-y-5 ${group.values.some((v) => glyphIsWide(v.glyph)) ? "grid-cols-2" : "grid-cols-3"}`}>
@@ -110,19 +104,17 @@ export function OptionTiles({
                 aria-pressed={selected}
                 aria-disabled={Boolean(reason)}
                 title={reason ?? v.description ?? v.label}
-                className={`flex flex-col items-start border px-3 py-2 text-left text-xs transition-colors ${
-                  selected ? "border-ink bg-ink text-cream" : reason ? "cursor-not-allowed border-line text-muted/50" : "border-line text-ink hover:border-ink/60 hover:bg-cream"
+                className={`flex flex-col items-start border px-4 py-2 text-left text-[12px] tracking-wide transition-colors ${
+                  selected ? "border-ink text-ink" : reason ? "cursor-not-allowed border-line text-muted/40" : "border-line text-muted hover:border-ink/50 hover:text-ink"
                 }`}
               >
                 <span>{v.label}</span>
-                {v.description ? <span className={`mt-0.5 text-[10px] ${selected ? "text-cream/70" : "text-muted"}`}>{v.description}</span> : null}
-                {v.price ? <span className={`mt-0.5 text-[10px] ${selected ? "text-cream/80" : "text-oxblood"}`}>+{formatMoney(v.price, currency)}</span> : null}
+                {v.price ? <span className="mt-0.5 text-[10px] text-muted">+{formatMoney(v.price, currency)}</span> : null}
               </button>
             );
           })}
         </div>
       )}
-      {firstReason ? <p className="mt-2 text-[11px] text-muted">Some options are unavailable: {firstReason}</p> : null}
     </fieldset>
   );
 }

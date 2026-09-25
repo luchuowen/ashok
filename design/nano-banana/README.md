@@ -8,7 +8,9 @@ prompts are in `prompts.json` (one entry per asset, self-contained). This file e
 
 | View | Photo assets (`design/nano-banana/out/`) | Driven by |
 |---|---|---|
-| **Front** | `front-sb2-notch` (base), `front-sb1-notch`, `front-sb1-peak`, `front-sb1-shawl`, `front-sb2-peak`, `front-sb3-notch`, `front-db6-peak`, `front-mandarin`, `front-sb2-jetted`, `front-sb2-patch` | closure, lapel, pockets |
+| **Front** | `front-sb2-notch` (base), `front-sb1-notch`, `front-sb1-peak`, `front-sb1-shawl`, `front-sb2-peak`, `front-sb3-notch`, `front-db4-peak` (retouched from db6), `front-db6-peak`, `front-mandarin`, `front-sb2-jetted`, `front-sb2-patch`, `front-3pc-notch` (three-piece) | closure, lapel, pockets, pieces |
+| **Detail** | close-up crop of the front photo (`DETAIL_CROP`) | — |
+| **Hide jacket** | `nojacket-vest` (three-piece), `nojacket` (two-piece) | pieces |
 | **Back** | `back-none`, `back-centre`, `back-side` | vents |
 | **Inside** | `inside` (emerald satin so the lining can be re-coloured) | lining colour |
 | **Waistcoat** | `waistcoat-sb5` | waistcoat style |
@@ -19,9 +21,10 @@ tonal satin lining, horn buttons) on a seamless light neutral backdrop. Every va
 **edit of the base image in the same chat** ("keep everything identical, change only …") so all
 states are the same garment, same scale, same light.
 
-Options without a production-quality photo (double-breasted 4-button, double-breasted
-waistcoat, lapelled waistcoats, trousers details, monogram, buttonholes, lapel width) switch the
-stage to the **Detail** drawing, which renders every option exactly.
+Every configuration shows a photograph: options without their own shot use the closest one
+(`choosePhoto()`); the parametric drawing (`SuitDrawing`) is only a fallback if a photo fails to
+load. The trousers below the jacket are dyed separately (rows below `split` in the manifest), so
+mix-and-match cloths show correctly. Bright white shirt areas are flood-filled and never dyed.
 
 Re-colouring (`scripts/build-suit-photos.py` → `components/suit/PhotoPreview.tsx`):
 `rembg` ISNet matte for the garment outline (the backdrop and contact shadow are never dyed),
@@ -36,8 +39,10 @@ patterned staples are pinstripe, chalk stripe, herringbone, houndstooth, birdsey
 cream, sage, sky), tweed/donegal (country), velvet (evening). Nothing obscure is added to pad
 the range; see `lib/suit/catalogue.ts` (`SUIT_FABRICS`).
 
-Fabric swatch textures are photographed with Nano Banana Pro as macro shots and made seamless by
-`scripts/generate-fabric-textures.py --from-photos`.
+Fabric card photos are Nano Banana Pro shots (prompt `fabricSwatch` in `prompts.json`), saved to
+`design/nano-banana/fabrics/<fabric-id>.jpg` and resized by `scripts/fabric-photos-to-textures.py`
+into `public/photos/fabrics/`. The dye textures on the suit photos stay procedural
+(`scripts/generate-fabric-textures.py`).
 
 ## 3. Running it
 

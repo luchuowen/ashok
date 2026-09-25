@@ -74,7 +74,31 @@ def build(asset: str) -> dict:
                     cv2.circle(btn, (cx, cy), r + 1, 1, -1)
     btn = cv2.dilate(btn.astype(np.uint8), np.ones((3, 3), np.uint8))
     mbtn = cv2.GaussianBlur(btn.astype(np.float32), (0, 0), 0.8) * alpha
-    cloth = np.clip(alpha - lining - mbtn, 0, 1)
+    # Shirt (three-piece / no-jacket shots): flood-fill from bright neutral seeds
+    # through smooth shading, stopping at the sharp edges where the cloth begins.
+    sat = a.max(axis=2) - a.min(axis=2)
+    seeds = (L > 212) & (sat < 16) & fg
+    seeds = cv2.morphologyEx(seeds.astype(np.uint8), cv2.MORPH_OPEN, np.ones((5, 5), np.uint8))
+    shirt_m = np.zeros(L.shape, np.uint8)
+    if seeds.sum() > 400:
+        Lb = cv2.GaussianBlur(L.astype(np.float32), (0, 0), 1.2)
+        img8 = np.clip(Lb, 0, 255).astype(np.uint8)
+        ff = np.zeros((L.shape[0] + 2, L.shape[1] + 2), np.uint8)
+        ys, xs = np.nonzero(seeds)
+        for y, x in zip(ys[::97], xs[::97]):
+            if ff[y + 1, x + 1] == 0:
+                cv2.floodFill(img8, ff, (int(x), int(y)), 0, loDiff=3, upDiff=3, flags=4 | cv2.FLOODFILL_MASK_ONLY | (255 << 8))
+        shirt_m = (ff[1:-1, 1:-1] > 0).astype(np.uint8)
+        shirt_m &= ((sat < 26) & (L > 120)).astype(np.uint8)
+        # keep only components that contain a seed (drop leaks into grey cloth)
+        n, lab = cv2.connectedComponents(shirt_m)
+        keep = np.zeros(n, bool)
+        keep[np.unique(lab[seeds > 0])] = True
+        keep[0] = False
+        shirt_m = keep[lab].astype(np.uint8)
+        shirt_m = cv2.morphologyEx(shirt_m, cv2.MORPH_CLOSE, np.ones((7, 7), np.uint8))
+    shirt = cv2.GaussianBlur(shirt_m.astype(np.float32), (0, 0), 0.8) * alpha
+    cloth = np.clip(alpha - lining - mbtn - shirt, 0, 1)
 
     # Shade: cloth luminance with the grey weave smoothed out, highlights not
     # inflated near the outline (the matte edge can catch the backdrop).
@@ -97,7 +121,18 @@ def build(asset: str) -> dict:
     Image.fromarray(np.clip(shade_img * 128, 0, 255).astype(np.uint8), "L").save(d / "shade.webp", quality=92, method=6)
     m = np.dstack([cloth, lining, mbtn]) * 255
     Image.fromarray(m.astype(np.uint8), "RGB").save(d / "mask.png", optimize=True)
-    return {"width": WIDTH, "height": h}
+    meta = {"width": WIDTH, "height": h}
+    # Where the jacket ends and the folded trousers begin (an empty band of rows
+    # in the lower half): the browser dyes rows below it in the trouser cloth.
+    rows = (alpha > 0.5).sum(axis=1)
+    lo = int(h * 0.45)
+    empty = np.where(rows[lo:] < 3)[0]
+    if len(empty):
+        runs = np.split(empty, np.where(np.diff(empty) != 1)[0] + 1)
+        runs = [r for r in runs if len(r) >= 4 and lo + r[-1] < h - 20 and rows[lo + r[-1] + 1 :].sum() > 1000]
+        if runs:
+            meta["split"] = int(lo + runs[0][len(runs[0]) // 2])
+    return meta
 
 
 def main():

@@ -2,58 +2,86 @@
   "assets": {
     "back-centre": {
       "height": 1789,
+      "split": 1116,
       "width": 1200
     },
     "back-none": {
       "height": 1789,
+      "split": 1116,
       "width": 1200
     },
     "back-side": {
       "height": 1789,
+      "split": 1115,
+      "width": 1200
+    },
+    "front-3pc-notch": {
+      "height": 1789,
+      "split": 1115,
+      "width": 1200
+    },
+    "front-db4-peak": {
+      "height": 1789,
+      "split": 1118,
       "width": 1200
     },
     "front-db6-peak": {
       "height": 1789,
+      "split": 1118,
       "width": 1200
     },
     "front-mandarin": {
       "height": 1789,
+      "split": 1115,
       "width": 1200
     },
     "front-sb1-notch": {
       "height": 1789,
+      "split": 1115,
       "width": 1200
     },
     "front-sb1-peak": {
       "height": 1789,
+      "split": 1115,
       "width": 1200
     },
     "front-sb1-shawl": {
       "height": 1789,
+      "split": 1115,
       "width": 1200
     },
     "front-sb2-jetted": {
       "height": 1789,
+      "split": 1115,
       "width": 1200
     },
     "front-sb2-notch": {
       "height": 1789,
+      "split": 1115,
       "width": 1200
     },
     "front-sb2-patch": {
       "height": 1789,
+      "split": 1115,
       "width": 1200
     },
     "front-sb2-peak": {
       "height": 1789,
+      "split": 1115,
       "width": 1200
     },
     "front-sb3-notch": {
       "height": 1789,
+      "split": 1115,
       "width": 1200
     },
     "inside": {
       "height": 1789,
+      "width": 1200
+    },
+    "nojacket-vest": {
+      "height": 1789,
+      "split": 1112,
       "width": 1200
     },
     "waistcoat-sb5": {
