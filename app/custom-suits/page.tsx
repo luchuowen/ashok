@@ -5,6 +5,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { PriceChip } from "@/components/ui/PriceChip";
 import { Photo } from "@/components/ui/Photo";
 import { SuitPreview } from "@/components/suit/SuitPreview";
+import { DesignerShowcase } from "@/components/suit/DesignerShowcase";
 import { COLLECTION_LABELS, SUIT_FABRICS, SUIT_PRESETS, presetConfig } from "@/lib/suit/catalogue";
 import { priceSuit } from "@/lib/suit/pricing";
 import { normalizeConfig } from "@/lib/suit/rules";
@@ -45,7 +46,7 @@ const faqs = [
   },
   {
     q: "Can I pay in US dollars?",
-    a: "You can browse prices in USD, but payment is always taken in Kenyan shillings through our secure payment page (M-Pesa, card or bank). The USD figure is an approximate conversion.",
+    a: "You can view prices in Kenyan shillings or US dollars. Pay securely by card (Visa or Mastercard, in KES or USD), M-Pesa or bank transfer — you choose the method on our secure payment page, where the final amount is confirmed before you pay.",
   },
   {
     q: "Do I have to pay everything up front?",
@@ -71,11 +72,11 @@ export default function CustomSuitsPage() {
       <Section border={false} className="!pb-10">
         <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_1fr]">
           <div className="text-center lg:text-left">
-            <Eyebrow>Custom suits · designed online</Eyebrow>
-            <h1 className="mt-3 text-4xl md:text-6xl">Design your suit. We&rsquo;ll cut it in Ridgeways.</h1>
+            <Eyebrow>Custom suits · made for you</Eyebrow>
+            <h1 className="mt-3 text-4xl md:text-6xl">Design your suit. Tailored to your measurements.</h1>
             <p className="mx-auto mt-5 max-w-xl text-base text-muted lg:mx-0">
-              Choose the cloth, set every detail and watch it come together — then we make it to your measurements in our own workroom and
-              fit you in person.
+              Choose your fabric, define every detail and create a suit that is uniquely yours. We cut and tailor it to your measurements,
+              then refine the fit with you in person at our Ridgeways workroom.
             </p>
             <div className="mt-5">
               <PriceChip price={minPrice} />
@@ -85,7 +86,7 @@ export default function CustomSuitsPage() {
                 Design your suit
               </Link>
               <Link href="/booking?type=made-to-measure&ref=custom-suits" className="cta ghost">
-                Prefer to design in person?
+                Book a fitting
               </Link>
             </div>
           </div>
@@ -99,6 +100,10 @@ export default function CustomSuitsPage() {
       </Section>
 
       <Section>
+        <DesignerShowcase />
+      </Section>
+
+      <Section className="bg-paper">
         <div className="flex flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
           <div>
             <Eyebrow>Start with a base style</Eyebrow>
@@ -110,8 +115,8 @@ export default function CustomSuitsPage() {
         </div>
         <ul className="mt-8 grid grid-cols-2 gap-px border border-line bg-line md:grid-cols-4">
           {presets.map((p) => (
-            <li key={p.id} className="bg-cream">
-              <Link href={`/custom-suits/design?preset=${p.id}`} className="group flex h-full flex-col p-4 transition-colors hover:bg-paper">
+            <li key={p.id} className="bg-paper">
+              <Link href={`/custom-suits/design?preset=${p.id}`} className="group flex h-full flex-col p-4 transition-colors hover:bg-cream/60">
                 <div className="aspect-[4/5] overflow-hidden">
                   <SuitPreview config={p.config} className="h-full w-full transition-transform duration-500 group-hover:scale-[1.04]" title={p.name} />
                 </div>

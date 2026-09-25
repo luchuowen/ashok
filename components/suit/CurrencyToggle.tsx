@@ -2,7 +2,7 @@
 
 import type { DisplayCurrency } from "@/lib/currency";
 
-/** KES / USD display switch. Prices are always charged in KES. */
+/** KES / USD display switch (display conversion; the payment page confirms the charged amount). */
 export function CurrencyToggle({ value, onChange }: { value: DisplayCurrency; onChange: (v: DisplayCurrency) => void }) {
   return (
     <div className="inline-flex border border-line bg-cream text-[11px]" role="group" aria-label="Display currency">

@@ -364,7 +364,7 @@ export function Configurator() {
           <p className="mt-3 font-display text-3xl" aria-live="polite">
             {formatMoney(price.unitTotal * qty, currency)}
           </p>
-          {currency === "USD" ? <p className="text-[11px] text-muted">Approx. at KES {KES_PER_USD}/USD · charged as {formatKes(price.unitTotal * qty)}</p> : <p className="text-[11px] text-muted">{qty > 1 ? `${qty} suits · ` : ""}Made in Nairobi</p>}
+          {currency === "USD" ? <p className="text-[11px] text-muted">Approx. at KES {KES_PER_USD}/USD · {formatKes(price.unitTotal * qty)}</p> : <p className="text-[11px] text-muted">{qty > 1 ? `${qty} suits · ` : ""}Made in Nairobi</p>}
           <button type="button" onClick={onPrimary} disabled={adding} className="cta pointer-events-auto mt-5 w-full disabled:opacity-60">
             {adding ? "Adding…" : primaryLabel}
           </button>
@@ -547,7 +547,7 @@ export function Configurator() {
                   </li>
                 </ul>
               </div>
-              {currency === "USD" ? <p className="mt-2 text-[11px] text-muted">USD prices are approximate (KES {KES_PER_USD} = $1). You&rsquo;ll be charged {formatKes(price.unitTotal * qty)}.</p> : null}
+              {currency === "USD" ? <p className="mt-2 text-[11px] text-muted">USD prices are approximate (KES {KES_PER_USD} = $1; {formatKes(price.unitTotal * qty)}). The final amount is confirmed on the payment page.</p> : null}
 
               <ol className="mt-8 space-y-3 text-sm">
                 {[

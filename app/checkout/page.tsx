@@ -396,7 +396,7 @@ export default function CheckoutPage() {
             <div className="mt-4">
               <PromoField subtotal={subtotal} suitsSubtotal={suitsSubtotal} onChange={setPromo} />
             </div>
-            {currency === "USD" ? <p className="mt-3 text-[11px] text-muted">USD shown at approx. KES {KES_PER_USD}/USD. You&rsquo;ll be charged {formatKes(dueNow)}.</p> : null}
+            {currency === "USD" ? <p className="mt-3 text-[11px] text-muted">USD shown at approx. KES {KES_PER_USD}/USD ({formatKes(dueNow)}). Card payments can be made in USD; the final amount is confirmed on the payment page.</p> : null}
             {error ? (
               <p className="mt-4 text-sm text-oxblood" role="alert">
                 {error}

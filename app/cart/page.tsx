@@ -147,7 +147,7 @@ function Cart() {
                 </div>
                 {currency === "USD" ? (
                   <p className="mt-2 text-[11px] text-muted">
-                    Approximate at KES {KES_PER_USD}/USD. You&rsquo;ll be charged {formatKes(subtotal - discount)}.
+                    USD shown at approx. KES {KES_PER_USD}/USD ({formatKes(subtotal - discount)}). The final amount is confirmed on the payment page.
                   </p>
                 ) : null}
                 {hasSuits ? <p className="mt-2 text-[11px] text-muted">Pay in full, or a 50% deposit with the balance at your fitting.</p> : null}
