@@ -196,12 +196,6 @@ export default function CustomSuitsPage() {
         </div>
       </Section>
 
-      <Section className="bg-ink text-center text-cream">
-        <h2 className="text-3xl md:text-4xl">Your suit, drawn as you design it.</h2>
-        <Link href="/custom-suits/design" className="cta mt-8 !border-cream !bg-cream !text-ink hover:!bg-oxblood hover:!text-cream">
-          Design your suit
-        </Link>
-      </Section>
     </main>
   );
 }
