@@ -108,6 +108,15 @@ def build(name):
             ring = cv2.dilate(m.astype(np.uint8), np.ones((7, 7), np.uint8)).astype(bool) & ~m
             m = m | (ring & fgb & (L < 150) & (L > 12) & ~others & ~warm0)
         parts[k] = m
+    # Shadowed cloth edges (beside the hands, under the jacket hem) keep a faint coding hue at low
+    # saturation: claim them for the neighbouring part so no green/blue sliver is left behind.
+    for k in ("jacket", "trousers", "waistcoat"):
+        if not parts[k].any():
+            continue
+        others = np.any([parts[o] for o in parts if o != k], axis=0)
+        near_k = cv2.dilate(parts[k].astype(np.uint8), np.ones((21, 21), np.uint8)).astype(bool)
+        loose = fgb & near_k & (hue_dist(H, HUES[k]) < 20) & (S > 10) & (V > 8) & (L < 140) & ~others
+        parts[k] = parts[k] | loose
     # Shoes: the dark blob at the bottom is never trousers.
     shoes = (L < 50) & fgb
     shoes[: int(h * 0.82)] = False
@@ -126,7 +135,9 @@ def build(name):
     pad = 30
     sk = cv2.copyMakeBorder(skin.astype(np.uint8), pad, 0, 0, 0, cv2.BORDER_CONSTANT, value=1)
     sk = cv2.morphologyEx(sk, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (41, 41)))[pad:]
-    skin = sk.astype(bool) & ~cloth & ~tie & (L < 200)
+    Hh = H.astype(np.int16)
+    coded_cast = (Hh > 30) & (Hh < 172) & (S > 12)  # green/blue/purple bounce light: never skin
+    skin = sk.astype(bool) & ~cloth & ~tie & (L < 200) & ~coded_cast
     skin = cv2.dilate(skin.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool) & ~cloth & ~tie
     fg = np.maximum(fg, skin.astype(np.float32))
     # White shirt collar against the pale backdrop: anything enclosed by the person is the person.
@@ -144,10 +155,16 @@ def build(name):
     for key, m in (("jacket", parts["jacket"]), ("trousers", parts["trousers"]), ("waistcoat", parts["waistcoat"]), ("skin", skin), ("tie", tie)):
         if m.sum() < 50:
             continue
-        ref = float(np.median(Ls[m]))
+        # Cloth is normalised by its mean so one fabric reads as one tone across jacket, trousers
+        # and waistcoat (median left the trousers ~3% brighter and their broad lit thighs read far
+        # lighter); trousers and the waistcoat under the jacket sit a touch darker, as in a real
+        # photo of a single-cloth suit.
+        cloth_part = key in ("jacket", "trousers", "waistcoat")
+        ref = float(np.mean(Ls[m])) if cloth_part else float(np.median(Ls[m]))
         refs[key] = round(ref, 1)
+        target = {"jacket": 128.0, "trousers": 128.0 * 0.94, "waistcoat": 128.0 * 0.97}.get(key, 128.0)
         grown = cv2.dilate(m.astype(np.uint8), np.ones((5, 5), np.uint8)).astype(bool)
-        shade[grown] = np.clip(128 * Ls[grown] / ref, 0, 255)
+        shade[grown] = np.clip(target * Ls[grown] / ref, 0, 255)
         edge = grown & ~m  # anti-aliased rim over the pale backdrop: never brighter than the cloth
         shade[edge] = np.minimum(shade[edge], 112)
     skin_rgb = [int(round(float(np.median(a[..., c][skin])))) for c in range(3)] if skin.sum() > 50 else [150, 100, 70]
@@ -157,6 +174,10 @@ def build(name):
     zone = cv2.dilate((cloth | tie).astype(np.uint8), np.ones((7, 7), np.uint8)).astype(bool) & ~skin & ~warm
     grey = np.repeat(L[..., None], 3, -1)
     base = np.where(zone[..., None], grey, a)
+    # Safety net: any remaining coding-coloured pixel on the person (bounce light at the hands,
+    # shadow slivers) is neutralised to grey so no blue/green/purple can ever reach the page.
+    cast = fgb & coded_cast & ~cloth & ~tie & ~skin
+    base = np.where(cast[..., None], grey, base)
 
     def soft(m, r=1.0):
         return np.clip(cv2.GaussianBlur(m.astype(np.float32), (0, 0), r) * 255, 0, 255)

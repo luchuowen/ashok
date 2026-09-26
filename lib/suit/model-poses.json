@@ -5,9 +5,9 @@
       "width": 1200,
       "height": 2054,
       "refs": {
-        "jacket": 80.7,
-        "trousers": 74.3,
-        "skin": 75.8,
+        "jacket": 78.7,
+        "trousers": 74.5,
+        "skin": 76.1,
         "tie": 120.4
       },
       "skin": [
@@ -22,9 +22,9 @@
       "width": 1200,
       "height": 2054,
       "refs": {
-        "jacket": 80.6,
-        "trousers": 74.1,
-        "skin": 77.8
+        "jacket": 78.6,
+        "trousers": 74.3,
+        "skin": 78.1
       },
       "skin": [
         110,
@@ -38,9 +38,9 @@
       "width": 1200,
       "height": 2054,
       "refs": {
-        "jacket": 80.2,
-        "trousers": 73.7,
-        "skin": 74.2,
+        "jacket": 78.2,
+        "trousers": 73.8,
+        "skin": 74.5,
         "tie": 95.5
       },
       "skin": [
@@ -55,13 +55,13 @@
       "width": 1200,
       "height": 2054,
       "refs": {
-        "jacket": 79.9,
-        "trousers": 73.4,
-        "skin": 74.0,
+        "jacket": 78.1,
+        "trousers": 73.8,
+        "skin": 74.3,
         "tie": 117.9
       },
       "skin": [
-        105,
+        106,
         62,
         50
       ],
@@ -72,9 +72,9 @@
       "width": 1200,
       "height": 2054,
       "refs": {
-        "jacket": 81.7,
+        "jacket": 79.7,
         "trousers": 73.8,
-        "skin": 74.6,
+        "skin": 74.7,
         "tie": 119.3
       },
       "skin": [
@@ -89,10 +89,10 @@
       "width": 1200,
       "height": 2054,
       "refs": {
-        "jacket": 79.7,
-        "trousers": 74.3,
-        "waistcoat": 105.3,
-        "skin": 74.1,
+        "jacket": 77.8,
+        "trousers": 74.7,
+        "waistcoat": 99.1,
+        "skin": 74.4,
         "tie": 119.1
       },
       "skin": [
@@ -107,10 +107,10 @@
       "width": 1200,
       "height": 2054,
       "refs": {
-        "jacket": 81.1,
-        "trousers": 74.6,
-        "waistcoat": 105.6,
-        "skin": 78.1
+        "jacket": 79.1,
+        "trousers": 75.0,
+        "waistcoat": 101.0,
+        "skin": 78.4
       },
       "skin": [
         109,
@@ -124,12 +124,12 @@
       "width": 1200,
       "height": 2054,
       "refs": {
-        "jacket": 81.7,
-        "trousers": 73.7,
-        "skin": 76.7
+        "jacket": 79.5,
+        "trousers": 73.9,
+        "skin": 76.9
       },
       "skin": [
-        107,
+        108,
         64,
         53
       ],
@@ -140,9 +140,9 @@
       "width": 1200,
       "height": 2054,
       "refs": {
-        "jacket": 81.3,
-        "trousers": 73.7,
-        "skin": 76.6
+        "jacket": 79.4,
+        "trousers": 73.9,
+        "skin": 76.7
       },
       "skin": [
         108,
@@ -156,9 +156,9 @@
       "width": 1200,
       "height": 2054,
       "refs": {
-        "trousers": 77.3,
-        "waistcoat": 102.7,
-        "skin": 74.7,
+        "trousers": 78.5,
+        "waistcoat": 101.1,
+        "skin": 74.8,
         "tie": 121.8
       },
       "skin": [
@@ -173,12 +173,12 @@
       "width": 1200,
       "height": 2054,
       "refs": {
-        "jacket": 82.5,
-        "trousers": 73.5,
-        "skin": 74.4
+        "jacket": 80.6,
+        "trousers": 73.6,
+        "skin": 74.7
       },
       "skin": [
-        105,
+        106,
         62,
         51
       ],
@@ -189,11 +189,11 @@
       "width": 1200,
       "height": 2054,
       "refs": {
-        "trousers": 78.6,
-        "skin": 78.6
+        "trousers": 79.6,
+        "skin": 78.8
       },
       "skin": [
-        110,
+        111,
         66,
         54
       ],
@@ -204,8 +204,8 @@
       "width": 1200,
       "height": 2054,
       "refs": {
-        "jacket": 86.1,
-        "trousers": 76.8,
+        "jacket": 82.8,
+        "trousers": 76.4,
         "skin": 72.3
       },
       "skin": [
