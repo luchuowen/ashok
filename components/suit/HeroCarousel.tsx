@@ -68,11 +68,12 @@ export function HeroCarousel({ slides, interval = 6000 }: { slides: HeroSlide[];
             aria-label={`${k + 1} of ${n}`}
           >
             <Image
+            quality={85}
               src={s.src}
               alt={s.alt}
               fill
               priority={k === 0}
-              sizes="(min-width: 1024px) 42vw, 92vw"
+              sizes="(min-width: 1024px) 50vw, 100vw"
               className={`object-cover transition-transform ease-out ${reduced ? "" : "duration-[7000ms]"} ${k === i && !reduced ? "scale-[1.03]" : "scale-100"}`}
               style={{ objectPosition: s.focus ?? "50% 30%" }}
             />

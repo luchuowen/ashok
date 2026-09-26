@@ -90,20 +90,23 @@ function loadData(src: string, w?: number, h?: number): Promise<ImageData> {
 
 const composites = new Map<string, ImageData>();
 
-async function renderPose(poseId: PoseId, config: SuitConfig, skin: SkinToneId): Promise<ImageData> {
+/** Stage renders at 1.25x the 1536-px pose photos; the full-screen close-up at 2x. */
+const STAGE_SCALE = 1.25;
+const ZOOM_SCALE = 2;
+
+async function renderPose(poseId: PoseId, config: SuitConfig, skin: SkinToneId, S = STAGE_SCALE): Promise<ImageData> {
   const pose: Pose = manifest.poses[poseId];
   const tie = pose.hasTie ? neckwearRgb(config) : null;
   const skinRgb = SKIN_TONES.find((t) => t.id === skin)?.rgb ?? null;
   const jf = config.fabric;
   const tf = config.trouserFabric ?? config.fabric;
   const wf = config.waistcoatFabric ?? config.fabric;
-  const key = [poseId, jf, tf, wf, tie?.join(",") ?? "-", skin].join("|");
+  const key = [poseId, jf, tf, wf, tie?.join(",") ?? "-", skin, S].join("|");
   const hit = composites.get(key);
   if (hit) return hit;
 
-  // Rendered at 2x the source photo: the cloth texture is sampled at full detail (fine weaves and
-  // checks stay crisp on retina screens) while the photo's shading is smoothly upscaled.
-  const S = 1.5;
+  // Rendered above the photo's size (S): the cloth texture is sampled at full detail (fine weaves
+  // and checks stay crisp on retina screens) while the photo's shading is smoothly upscaled.
   const T = Math.round(manifest.tilePx * S);
   const PW = Math.round(pose.width * S);
   const PH = Math.round(pose.height * S);
@@ -183,7 +186,7 @@ async function renderPose(poseId: PoseId, config: SuitConfig, skin: SkinToneId):
       o[i + 3] = 255 - m2[i + 2]!; // studio backdrop -> transparent
     }
   }
-  if (composites.size > 24) composites.delete(composites.keys().next().value!);
+  while (composites.size > (S > STAGE_SCALE ? 6 : 16)) composites.delete(composites.keys().next().value!);
   composites.set(key, out);
   return out;
 }
@@ -213,7 +216,7 @@ export function ModelPreview({
   useEffect(() => {
     if (!poseId) return;
     let cancelled = false;
-    renderPose(poseId, config, skin)
+    renderPose(poseId, config, skin, fit === "width" ? ZOOM_SCALE : STAGE_SCALE)
       .then((data) => {
         if (cancelled || !canvasRef.current) return;
         const c = canvasRef.current;
@@ -226,7 +229,7 @@ export function ModelPreview({
     return () => {
       cancelled = true;
     };
-  }, [poseId, config, skin]);
+  }, [poseId, config, skin, fit]);
 
   if (!poseId || state === "error") {
     return <SuitPreview config={config} view={view === "back" ? "back" : "front"} hideJacket={hideJacket} className={className} title={title} />;
@@ -236,8 +239,8 @@ export function ModelPreview({
     <div className={`relative flex items-center justify-center ${fit === "width" ? "min-h-[60vh]" : ""} ${className}`}>
       <canvas
         ref={canvasRef}
-        width={Math.round(pose.width * 1.5)}
-        height={Math.round(pose.height * 1.5)}
+        width={Math.round(pose.width * (fit === "width" ? ZOOM_SCALE : STAGE_SCALE))}
+        height={Math.round(pose.height * (fit === "width" ? ZOOM_SCALE : STAGE_SCALE))}
         role="img"
         aria-label={title ?? "Your suit, worn"}
         className={`block transition-opacity duration-300 ${fit === "width" ? "h-auto w-full" : "h-full max-h-full w-auto max-w-full object-contain"} ${state === "ready" ? "opacity-100" : "opacity-0"}`}

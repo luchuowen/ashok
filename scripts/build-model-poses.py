@@ -35,7 +35,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "design" / "model-src"
 OUT = ROOT / "public" / "model"
 MANIFEST = ROOT / "lib" / "suit" / "model-poses.json"
-WIDTH = 1200  # delivered width
+WIDTH = 1536  # delivered width = the 2K source width (no upscaling, no detail lost)
 CROP_TOP = 0.045  # fraction of the source height cut from the top (the face)
 
 POSES = [
@@ -64,7 +64,7 @@ def person_matte(im: Image.Image) -> np.ndarray:
 # way to flat and every garment is centred on the same level. Folds, creases and seams (the
 # fine-scale shading) are kept exactly.
 FLATTEN = 0.75
-LIGHT_SIGMA = 24
+LIGHT_SIGMA = 24 * WIDTH / 1200
 TONE = {"jacket": 1.0, "trousers": 0.95, "waistcoat": 0.98}
 
 
@@ -173,6 +173,7 @@ def build(name):
     Ls = cv2.bilateralFilter(L.astype(np.float32), 9, 18, 6)
     Ls = cv2.GaussianBlur(Ls, (0, 0), 0.8)
     shade = np.full((h, w := WIDTH), 128.0, np.float32)
+    cloth_all = cv2.dilate((parts["jacket"] | parts["trousers"] | parts["waistcoat"]).astype(np.uint8), np.ones((5, 5), np.uint8)).astype(bool)
     refs = {}
     for key, m in (("jacket", parts["jacket"]), ("trousers", parts["trousers"]), ("waistcoat", parts["waistcoat"]), ("skin", skin), ("tie", tie)):
         if m.sum() < 50:
@@ -185,11 +186,23 @@ def build(name):
         ref = float(np.mean(Ls[m])) if cloth_part else float(np.median(Ls[m]))
         refs[key] = round(ref, 1)
         grown = cv2.dilate(m.astype(np.uint8), np.ones((5, 5), np.uint8)).astype(bool)
+        if not cloth_part:
+            # skin / tie: never spill onto neighbouring cloth or the white shirt
+            grown = grown & ~cloth_all & (Ls < ref * 1.4)
         shade[grown] = np.clip(128.0 * Ls[grown] / ref, 0, 255)
         if cloth_part:
             shade[grown] = even_light(shade, m, grown, TONE[key])
-        edge = grown & ~m  # anti-aliased rim over the pale backdrop: never brighter than the cloth
-        shade[edge] = np.minimum(shade[edge], 112)
+        # Anti-aliased rim (over the backdrop or the white shirt): continue the cloth's own shading
+        # outward instead of reading the bright neighbour, so edges never show a light/dark fringe.
+        # The outermost cloth pixels are anti-aliased with the shirt/backdrop (too bright), so the
+        # shading is taken from 2 px inside and continued outward.
+        core = cv2.erode(m.astype(np.uint8), np.ones((5, 5), np.uint8)).astype(bool) if cloth_part else m
+        edge = grown & ~core
+        if edge.any() and core.any():
+            num = cv2.GaussianBlur(np.where(core, shade, 0).astype(np.float32), (0, 0), 2.0)
+            den = cv2.GaussianBlur(core.astype(np.float32), (0, 0), 2.0)
+            ext = num / np.maximum(den, 1e-3)
+            shade[edge] = np.minimum(ext[edge], float(np.median(shade[core])) * 1.08)
     skin_rgb = [int(round(float(np.median(a[..., c][skin])))) for c in range(3)] if skin.sum() > 50 else [150, 100, 70]
 
     # Neutralise the coding colours in the base photo (and a few pixels around them).
@@ -233,7 +246,7 @@ def build(name):
 def main():
     only = sys.argv[1:]
     manifest = json.loads(MANIFEST.read_text()) if MANIFEST.exists() else {"poses": {}}
-    manifest["tilePx"] = 150
+    manifest["tilePx"] = round(150 * WIDTH / 1200)  # same cloth scale as the 1200-px originals
     for name in POSES:
         if only and name not in only:
             continue

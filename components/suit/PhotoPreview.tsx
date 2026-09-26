@@ -99,8 +99,8 @@ function load(src: string, w?: number, h?: number) {
 }
 
 const done = new Map<string, ImageData>();
-async function render(asset: string, fabricId: string, linHex: string, trouserId: string = fabricId, btnHex: string | null = null, liningMode = "full"): Promise<ImageData> {
-  const key = `${asset}|${fabricId}|${trouserId}|${linHex}|${btnHex}|${liningMode}`;
+async function render(asset: string, fabricId: string, linHex: string, trouserId: string = fabricId, btnHex: string | null = null, liningMode = "full", S = 1): Promise<ImageData> {
+  const key = `${asset}|${fabricId}|${trouserId}|${linHex}|${btnHex}|${liningMode}|${S}`;
   const bn = btnHex ? parseInt(btnHex.slice(1), 16) : 0;
   const BR = (bn >> 16) & 255, BG = (bn >> 8) & 255, BB = bn & 255;
   const ln = parseInt(linHex.slice(1), 16);
@@ -110,14 +110,21 @@ async function render(asset: string, fabricId: string, linHex: string, trouserId
   const f = getFabric(fabricId) ?? getFabric("house-navy-stretch")!;
   const tf = getFabric(trouserId) ?? f;
   const dir = `/suit-photos/${asset}`;
+  const meta0 = ASSETS[asset]!;
+  // S > 1 (close-ups): the photo layers are upsampled smoothly while the cloth is sampled at S x
+  // the detail, so weaves, checks and stripes stay crisp when enlarged.
+  const PW = S === 1 ? undefined : Math.round(meta0.width * S);
+  const PH = S === 1 ? undefined : Math.round(meta0.height * S);
+  const tj = Math.round(tileFor(f.id) * S);
+  const tt = Math.round(tileFor(tf.id) * S);
   const [base, shade, mask, tex, ttex] = await Promise.all([
-    load(`${dir}/base.webp`),
-    load(`${dir}/shade.webp`),
-    load(`${dir}/mask.png`),
-    load(`/textures/fabrics/${f.id}.jpg`, tileFor(f.id), tileFor(f.id)),
-    load(`/textures/fabrics/${tf.id}.jpg`, tileFor(tf.id), tileFor(tf.id)),
+    load(`${dir}/base.webp`, PW, PH),
+    load(`${dir}/shade.webp`, PW, PH),
+    load(`${dir}/mask.png`, PW, PH),
+    load(`/textures/fabrics/${f.id}.jpg`, tj, tj),
+    load(`/textures/fabrics/${tf.id}.jpg`, tt, tt),
   ]);
-  const split = ASSETS[asset]?.split ?? 1e9;
+  const split = (meta0.split ?? 1e9) * S;
   // Light cloths (linen, cream, sky) must stay matte: the photo's highlights are compressed in
   // proportion to how light the cloth is, and values near white roll off instead of clipping.
   const hsJ = highlightScale(tex.data);
@@ -192,7 +199,7 @@ async function render(asset: string, fabricId: string, linHex: string, trouserId
       o[i + 3] = a;
     }
   }
-  if (done.size > 30) done.delete(done.keys().next().value!);
+  while (done.size > (S > 1 ? 12 : 30)) done.delete(done.keys().next().value!);
   done.set(key, out);
   return out;
 }
@@ -276,7 +283,7 @@ function drawHole(x: CanvasRenderingContext2D, cx: number, cy: number, len: numb
 const KNOT: Record<string, [number, number]> = { "front-3pc-notch": [600, 262], "nojacket-vest": [600, 266], "front-shirt-notch": [600, 193], nojacket: [600, 213] };
 
 /** Tie or bow tie, drawn on its own layer and kept only where the white shirt shows. */
-function drawNeckwear(x: CanvasRenderingContext2D, asset: string, config: SuitConfig) {
+function drawNeckwear(x: CanvasRenderingContext2D, asset: string, config: SuitConfig, S = 1) {
   const k = KNOT[asset];
   if (!k) return;
   const o = config.options;
@@ -289,6 +296,7 @@ function drawNeckwear(x: CanvasRenderingContext2D, asset: string, config: SuitCo
   layer.width = W;
   layer.height = H;
   const l = layer.getContext("2d")!;
+  l.setTransform(S, 0, 0, S, 0, 0);
   const [r, g, b] = hexRgb(hex);
   const L = (m: number) => `rgb(${Math.min(255, r * m)},${Math.min(255, g * m)},${Math.min(255, b * m)})`;
   const [cx, cy] = k;
@@ -318,27 +326,30 @@ function drawNeckwear(x: CanvasRenderingContext2D, asset: string, config: SuitCo
   const src = x.getImageData(0, 0, W, H).data;
   const t = l.getImageData(0, 0, W, H);
   const td = t.data;
-  for (let y = Math.max(0, cy - 60); y < Math.min(H, cy + R); y++)
-    for (let xx = cx - 90; xx < cx + 90; xx++) {
+  // pixel bounds in canvas pixels (the drawing above is in 1200-px photo units)
+  const pcx = Math.round(cx * S), pcy = Math.round(cy * S), pR = Math.round(R * S), p60 = Math.round(60 * S), p90 = Math.round(90 * S);
+  for (let y = Math.max(0, pcy - p60); y < Math.min(H, pcy + pR); y++)
+    for (let xx = pcx - p90; xx < pcx + p90; xx++) {
       const i = (y * W + xx) * 4;
       const R = src[i]!, G = src[i + 1]!, B = src[i + 2]!;
       const lum = 0.3 * R + 0.59 * G + 0.11 * B;
       const sat = Math.max(R, G, B) - Math.min(R, G, B);
       if (!(lum > 150 && sat < 30 && src[i + 3]! > 200)) td[i + 3] = 0;
     }
-  for (let y = 0; y < H; y++) if (y < cy - 60 || y >= cy + R) for (let xx = 0; xx < W; xx++) td[(y * W + xx) * 4 + 3] = 0;
-  for (let y = cy - 60; y < cy + R; y++) for (let xx = 0; xx < W; xx++) if (xx < cx - 90 || xx >= cx + 90) td[(y * W + xx) * 4 + 3] = 0;
+  for (let y = 0; y < H; y++) if (y < pcy - p60 || y >= pcy + pR) for (let xx = 0; xx < W; xx++) td[(y * W + xx) * 4 + 3] = 0;
+  for (let y = Math.max(0, pcy - p60); y < Math.min(H, pcy + pR); y++) for (let xx = 0; xx < W; xx++) if (xx < pcx - p90 || xx >= pcx + p90) td[(y * W + xx) * 4 + 3] = 0;
   l.putImageData(t, 0, 0);
   x.save();
+  x.setTransform(1, 0, 0, 1, 0, 0);
   x.shadowColor = "rgba(0,0,0,0.3)";
   x.shadowBlur = 3;
   x.drawImage(layer, 0, 0);
   x.restore();
 }
 
-function drawOverlays(x: CanvasRenderingContext2D, asset: string, config: SuitConfig, meta: Assets[string]) {
+function drawOverlays(x: CanvasRenderingContext2D, asset: string, config: SuitConfig, meta: Assets[string], S = 1) {
   const o = config.options;
-  drawNeckwear(x, asset, config);
+  drawNeckwear(x, asset, config, S);
   const thread = THREAD_COLOURS.find((t) => t.id === config.thread)?.hex ?? "#8a4432";
   const front = asset.startsWith("front-");
   if (front) {
@@ -419,6 +430,7 @@ function drawOverlays(x: CanvasRenderingContext2D, asset: string, config: SuitCo
 /** Paint the dyed photo, scaling jacket and trousers for the chosen fit, then the overlays. */
 function paint(c: HTMLCanvasElement, d: ImageData, asset: string, config: SuitConfig) {
   const meta = ASSETS[asset]!;
+  const S = d.width / meta.width;
   c.width = d.width;
   c.height = d.height;
   const x = c.getContext("2d")!;
@@ -428,7 +440,7 @@ function paint(c: HTMLCanvasElement, d: ImageData, asset: string, config: SuitCo
   off.getContext("2d")!.putImageData(d, 0, 0);
   const fj = FIT_JACKET[config.options["jacket.fit"] ?? "classic"] ?? 1;
   const ft = FIT_TROUSERS[config.options["trousers.fit"] ?? "classic"] ?? 1;
-  const split = meta.split ?? d.height;
+  const split = meta.split ? meta.split * S : d.height;
   const W = d.width;
   const scaled = asset.startsWith("front-") || asset.startsWith("back-") || asset.startsWith("nojacket");
   x.clearRect(0, 0, W, d.height);
@@ -437,7 +449,9 @@ function paint(c: HTMLCanvasElement, d: ImageData, asset: string, config: SuitCo
     x.drawImage(off, 0, 0, W, split, (W - W * top) / 2, 0, W * top, split);
     x.drawImage(off, 0, split, W, d.height - split, (W - W * ft) / 2, split, W * ft, d.height - split);
   } else x.drawImage(off, 0, 0);
-  drawOverlays(x, asset, config, meta);
+  x.setTransform(S, 0, 0, S, 0, 0); // overlays are specified in 1200-px photo units
+  drawOverlays(x, asset, config, meta, S);
+  x.setTransform(1, 0, 0, 1, 0, 0);
 }
 
 export type Crop = { x: number; y: number; w: number; h: number };
@@ -481,10 +495,12 @@ export function PhotoPreview({
   const btnHex = btn && btn !== "matched" ? (BUTTON_HEX[btn] ?? null) : null;
 
   const cropped = crop ? 1 : 0;
+  // Close-ups (the full-screen zoom and Detail crops) render at 2x so they stay sharp enlarged.
+  const S = fit === "width" || crop ? 2 : 1;
   useEffect(() => {
     if (!asset) return;
     let off = false;
-    render(asset, fabric, linHex, trousers, btnHex, asset === "inside" ? liningMode : "full")
+    render(asset, fabric, linHex, trousers, btnHex, asset === "inside" ? liningMode : "full", S)
       .then((d) => {
         const c = ref.current;
         if (off || !c) return;
@@ -495,7 +511,7 @@ export function PhotoPreview({
     return () => {
       off = true;
     };
-  }, [asset, fabric, linHex, trousers, btnHex, cropped, liningMode, overlayKey]);
+  }, [asset, fabric, linHex, trousers, btnHex, cropped, liningMode, overlayKey, S]);
 
   if (!asset || state === "error") return <>{fallback}</>;
   const meta = ASSETS[asset]!;
@@ -508,8 +524,8 @@ export function PhotoPreview({
       <div className="relative w-full overflow-hidden" style={{ aspectRatio: String(ar) }}>
         <canvas
           ref={ref}
-          width={meta.width}
-          height={meta.height}
+          width={meta.width * S}
+          height={meta.height * S}
           role="img"
           aria-label={title ?? "Your suit, close up"}
           className={`absolute block max-w-none ${fade}`}
@@ -531,8 +547,8 @@ export function PhotoPreview({
     <div className={`relative flex items-center justify-center ${className}`}>
       <canvas
         ref={ref}
-        width={meta.width}
-        height={meta.height}
+        width={meta.width * S}
+        height={meta.height * S}
         role="img"
         aria-label={title ?? "Your suit"}
         className={`block ${fit === "width" ? "h-auto w-full" : "h-full max-h-full w-auto max-w-full"} ${fade}`}

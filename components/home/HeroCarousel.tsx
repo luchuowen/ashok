@@ -54,10 +54,11 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
           }}
         >
           <Image
+            quality={85}
             src={slide.src}
             alt={slide.alt}
             fill
-            sizes="100vw"
+            sizes="(max-width: 767px) 360vw, 100vw"
             priority={index === 0}
             className={reduceMotion ? "object-cover" : "object-cover animate-hero-kenburns"}
             style={{

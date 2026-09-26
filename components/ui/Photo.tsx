@@ -13,7 +13,7 @@ export function Photo({
   alt,
   aspectRatio = "4 / 3",
   className = "",
-  sizes = "(min-width: 768px) 25vw, 50vw",
+  sizes = "(min-width: 1024px) 45vw, (min-width: 768px) 60vw, 100vw",
   priority = false,
   bordered = true,
 }: {
@@ -39,6 +39,7 @@ export function Photo({
       style={{ aspectRatio }}
     >
       <Image
+            quality={85}
         src={src}
         alt={alt ?? label}
         fill
