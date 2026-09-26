@@ -59,6 +59,28 @@ def person_matte(im: Image.Image) -> np.ndarray:
     return np.asarray(remove(im, session=_S, only_mask=True)).astype(np.float32) / 255.0
 
 
+# Large-scale light on the model (bright thighs, darker jacket sides) is what makes one cloth read
+# as two tones, so it is evened out: the broad light field of each garment is pulled 60% of the
+# way to flat and every garment is centred on the same level. Folds, creases and seams (the
+# fine-scale shading) are kept exactly.
+FLATTEN = 0.75
+LIGHT_SIGMA = 24
+TONE = {"jacket": 1.0, "trousers": 0.95, "waistcoat": 0.98}
+
+
+def even_light(shade, m, grown, gain):
+    mf = m.astype(np.float32)
+    num = cv2.GaussianBlur(shade * mf, (0, 0), LIGHT_SIGMA)
+    den = cv2.GaussianBlur(mf, (0, 0), LIGHT_SIGMA)
+    low = num / np.maximum(den, 1e-3)
+    high = shade / np.maximum(low, 1.0)
+    centre = float(np.median(low[m]))
+    low2 = centre + (1 - FLATTEN) * (low - centre)
+    out = low2 * high
+    out = out * (128.0 * gain / float(np.median(out[m])))
+    return np.clip(out[grown], 0, 255)
+
+
 def hue_dist(h, c):
     d = np.abs(h.astype(np.int16) - c)
     return np.minimum(d, 180 - d)
@@ -162,9 +184,10 @@ def build(name):
         cloth_part = key in ("jacket", "trousers", "waistcoat")
         ref = float(np.mean(Ls[m])) if cloth_part else float(np.median(Ls[m]))
         refs[key] = round(ref, 1)
-        target = {"jacket": 128.0, "trousers": 128.0 * 0.94, "waistcoat": 128.0 * 0.97}.get(key, 128.0)
         grown = cv2.dilate(m.astype(np.uint8), np.ones((5, 5), np.uint8)).astype(bool)
-        shade[grown] = np.clip(target * Ls[grown] / ref, 0, 255)
+        shade[grown] = np.clip(128.0 * Ls[grown] / ref, 0, 255)
+        if cloth_part:
+            shade[grown] = even_light(shade, m, grown, TONE[key])
         edge = grown & ~m  # anti-aliased rim over the pale backdrop: never brighter than the cloth
         shade[edge] = np.minimum(shade[edge], 112)
     skin_rgb = [int(round(float(np.median(a[..., c][skin])))) for c in range(3)] if skin.sum() > 50 else [150, 100, 70]
