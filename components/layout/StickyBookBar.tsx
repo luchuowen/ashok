@@ -4,8 +4,9 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 
 /** Routes that render their own sticky mobile action bar (price + next
- *  step), plus checkout, where a booking CTA would only cover the form. */
-const OWN_ACTION_BAR = ["/custom-suits/design", "/custom-suits/measurements", "/checkout"];
+ *  step), plus pages where a booking CTA would only cover the form or makes
+ *  no sense (booking itself, sign-in, staff admin). */
+const OWN_ACTION_BAR = ["/custom-suits/design", "/custom-suits/measurements", "/checkout", "/booking", "/auth", "/admin"];
 
 /** Mobile-only sticky bottom booking CTA, hidden at/above 900px. Included on every page. */
 export function StickyBookBar() {

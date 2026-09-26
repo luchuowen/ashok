@@ -3,7 +3,7 @@ import { Photo } from "@/components/ui/Photo";
 import { effectivePrice } from "@/lib/pricing";
 import type { Product } from "@/lib/inventory";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
   const totalStock = product.variants.reduce((sum, v) => sum + v.stockQty, 0);
   const outOfStock = totalStock <= 0;
   const price = effectivePrice(product);
@@ -12,7 +12,7 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <Link href={`/shop/${product.slug}`} className="group block bg-paper p-6">
       <div className="relative">
-        <Photo src={product.images[0]} label={product.imageLabel} />
+        <Photo src={product.images[0]} label={product.imageLabel} priority={priority} sizes="(min-width: 1024px) 30vw, (min-width: 640px) 50vw, 100vw" />
         {outOfStock ? (
           <span className="absolute left-2 top-2 bg-ink px-2 py-0.5 text-[11px] uppercase tracking-wide text-cream">
             Out of Stock

@@ -59,6 +59,20 @@ export const metadata: Metadata = {
   },
 };
 
+const LOCAL_BUSINESS = {
+  "@context": "https://schema.org",
+  "@type": "ClothingStore",
+  name: siteConfig.fullName,
+  url: "https://ashok.navac.co.ke",
+  image: "https://ashok.navac.co.ke/og-image.jpg",
+  telephone: siteConfig.phone,
+  email: siteConfig.email,
+  address: { "@type": "PostalAddress", addressLocality: "Ridgeways, Nairobi", addressCountry: "KE" },
+  openingHours: "Mo-Sa 09:00-18:00",
+  priceRange: "KES 32,000+",
+  sameAs: ["https://www.facebook.com/Ashoksunnytailored/", "https://www.instagram.com/ashok_sunny_/"],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -69,6 +83,7 @@ export default function RootLayout({
       <body
         className={`${fraunces.variable} ${workSans.variable} pb-20 antialiased min-[900px]:pb-0`}
       >
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(LOCAL_BUSINESS) }} />
         <AuthProvider>
           <CartProvider>
             <Header />

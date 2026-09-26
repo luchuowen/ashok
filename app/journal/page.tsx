@@ -2,6 +2,9 @@ import { Section } from "@/components/ui/Section";
 import { TitleBand } from "@/components/ui/TitleBand";
 import { CardGrid } from "@/components/ui/CardGrid";
 import { Photo } from "@/components/ui/Photo";
+import { pageMeta } from "@/lib/seo";
+
+export const metadata = pageMeta("Journal", "Notes from the workroom: cloth, cut and caring for your tailoring, from Ashok Sunny Tailored in Nairobi.", "/journal", { noindex: true });
 
 const teasers = [
   {

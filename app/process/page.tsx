@@ -2,6 +2,9 @@ import { Section } from "@/components/ui/Section";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Photo } from "@/components/ui/Photo";
 import { Tag } from "@/components/ui/Tag";
+import { pageMeta } from "@/lib/seo";
+
+export const metadata = pageMeta("The Process", "From consultation to final fitting: how a suit is measured, cut, basted, fitted and finished at Ashok Sunny Tailored in Nairobi.", "/process");
 
 const introText =
   "Most orders take about five visits. Made-to-measure usually takes fewer. You’ll know what to expect at every stage.";
@@ -110,6 +113,7 @@ export default function ProcessPage() {
                   aspectRatio="3 / 2"
                   className="w-full"
                   sizes="(min-width: 640px) 58vw, 100vw"
+                  priority={index === 0}
                   bordered={false}
                 />
               </div>

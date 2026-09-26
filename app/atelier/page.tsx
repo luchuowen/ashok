@@ -2,6 +2,9 @@ import { Section } from "@/components/ui/Section";
 import { TitleBand } from "@/components/ui/TitleBand";
 import { CardGrid } from "@/components/ui/CardGrid";
 import { Photo } from "@/components/ui/Photo";
+import { pageMeta } from "@/lib/seo";
+
+export const metadata = pageMeta("The Atelier", "Meet the Ridgeways workroom behind Ashok Sunny Tailored: master tailors, hand-cut patterns and fittings in person, in Nairobi.", "/atelier");
 
 const masterTailorImage = "/photos/atelier/master-tailor-cutting-table.jpg";
 

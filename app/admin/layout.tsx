@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import { AdminSessionProvider } from "@/app/admin/admin-session-context";
 import { AdminGate } from "@/app/admin/admin-gate";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminNav } from "@/components/admin/AdminNav";
+
+export const metadata: Metadata = { title: "Staff — Ashok Sunny Tailored", robots: { index: false, follow: false } };
 
 // Shared chrome for all /admin/* routes. AdminSessionProvider + AdminGate do
 // the real, server-verified staff-session check (GET /api/admin/me) and
@@ -15,7 +18,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="min-h-screen bg-paper">
           <AdminHeader />
           <AdminNav />
-          {children}
+          <main>{children}</main>
         </div>
       </AdminGate>
     </AdminSessionProvider>

@@ -227,7 +227,7 @@ export default function CheckoutPage() {
                   <input id="customer-phone" type="tel" autoComplete="tel" required value={d.phone} onChange={(e) => set("phone", e.target.value)} placeholder={hasSuits && d.delivery === "international" ? "+44 7700 900123" : "07XX XXX XXX"} className={`${inputClass} ${touched && !d.phone.trim() ? "!border-oxblood" : ""}`} />
                 </FormField>
                 <div className="sm:col-span-2">
-                  <FormField label="Email (for your receipt and suit specification)" htmlFor="customer-email">
+                  <FormField label={hasSuits ? "Email (for your receipt and suit specification)" : "Email (for your receipt)"} htmlFor="customer-email">
                     <input id="customer-email" type="email" autoComplete="email" value={d.email} onChange={(e) => set("email", e.target.value)} placeholder="you@example.com" className={inputClass} />
                   </FormField>
                 </div>

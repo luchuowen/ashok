@@ -1,14 +1,11 @@
 import { WhatsAppConnect } from "@/components/ui/WhatsAppConnect";
-import { FacebookIcon, InstagramIcon, TikTokIcon, YouTubeIcon } from "@/components/ui/SocialIcon";
+import { FacebookIcon, InstagramIcon } from "@/components/ui/SocialIcon";
 
-// Placeholder hrefs ("#") until the actual profiles exist — swap these in
-// once the accounts are live. WhatsApp is the one channel that's real today,
-// so it's the only one that actually opens anything.
-const PLACEHOLDER_SOCIALS = [
-  { label: "Facebook", href: "#", Icon: FacebookIcon },
-  { label: "Instagram", href: "#", Icon: InstagramIcon },
-  { label: "TikTok", href: "#", Icon: TikTokIcon },
-  { label: "YouTube", href: "#", Icon: YouTubeIcon },
+// The house's live profiles. Add TikTok / YouTube here (icons exist in SocialIcon) once
+// official channels are confirmed — never ship a "#" link.
+const SOCIALS = [
+  { label: "Facebook", href: "https://www.facebook.com/Ashoksunnytailored/", Icon: FacebookIcon },
+  { label: "Instagram", href: "https://www.instagram.com/ashok_sunny_/", Icon: InstagramIcon },
 ];
 
 // White glyph on an ink rounded-square tile — the familiar black social-icon
@@ -33,8 +30,8 @@ export function SocialLinks({
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <WhatsAppConnect variant="icon" triggerClassName={iconButton} iconClassName={ICON_SIZE} />
-      {PLACEHOLDER_SOCIALS.map(({ label, href, Icon }) => (
-        <a key={label} href={href} aria-label={label} className={iconButton}>
+      {SOCIALS.map(({ label, href, Icon }) => (
+        <a key={label} href={href} aria-label={`${label} (opens in a new tab)`} target="_blank" rel="noopener noreferrer" className={iconButton}>
           <Icon className={ICON_SIZE} />
         </a>
       ))}

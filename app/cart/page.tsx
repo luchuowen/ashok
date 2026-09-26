@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { isSuitLine, maxQtyFor, useCart, type CartItem } from "@/app/cart-context";
@@ -305,11 +306,8 @@ function CompleteTheLook({ currency }: { currency: "KES" | "USD" }) {
         {picks.map((p) => (
           <li key={p.id} className="bg-cream">
             <Link href={`/shop/${p.slug}`} className="block p-4 hover:bg-paper">
-              <div className="aspect-square overflow-hidden border border-line bg-paper">
-                {p.images[0] ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.images[0]} alt={p.name} className="h-full w-full object-cover" loading="lazy" />
-                ) : null}
+              <div className="relative aspect-square overflow-hidden border border-line bg-paper">
+                {p.images[0] ? <Image src={p.images[0]} alt={p.name} fill quality={80} sizes="(min-width: 768px) 220px, 45vw" className="object-cover" /> : null}
               </div>
               <p className="mt-3 text-sm">{p.name}</p>
               <p className="text-xs text-muted">{formatMoney(effectivePrice(p), currency)}</p>

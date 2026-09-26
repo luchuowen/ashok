@@ -78,8 +78,8 @@ export default function ShopPage() {
           </p>
         ) : (
           <CardGrid columns={4} className="mt-8 text-center sm:text-left">
-            {visibleProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+            {visibleProducts.map((product, i) => (
+              <ProductCard key={product.id} product={product} priority={i < 4} />
             ))}
           </CardGrid>
         )}

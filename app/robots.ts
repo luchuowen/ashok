@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       // Client-record and staff areas — never for search engines.
-      disallow: ["/portal", "/admin", "/dev", "/custom-suits/measurements"],
+      disallow: ["/portal", "/admin", "/dev", "/api", "/auth", "/cart", "/checkout", "/custom-suits/measurements"],
     },
     sitemap: `${BASE_URL}/sitemap.xml`,
   };

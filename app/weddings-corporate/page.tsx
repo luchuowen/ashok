@@ -2,6 +2,9 @@ import Link from "next/link";
 import { Section } from "@/components/ui/Section";
 import { TitleBand } from "@/components/ui/TitleBand";
 import { CardGrid } from "@/components/ui/CardGrid";
+import { pageMeta } from "@/lib/seo";
+
+export const metadata = pageMeta("Weddings & Corporate", "Suits for grooms and groomsmen, and tailored uniforms for teams in Nairobi — group measuring, fittings and delivery handled for you.", "/weddings-corporate");
 
 const paths = [
   {

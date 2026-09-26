@@ -167,9 +167,12 @@ function AuthForm() {
   return (
     <main>
       <div className="mx-auto max-w-md px-6 py-20">
-        <div className="flex gap-8 border-b border-line">
+        <h1 className="mb-8 font-display text-3xl">{tab === "sign-in" ? "Sign in to your record" : "Create your free account"}</h1>
+        <div className="flex gap-8 border-b border-line" role="tablist" aria-label="Sign in or register">
           <button
             type="button"
+            role="tab"
+            aria-selected={tab === "sign-in"}
             onClick={() => switchTab("sign-in")}
             className={`-mb-px border-b-2 pb-3 text-sm uppercase tracking-wide ${
               tab === "sign-in" ? "border-oxblood text-oxblood" : "border-transparent text-muted"
@@ -179,6 +182,8 @@ function AuthForm() {
           </button>
           <button
             type="button"
+            role="tab"
+            aria-selected={tab === "register"}
             onClick={() => switchTab("register")}
             className={`-mb-px border-b-2 pb-3 text-sm uppercase tracking-wide ${
               tab === "register" ? "border-oxblood text-oxblood" : "border-transparent text-muted"

@@ -92,7 +92,7 @@ export function HeroCarousel({ slides, interval = 6000 }: { slides: HeroSlide[];
               onClick={() => go(k)}
               aria-label={`Show slide ${k + 1}`}
               aria-current={k === i}
-              className="group flex h-6 items-center"
+              className="group flex h-8 min-w-8 items-center justify-center px-1"
             >
               <span className={`block h-px transition-all duration-500 ${k === i ? "w-8 bg-ink" : "w-4 bg-ink/30 group-hover:bg-ink/60"}`} />
             </button>

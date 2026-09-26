@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import Image from "next/image";
 import type { SuitFabric } from "@/lib/suit/types";
 import { FabricPattern } from "./patterns";
 
@@ -8,12 +9,22 @@ import { FabricPattern } from "./patterns";
  * Swatch tile: real photography where the atelier has it, otherwise the same
  * procedural cloth the preview renders (so the swatch and the suit match).
  */
-export function FabricSwatch({ fabric, className = "", large = false }: { fabric: SuitFabric; className?: string; large?: boolean }) {
+export function FabricSwatch({ fabric, className = "", large = false, priority = false }: { fabric: SuitFabric; className?: string; large?: boolean; priority?: boolean }) {
   const pid = `sw${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   if (fabric.image) {
+    // next/image serves a right-sized, compressed copy (the originals are ~1600 px / ~450 KB each).
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={fabric.image} alt={`${fabric.name} swatch`} loading="lazy" className={`h-full w-full object-cover ${className}`} />
+      <span className="relative block h-full w-full">
+        <Image
+          src={fabric.image}
+          alt={`${fabric.name} swatch`}
+          fill
+          quality={80}
+          priority={priority}
+          sizes={large ? "(min-width: 1024px) 480px, 90vw" : "(min-width: 1024px) 160px, 34vw"}
+          className={`object-cover ${className}`}
+        />
+      </span>
     );
   }
   return (

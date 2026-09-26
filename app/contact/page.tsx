@@ -3,6 +3,9 @@ import { TitleBand } from "@/components/ui/TitleBand";
 import { Photo } from "@/components/ui/Photo";
 import { WaCTA } from "@/components/ui/WaCTA";
 import { siteConfig } from "@/lib/content/site";
+import { pageMeta } from "@/lib/seo";
+
+export const metadata = pageMeta("Contact", "Visit, call or WhatsApp Ashok Sunny Tailored in Ridgeways, Nairobi. Opening hours, directions and how to reach the atelier.", "/contact");
 
 const details = [
   { label: "Address", value: siteConfig.address },

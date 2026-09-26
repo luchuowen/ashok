@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { nav } from "@/lib/nav";
 import { siteConfig } from "@/lib/content/site";
 import { SocialLinks } from "@/components/layout/SocialLinks";
@@ -120,6 +121,10 @@ function FooterAccordionSection({ title, links }: { title: string; links: Footer
 }
 
 export function Footer() {
+  const pathname = usePathname();
+  // The designer is a full-screen app (stage + options fill the viewport); a footer
+  // under it only means scrolling past a half-visible cloth list.
+  if (pathname?.startsWith("/custom-suits/design")) return null;
   const houseLinks = resolveLinks(houseSlugs);
   const shopLinks = resolveLinks(shopSlugs);
   const accountLinks = resolveAccountLinks(accountOverrides);

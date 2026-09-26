@@ -579,10 +579,10 @@ export function Configurator() {
           ) : null}
 
           <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4 text-xs text-muted">
-            <button type="button" onClick={() => setDesignsOpen(true)} className="uppercase tracking-wide hover:text-oxblood">
+            <button type="button" onClick={() => setDesignsOpen(true)} className="min-h-9 uppercase tracking-wide hover:text-oxblood">
               My saved designs
             </button>
-            <button type="button" onClick={startOver} className="uppercase tracking-wide hover:text-oxblood">
+            <button type="button" onClick={startOver} className="min-h-9 uppercase tracking-wide hover:text-oxblood">
               Start over
             </button>
           </div>

@@ -1,7 +1,10 @@
+import { pageMeta } from "@/lib/seo";
 import { PortalHeader } from "@/components/portal/PortalHeader";
 import { PortalTabs } from "@/components/portal/PortalTabs";
 import { PortalDataProvider } from "@/app/portal/portal-context";
 import { PortalGate } from "@/app/portal/portal-gate";
+
+export const metadata = pageMeta("Your Record with the House", "Your appointments, orders, designs and measurements.", "/portal", { noindex: true });
 
 // Shared chrome for all 8 portal routes ("Your Record with the House"). middleware.ts redirects a visitor
 // with no session cookie away before this ever renders; PortalDataProvider +
@@ -10,7 +13,7 @@ import { PortalGate } from "@/app/portal/portal-gate";
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   return (
     <PortalDataProvider>
-      <div className="min-h-screen bg-paper">
+      <main className="min-h-screen bg-paper">
         <PortalHeader />
         <div className="mx-auto flex max-w-6xl flex-col md:flex-row">
           <PortalTabs />
@@ -18,7 +21,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
             <PortalGate>{children}</PortalGate>
           </div>
         </div>
-      </div>
+      </main>
     </PortalDataProvider>
   );
 }

@@ -4,6 +4,9 @@ import { TitleBand } from "@/components/ui/TitleBand";
 import { CardGrid } from "@/components/ui/CardGrid";
 import { PriceChip } from "@/components/ui/PriceChip";
 import { QuizBand } from "@/components/ui/QuizBand";
+import { pageMeta } from "@/lib/seo";
+
+export const metadata = pageMeta("Bespoke Suits", "Fully bespoke suits cut from your own paper pattern in Nairobi, made through multiple fittings for a suit that is truly yours.", "/bespoke");
 
 const included = [
   {

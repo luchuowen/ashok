@@ -203,14 +203,14 @@ export function FabricPicker({
         </div>
       ) : (
         <ul className="mt-5 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
-          {results.map((f) => {
+          {results.map((f, idx) => {
             const selected = f.id === selectedId;
             return (
               <li key={f.id}>
                 <div className="group relative">
                   <button type="button" onClick={() => (selected ? setSheet(f) : onSelect(f.id))} aria-pressed={selected} aria-label={selected ? `More about ${f.name}` : `Choose ${f.name}`} className="block w-full text-left">
                     <div className={`relative aspect-[3/2] overflow-hidden outline outline-1 outline-offset-2 transition-[outline-color] ${selected ? "outline-ink" : "outline-transparent group-hover:outline-line"}`}>
-                      <FabricSwatch fabric={f} className="transition-transform duration-500 group-hover:scale-105" />
+                      <FabricSwatch fabric={f} priority={idx < 6} className="transition-transform duration-500 group-hover:scale-105" />
                       {selected ? (
                         <span className="absolute inset-0 flex flex-col items-center justify-center bg-ink/45 text-center text-cream transition-opacity" aria-hidden="true">
                           <span className="px-2 font-display text-[15px] leading-tight">{f.name}</span>

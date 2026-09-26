@@ -4,6 +4,9 @@ import { TitleBand } from "@/components/ui/TitleBand";
 import { Photo } from "@/components/ui/Photo";
 import { Tag } from "@/components/ui/Tag";
 import { fabrics } from "@/lib/fixtures/fabrics";
+import { pageMeta } from "@/lib/seo";
+
+export const metadata = pageMeta("Fabric Library", "Browse our suit cloths — house stretch, Super 110s to 150s merino, linen, tweed and velvet — and design a suit in any of them.", "/fabric-library");
 
 const filterTags = [
   { label: "All", variant: "stage" as const },

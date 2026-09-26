@@ -197,7 +197,7 @@ export function FitProfileBuilder() {
   return (
     <div className="mx-auto max-w-6xl px-5 pb-32 pt-8 sm:px-8 lg:pb-16">
       <nav className="mb-6 flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] text-muted" aria-label="Progress">
-        <Link href="/cart" className="hover:text-ink">Bag</Link>
+        <Link href="/cart" className="inline-flex min-h-8 items-center hover:text-ink">Bag</Link>
         <span>›</span>
         <span className="text-ink">Measurements</span>
         <span>›</span>
@@ -494,7 +494,7 @@ function MethodCard({
   footer?: React.ReactNode;
 }) {
   return (
-    <div className={`flex flex-col bg-cream p-6 ${disabled ? "opacity-70" : ""}`}>
+    <div className={`flex flex-col bg-cream p-6 ${disabled ? "opacity-90" : ""}`}>
       <p className="text-[11px] uppercase tracking-wide text-oxblood">{tag}</p>
       <h2 className="mt-2 text-xl">{title}</h2>
       <p className="mt-2 flex-1 text-sm text-muted">{body}</p>

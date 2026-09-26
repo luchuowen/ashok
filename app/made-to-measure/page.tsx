@@ -5,6 +5,9 @@ import { CardGrid } from "@/components/ui/CardGrid";
 import { PriceChip } from "@/components/ui/PriceChip";
 import { QuizBand } from "@/components/ui/QuizBand";
 import { Photo } from "@/components/ui/Photo";
+import { pageMeta } from "@/lib/seo";
+
+export const metadata = pageMeta("Made-to-Measure Suits", "Made-to-measure suits and blazers in Nairobi: your measurements, your cloth and your details on a proven pattern, fitted in person.", "/made-to-measure");
 
 const womensMtmImage = "/photos/made-to-measure/womens-mtm-blazer.jpg";
 
