@@ -5,6 +5,7 @@ import manifest from "@/lib/suit/photo-assets.json";
 import textureScale from "@/lib/suit/texture-scale.json";
 import { BUTTON_HEX, getFabric, getOptionValue, LINING_COLOURS, THREAD_COLOURS } from "@/lib/suit/catalogue";
 import type { SuitConfig } from "@/lib/suit/types";
+import { highlightScale, rolloff } from "@/lib/suit/tone";
 
 /**
  * Photographic front view. Nano Banana Pro product shots of one neutral-grey
@@ -117,6 +118,10 @@ async function render(asset: string, fabricId: string, linHex: string, trouserId
     load(`/textures/fabrics/${tf.id}.jpg`, tileFor(tf.id), tileFor(tf.id)),
   ]);
   const split = ASSETS[asset]?.split ?? 1e9;
+  // Light cloths (linen, cream, sky) must stay matte: the photo's highlights are compressed in
+  // proportion to how light the cloth is, and values near white roll off instead of clipping.
+  const hsJ = highlightScale(tex.data);
+  const hsT = highlightScale(ttex.data);
   const W = base.width;
   const H = base.height;
   const out = new ImageData(W, H);
@@ -145,10 +150,11 @@ async function render(asset: string, fabricId: string, linHex: string, trouserId
           const v = Math.floor(y * TC - x * TS) % T; // texture column across it
           k = (((u + T) % T) * T + ((v + T) % T)) * 4;
         } else k = (ty + (x % T)) * 4;
-        const sh = s[i]! / 128;
-        r = r * (1 - c) + t[k]! * sh * c;
-        g = g * (1 - c) + t[k + 1]! * sh * c;
-        bl = bl * (1 - c) + t[k + 2]! * sh * c;
+        const s0 = s[i]! / 128;
+        const sh = s0 > 1 ? 1 + (s0 - 1) * (lower ? hsT : hsJ) : s0;
+        r = r * (1 - c) + rolloff(t[k]! * sh) * c;
+        g = g * (1 - c) + rolloff(t[k + 1]! * sh) * c;
+        bl = bl * (1 - c) + rolloff(t[k + 2]! * sh) * c;
       }
       let lm = m[i + 1]! / 255;
       // Half-lined / unlined: the lower lining (or all of it) shows the cloth's inside face.

@@ -5,6 +5,7 @@ import manifest from "@/lib/suit/model-poses.json";
 import { getFabric, getOptionValue } from "@/lib/suit/catalogue";
 import type { SuitConfig } from "@/lib/suit/types";
 import { SuitPreview } from "./SuitPreview";
+import { highlightScale, rolloff } from "@/lib/suit/tone";
 
 /**
  * On-model preview: a studio photo of a model in a neutral grey suit, re-dyed
@@ -133,6 +134,9 @@ async function renderPose(poseId: PoseId, config: SuitConfig, skin: SkinToneId):
   const dR = skinRgb ? skinRgb[0] - sk[0]! : 0;
   const dG = skinRgb ? skinRgb[1] - sk[1]! : 0;
   const dB = skinRgb ? skinRgb[2] - sk[2]! : 0;
+  const hsJ = highlightScale(J);
+  const hsT = highlightScale(Tr);
+  const hsW = highlightScale(Wc);
   const tieCol = tie ?? SHIRT; // no tie chosen: the photographed tie is painted as shirt
   const tieGain = 1.05;
 
@@ -151,9 +155,12 @@ async function renderPose(poseId: PoseId, config: SuitConfig, skin: SkinToneId):
       if (sum > 0.002) {
         const t = (ty + (x % T)) * 4;
         const k = 1 - sum;
-        r = r * k + (J[t]! * mj + Tr[t]! * mt + Wc[t]! * mw) * sh;
-        g = g * k + (J[t + 1]! * mj + Tr[t + 1]! * mt + Wc[t + 1]! * mw) * sh;
-        bl = bl * k + (J[t + 2]! * mj + Tr[t + 2]! * mt + Wc[t + 2]! * mw) * sh;
+        const up = sh > 1 ? sh - 1 : 0;
+        const base = sh > 1 ? 1 : sh;
+        const sj = base + up * hsJ, st = base + up * hsT, sw = base + up * hsW;
+        r = r * k + rolloff(J[t]! * sj) * mj + rolloff(Tr[t]! * st) * mt + rolloff(Wc[t]! * sw) * mw;
+        g = g * k + rolloff(J[t + 1]! * sj) * mj + rolloff(Tr[t + 1]! * st) * mt + rolloff(Wc[t + 1]! * sw) * mw;
+        bl = bl * k + rolloff(J[t + 2]! * sj) * mj + rolloff(Tr[t + 2]! * st) * mt + rolloff(Wc[t + 2]! * sw) * mw;
       }
       const mtie = m2[i + 1]! / 255;
       if (mtie > 0.002) {
